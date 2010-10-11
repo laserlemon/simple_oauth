@@ -1,8 +1,8 @@
 require 'helper'
 
 class SimpleOAuthTest < Test::Unit::TestCase
-  def test_initialization_argument_formatting
-    header = SimpleOAuth::Header.new(:get, 'HTTPS://api.TWITTER.com:443/statuses/friendships.json#anchor', {})
+  def test_initialize
+    header = SimpleOAuth::Header.new(:get, 'HTTPS://api.TWITTER.com:443/1/statuses/friendships.json#anchor', {})
 
     # HTTP method should be an uppercase string.
     #
@@ -13,7 +13,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
     # remove the query and fragment parts.
     #
     # See: http://oauth.net/core/1.0/#rfc.section.9.1.2
-    assert_equal 'https://api.twitter.com/statuses/friendships.json', header.url
+    assert_equal 'https://api.twitter.com/1/statuses/friendships.json', header.url
   end
 
   def test_default_options
@@ -23,7 +23,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
     assert_not_equal default_options, SimpleOAuth::Header.default_options
 
     SimpleOAuth::Header.stubs(:default_options).returns(default_options)
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
 
     # Given no options argument, header options defer to the default options.
     assert_equal default_options, header.options
@@ -36,7 +36,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
   def test_attributes
     attribute_options = SimpleOAuth::Header::ATTRIBUTE_KEYS.inject({}){|o,a| o.merge(a => a.to_s.upcase) }
     options = attribute_options.merge(:other => 'OTHER')
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {}, options)
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}, options)
     attributes = header.send(:attributes)
 
     # OAuth header attributes are all to begin with the "oauth_" prefix.
@@ -67,23 +67,23 @@ class SimpleOAuthTest < Test::Unit::TestCase
 
   def test_url_params
     # A URL with no query parameters should produce empty +url_params+
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
     assert_equal [], header.send(:url_params)
 
     # A URL with query parameters should return a hash having array values
     # containing the given query parameters.
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json?test=TEST', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json?test=TEST', {})
     url_params = header.send(:url_params)
     assert_kind_of Array, url_params
     assert_equal [['test', 'TEST']], url_params
 
     # If a query parameter is repeated, the values should be sorted.
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json?test=1&test=2', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json?test=1&test=2', {})
     assert_equal [['test', '1'], ['test', '2']], header.send(:url_params)
   end
 
   def test_signature_params
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
     header.stubs(:attributes).returns(:attribute => 'ATTRIBUTE')
     header.stubs(:params).returns('param' => 'PARAM')
     header.stubs(:url_params).returns([['url_param', '1'], ['url_param', '2']])
@@ -97,7 +97,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
   end
 
   def test_normalized_params
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
     header.stubs(:signature_params).returns([['A', '4'], ['B', '3'], ['B', '2'], ['C', '1'], ['D[]', '0 ']])
 
     # The +normalized_params+ string should join key=value pairs with
@@ -116,7 +116,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
   end
 
   def test_signature_base
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
     header.stubs(:method).returns('METHOD')
     header.stubs(:url).returns('URL')
     header.stubs(:normalized_params).returns('NORMALIZED_PARAMS')
@@ -134,7 +134,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
   end
 
   def test_secret
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
     header.stubs(:options).returns(:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET')
 
     # Should combine the consumer and token secrets with an ampersand.
