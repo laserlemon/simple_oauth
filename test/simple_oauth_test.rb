@@ -64,4 +64,21 @@ class SimpleOAuthTest < Test::Unit::TestCase
       assert_equal character, SimpleOAuth::Header.encode(character)
     end
   end
+
+  def test_url_params
+    # A URL with no query parameters should produce empty +url_params+
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    assert_equal [], header.send(:url_params)
+
+    # A URL with query parameters should return a hash having array values
+    # containing the given query parameters.
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json?test=TEST', {})
+    url_params = header.send(:url_params)
+    assert_kind_of Array, url_params
+    assert_equal [['test', 'TEST']], url_params
+
+    # If a query parameter is repeated, the values should be sorted.
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json?test=1&test=2', {})
+    assert_equal [['test', '1'], ['test', '2']], header.send(:url_params)
+  end
 end
