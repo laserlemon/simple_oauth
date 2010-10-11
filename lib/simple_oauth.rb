@@ -81,11 +81,11 @@ module SimpleOAuth
       end
 
       def signature_params
-        attributes.to_a + params.to_a + url_params.to_a
+        attributes.to_a + params.to_a + url_params
       end
 
       def url_params
-        CGI.parse(@uri.query || '')
+        CGI.parse(@uri.query || '').inject([]){|p,(k,vs)| p + vs.map{|v| [k, v] } }
       end
   end
 end
