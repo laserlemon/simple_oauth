@@ -189,4 +189,9 @@ class SimpleOAuthTest < Test::Unit::TestCase
     header.stubs(:signed_attributes).returns(1 => '!', 2 => '@', 3 => '#', 4 => '$')
     assert_equal '1="%21", 2="%40", 3="%23", 4="%24"', header.send(:normalized_attributes)
   end
+
+  def test_to_s
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {})
+    assert_equal "OAuth #{header.send(:normalized_attributes)}", header.to_s
+  end
 end
