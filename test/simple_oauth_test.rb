@@ -171,4 +171,9 @@ class SimpleOAuthTest < Test::Unit::TestCase
     header = SimpleOAuth::Header.new(:post, 'https://api.twitter.com/1/statuses/update.json', {:status => 'hi, again'}, options)
     assert_equal successful, header.to_s
   end
+
+  def test_signed_attributes
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {})
+    assert header.send(:signed_attributes).keys.include?(:oauth_signature)
+  end
 end
