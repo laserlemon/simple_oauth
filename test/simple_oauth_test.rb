@@ -53,7 +53,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
 
   def test_encode
     # Non-word characters should be URL encoded...
-    [' ', '!', '@', '$', '%', '^', '&'].each do |character|
+    [' ', '!', '@', '#', '$', '%', '^', '&'].each do |character|
       encoded = SimpleOAuth::Header.encode(character)
       assert_not_equal character, encoded
       assert_equal URI.encode(character, /.*/), encoded
@@ -113,5 +113,23 @@ class SimpleOAuthTest < Test::Unit::TestCase
     # The signature parameters should be sorted and the keys/values URL encoded
     # first.
     assert_equal signature_params.sort_by(&:to_s), pairs.map{|k,v| [URI.decode(k), URI.decode(v)] }
+  end
+
+  def test_signature_base
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header.stubs(:method).returns('METHOD')
+    header.stubs(:url).returns('URL')
+    header.stubs(:normalized_params).returns('NORMALIZED_PARAMS')
+
+    # Should combine HTTP method, URL and normalized parameters string using
+    # ampersands.
+    assert_equal 'METHOD&URL&NORMALIZED_PARAMS', header.send(:signature_base)
+
+    header.stubs(:method).returns('ME#HOD')
+    header.stubs(:url).returns('U#L')
+    header.stubs(:normalized_params).returns('NORMAL#ZED_PARAMS')
+
+    # Each of the three combined values should be URL encoded.
+    assert_equal 'ME%23HOD&U%23L&NORMAL%23ZED_PARAMS', header.send(:signature_base)
   end
 end
