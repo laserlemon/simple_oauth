@@ -176,4 +176,17 @@ class SimpleOAuthTest < Test::Unit::TestCase
     header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {})
     assert header.send(:signed_attributes).keys.include?(:oauth_signature)
   end
+
+  def test_normalized_attributes
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {})
+    header.stubs(:signed_attributes).returns(:d => 1, :c => 2, :b => 3, :a => 4)
+
+    # Should return the OAuth header attributes, sorted by name, with quoted
+    # values and comma-separated.
+    assert_equal 'a="4", b="3", c="2", d="1"', header.send(:normalized_attributes)
+
+    # Values should also be URL encoded.
+    header.stubs(:signed_attributes).returns(1 => '!', 2 => '@', 3 => '#', 4 => '$')
+    assert_equal '1="%21", 2="%40", 3="%23", 4="%24"', header.send(:normalized_attributes)
+  end
 end
