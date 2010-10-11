@@ -50,4 +50,18 @@ class SimpleOAuthTest < Test::Unit::TestCase
     assert_equal attribute_options.size, attributes.size
     assert attributes.all?{|k,v| k.to_s == "oauth_#{v.downcase}" }
   end
+
+  def test_encode
+    # Non-word characters should be URL encoded...
+    [' ', '!', '@', '$', '%', '^', '&'].each do |character|
+      encoded = SimpleOAuth::Header.encode(character)
+      assert_not_equal character, encoded
+      assert_equal URI.encode(character, /.*/), encoded
+    end
+
+    # ...except for the "-", "." and "~" characters.
+    ['-', '.', '~'].each do |character|
+      assert_equal character, SimpleOAuth::Header.encode(character)
+    end
+  end
 end
