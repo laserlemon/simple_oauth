@@ -81,4 +81,18 @@ class SimpleOAuthTest < Test::Unit::TestCase
     header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json?test=1&test=2', {})
     assert_equal [['test', '1'], ['test', '2']], header.send(:url_params)
   end
+
+  def test_signature_params
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header.stubs(:attributes).returns(:attribute => 'ATTRIBUTE')
+    header.stubs(:params).returns('param' => 'PARAM')
+    header.stubs(:url_params).returns([['url_param', '1'], ['url_param', '2']])
+
+    # Should combine OAuth header attributes, body parameters and URL
+    # parameters into an array of key value pairs.
+    signature_params = header.send(:signature_params)
+    assert_kind_of Array, signature_params
+    assert_equal [:attribute, 'param', 'url_param', 'url_param'], signature_params.map(&:first)
+    assert_equal ['ATTRIBUTE', 'PARAM', '1', '2'], signature_params.map(&:last)
+  end
 end
