@@ -95,4 +95,23 @@ class SimpleOAuthTest < Test::Unit::TestCase
     assert_equal [:attribute, 'param', 'url_param', 'url_param'], signature_params.map(&:first)
     assert_equal ['ATTRIBUTE', 'PARAM', '1', '2'], signature_params.map(&:last)
   end
+
+  def test_normalized_params
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header.stubs(:signature_params).returns([['A', '4'], ['B', '3'], ['B', '2'], ['C', '1'], ['D[]', '0 ']])
+
+    # The +normalized_params+ string should join key=value pairs with
+    # ampersands.
+    signature_params = header.send(:signature_params)
+    normalized_params = header.send(:normalized_params)
+    parts = normalized_params.split('&')
+    pairs = parts.map{|p| p.split('=') }
+    assert_kind_of String, normalized_params
+    assert_equal signature_params.size, parts.size
+    assert pairs.all?{|p| p.size == 2 }
+
+    # The signature parameters should be sorted and the keys/values URL encoded
+    # first.
+    assert_equal signature_params.sort_by(&:to_s), pairs.map{|k,v| [URI.decode(k), URI.decode(v)] }
+  end
 end
