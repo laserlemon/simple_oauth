@@ -132,4 +132,17 @@ class SimpleOAuthTest < Test::Unit::TestCase
     # Each of the three combined values should be URL encoded.
     assert_equal 'ME%23HOD&U%23L&NORMAL%23ZED_PARAMS', header.send(:signature_base)
   end
+
+  def test_secret
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {})
+    header.stubs(:options).returns(:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET')
+
+    # Should combine the consumer and token secrets with an ampersand.
+    assert_equal 'CONSUMER_SECRET&TOKEN_SECRET', header.send(:secret)
+
+    header.stubs(:options).returns(:consumer_secret => 'CONSUM#R_SECRET', :token_secret => 'TOKEN_S#CRET')
+
+    # Should URL encode each secret value before combination.
+    assert_equal 'CONSUM%23R_SECRET&TOKEN_S%23CRET', header.send(:secret)
+  end
 end
