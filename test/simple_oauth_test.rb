@@ -32,4 +32,22 @@ class SimpleOAuthTest < Test::Unit::TestCase
     assert_equal 'HMAC-SHA1', default_options[:signature_method]
     assert_equal '1.0', default_options[:version]
   end
+
+  def test_attributes
+    attribute_options = SimpleOAuth::Header::ATTRIBUTE_KEYS.inject({}){|o,a| o.merge(a => a.to_s.upcase) }
+    options = attribute_options.merge(:other => 'OTHER')
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/statuses/friendships.json', {}, options)
+    attributes = header.send(:attributes)
+
+    # OAuth header attributes are all to begin with the "oauth_" prefix.
+    assert attributes.all?{|k,v| k.to_s =~ /^oauth_/ }
+
+    # Custom options not included in the list of valid attribute keys should
+    # not be included in the header attributes.
+    assert !attributes.key?(:oauth_other)
+
+    # Valid attribute option values should be preserved.
+    assert_equal attribute_options.size, attributes.size
+    assert attributes.all?{|k,v| k.to_s == "oauth_#{v.downcase}" }
+  end
 end
