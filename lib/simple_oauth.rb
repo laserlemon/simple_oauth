@@ -34,11 +34,11 @@ module SimpleOAuth
     end
 
     def to_s
-      @to_s ||= "OAuth #{normalized_attributes}"
+      "OAuth #{normalized_attributes}"
     end
 
     def url
-      @url ||= @uri.dup.tap{|u| u.query = nil }.to_s
+      @uri.dup.tap{|u| u.query = nil }.to_s
     end
 
     private
