@@ -24,7 +24,11 @@ module SimpleOAuth
 
     def initialize(method, url, params, options = {})
       @method = method.to_s.upcase
-      @uri = URI.parse(url).normalize
+      @uri = URI.parse(url).tap do |uri|
+        uri.scheme = uri.scheme.downcase
+        uri.normalize!
+        uri.fragment = nil
+      end
       @params = params
       @options = self.class.default_options.merge(options)
     end
