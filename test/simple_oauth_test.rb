@@ -172,6 +172,20 @@ class SimpleOAuthTest < Test::Unit::TestCase
     assert_equal successful, header.to_s
   end
 
+  def test_signature
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'HMAC-SHA1')
+    header.expects(:hmac_sha1_signature).once.returns('HMAC_SHA1_SIGNATURE')
+    assert_equal 'HMAC_SHA1_SIGNATURE', header.send(:signature)
+
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'RSA-SHA1', :private_key => 'PRIVATE_KEY')
+    header.expects(:rsa_sha1_signature).once.returns('RSA_SHA1_SIGNATURE')
+    assert_equal 'RSA_SHA1_SIGNATURE', header.send(:signature)
+
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'PLAINTEXT')
+    header.expects(:plaintext_signature).once.returns('PLAINTEXT_SIGNATURE')
+    assert_equal 'PLAINTEXT_SIGNATURE', header.send(:signature)
+  end
+
   def test_signed_attributes
     header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {})
     assert header.send(:signed_attributes).keys.include?(:oauth_signature)
