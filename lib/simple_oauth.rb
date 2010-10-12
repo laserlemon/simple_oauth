@@ -4,6 +4,13 @@ require 'openssl'
 require 'uri'
 
 module SimpleOAuth
+  module Version
+    MAJOR = 0
+    MINOR = 1
+    PATCH = 0
+    STRING = [MAJOR, MINOR, PATCH].join('.')
+  end
+
   class Header
     ATTRIBUTE_KEYS = [:consumer_key, :nonce, :signature, :signature_method, :timestamp, :token, :version]
 
