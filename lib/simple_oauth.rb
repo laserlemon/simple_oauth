@@ -27,9 +27,20 @@ module SimpleOAuth
       URI.encode(value.to_s, /[^\w\-\.\~]/)
     end
 
+    def self.decode(value)
+      URI.decode(value.to_s)
+    end
+
+    def self.parse(header)
+      header.to_s.sub(/^OAuth\s/, '').split(', ').inject({}) do |attributes, pair|
+        match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
+        attributes.merge(match[1].sub(/^oauth_/, '').to_sym => decode(match[2]))
+      end
+    end
+
     attr_reader :method, :params, :options
 
-    def initialize(method, url, params, options = {})
+    def initialize(method, url, params, oauth = {})
       @method = method.to_s.upcase
       @uri = URI.parse(url).tap do |uri|
         uri.scheme = uri.scheme.downcase
@@ -37,15 +48,23 @@ module SimpleOAuth
         uri.fragment = nil
       end
       @params = params
-      @options = self.class.default_options.merge(options)
+      @options = oauth.is_a?(Hash) ? self.class.default_options.merge(oauth) : self.class.parse(oauth)
+    end
+
+    def url
+      @uri.dup.tap{|u| u.query = nil }.to_s
     end
 
     def to_s
       "OAuth #{normalized_attributes}"
     end
 
-    def url
-      @uri.dup.tap{|u| u.query = nil }.to_s
+    def valid?(secrets = {})
+      original_options = options.dup
+      options.merge!(secrets)
+      valid = options[:signature] == signature
+      options.replace(original_options)
+      valid
     end
 
     private
