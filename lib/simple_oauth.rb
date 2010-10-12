@@ -12,7 +12,7 @@ module SimpleOAuth
   end
 
   class Header
-    ATTRIBUTE_KEYS = [:consumer_key, :nonce, :signature, :signature_method, :timestamp, :token, :version]
+    ATTRIBUTE_KEYS = [:consumer_key, :nonce, :signature_method, :timestamp, :token, :version]
 
     def self.default_options
       {
@@ -89,7 +89,7 @@ module SimpleOAuth
       end
 
       def rsa_sha1_signature
-        Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha1'), options[:private_key], signature_base)).chomp
+        Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha1'), options[:private_key].to_s, signature_base)).chomp
       end
 
       def secret
