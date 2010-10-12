@@ -1,23 +1,55 @@
+require './lib/simple_oauth'
+require 'rubygems'
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
-desc 'Default: run unit tests.'
-task :default => :test
-
-desc 'Test the simple_oauth plugin.'
-Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
-  t.libs << 'test'
-  t.pattern = 'test/**/*_test.rb'
-  t.verbose = true
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gem|
+    gem.name = 'simple_oauth'
+    gem.version = SimpleOAuth::Version::STRING
+    gem.summary = 'Simply builds and verifies OAuth headers'
+    gem.description = 'Simply builds and verifies OAuth headers'
+    gem.email = 'steve.richert@gmail.com'
+    gem.homepage = 'http://github.com/laserlemon/simple_oauth'
+    gem.authors = ['Steve Richert']
+    gem.add_development_dependency 'mocha'
+    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+  end
+  Jeweler::GemcutterTasks.new
+rescue LoadError
+  puts 'Jeweler is not available. Install it with: gem install jeweler'
 end
 
-desc 'Generate documentation for the simple_oauth plugin.'
-Rake::RDocTask.new(:rdoc) do |rdoc|
+Rake::TestTask.new do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/**/*_test.rb'
+  test.verbose = true
+end
+
+task :test => :check_dependencies
+
+task :default => :test
+
+begin
+  require 'rcov/rcovtask'
+  Rcov::RcovTask.new do |rcov|
+    rcov.libs << 'lib' << 'test'
+    rcov.pattern = 'test/**/*_test.rb'
+    rcov.verbose = true
+    rcov.rcov_opts << '--exclude "gems/*"'
+  end
+rescue LoadError
+  task :rcov do
+    abort 'RCov is not available. Install it with: gem install rcov'
+  end
+end
+
+Rake::RDocTask.new do |rdoc|
+  version = SimpleOAuth::Version::STRING
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'SimpleOauth'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README')
+  rdoc.title = "simple_oauth #{version}"
+  rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
