@@ -84,7 +84,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
     # Using the RSA-SHA1 signature method, the consumer secret must be a valid
     # RSA private key. When parsing the header on the server side, the same
     # consumer secret must be included in order for the header to validate.
-    secrets = {:consumer_secret => File.read('test/rsa_private_key').to_s}
+    secrets = {:consumer_secret => File.read('test/rsa_private_key')}
     header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'RSA-SHA1'))
     parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
     assert_raise(TypeError){ parsed_header.valid? }
@@ -258,7 +258,18 @@ class SimpleOAuthTest < Test::Unit::TestCase
   end
 
   def test_rsa_sha1_signature
-    # Pending
+    # Sample request taken from:
+    # http://wiki.oauth.net/TestCases
+    options = {
+      :consumer_key => 'dpf43f3p2l4k3l03',
+      :consumer_secret => File.read('test/rsa_private_key'),
+      :nonce => '13917289812797014437',
+      :signature_method => 'RSA-SHA1',
+      :timestamp => '1196666512'
+    }
+    successful = 'OAuth oauth_consumer_key="dpf43f3p2l4k3l03", oauth_nonce="13917289812797014437", oauth_signature="jvTp%2FwX1TYtByB1m%2BPbyo0lnCOLIsyGCH7wke8AUs3BpnwZJtAuEJkvQL2%2F9n4s5wUmUl4aCI4BwpraNx4RtEXMe5qg5T1LVTGliMRpKasKsW%2F%2Fe%2BRinhejgCuzoH26dyF8iY2ZZ%2F5D1ilgeijhV%2FvBka5twt399mXwaYdCwFYE%3D", oauth_signature_method="RSA-SHA1", oauth_timestamp="1196666512", oauth_version="1.0"'
+    header = SimpleOAuth::Header.new(:get, 'http://photos.example.net/photos', {:file => 'vacaction.jpg', :size => 'original'}, options)
+    assert_equal successful, header.to_s
   end
 
   def test_private_key
