@@ -1,0 +1,18 @@
+PATH
+  remote: .
+  specs:
+    simple_oauth (0.1.0)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    mocha (0.9.8)
+      rake
+    rake (0.8.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mocha
+  simple_oauth!
