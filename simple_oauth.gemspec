@@ -12,6 +12,7 @@ Gem::Specification.new do |spec|
   spec.name = 'simple_oauth'
   spec.rdoc_options = ['--charset=UTF-8']
   spec.required_ruby_version = '>= 1.8.7'
+  spec.required_rubygems_version = '>= 1.2.0'
   spec.summary = 'Simply builds and verifies OAuth headers'
   spec.test_files = `git ls-files -- test/**/*_test.rb`.split("\n")
   spec.version = SimpleOAuth::Version::STRING

@@ -13,6 +13,14 @@ end
 
 task :default => :test
 
+Rake::RDocTask.new do |rdoc|
+  version = SimpleOAuth::Version::STRING
+  rdoc.rdoc_dir = 'rdoc'
+  rdoc.title = "simple_oauth #{version}"
+  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
 begin
   require 'rcov/rcovtask'
   Rcov::RcovTask.new do |rcov|
@@ -27,10 +35,14 @@ rescue LoadError
   end
 end
 
-Rake::RDocTask.new do |rdoc|
-  version = SimpleOAuth::Version::STRING
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "simple_oauth #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+def gemspec
+  @gemspec ||= begin
+    file = File.expand_path('../simple_oauth.gemspec', __FILE__)
+    eval(File.read(file), binding, file)
+  end
+end
+
+desc 'Validate the gemspec'
+task :gemspec do
+  gemspec.validate
 end
