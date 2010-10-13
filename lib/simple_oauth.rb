@@ -88,19 +88,9 @@ module SimpleOAuth
         Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, secret, signature_base)).chomp.gsub(/\n/, '')
       end
 
-      def rsa_sha1_signature
-        Base64.encode64(private_key.sign(OpenSSL::Digest::SHA1.new, signature_base)).chomp.gsub(/\n/, '')
-      end
-
-      def private_key
-        OpenSSL::PKey::RSA.new(options[:consumer_secret])
-      end
-
       def secret
         options.values_at(:consumer_secret, :token_secret).map{|v| self.class.encode(v) }.join('&')
       end
-
-      alias_method :plaintext_signature, :secret
 
       def signature_base
         [method, url, normalized_params].map{|v| self.class.encode(v) }.join('&')
@@ -117,5 +107,15 @@ module SimpleOAuth
       def url_params
         CGI.parse(@uri.query || '').inject([]){|p,(k,vs)| p + vs.map{|v| [k, v] } }
       end
+
+      def rsa_sha1_signature
+        Base64.encode64(private_key.sign(OpenSSL::Digest::SHA1.new, signature_base)).chomp.gsub(/\n/, '')
+      end
+
+      def private_key
+        OpenSSL::PKey::RSA.new(options[:consumer_secret])
+      end
+
+      alias_method :plaintext_signature, :secret
   end
 end
