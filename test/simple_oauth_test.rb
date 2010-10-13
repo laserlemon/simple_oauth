@@ -266,6 +266,19 @@ class SimpleOAuthTest < Test::Unit::TestCase
   end
 
   def plaintext_signature
-    # Pending
+    # Sample request taken from:
+    # http://oauth.googlecode.com/svn/code/javascript/example/signature.html
+    options = {
+      :consumer_key => 'abcd',
+      :consumer_secret => 'efgh',
+      :nonce => 'oLKtec51GQy',
+      :signature_method => 'PLAINTEXT',
+      :timestamp => '1286977095',
+      :token => 'ijkl',
+      :token_secret => 'mnop'
+    }
+    successful = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+    header = SimpleOAuth::Header.new(:get, 'http://host.net/resource?name=value', {:name => 'value'}, options)
+    assert_equal successful, header.to_s
   end
 end
