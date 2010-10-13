@@ -69,7 +69,7 @@ module SimpleOAuth
 
     private
       def normalized_attributes
-        signed_attributes.sort_by(&:to_s).map{|k,v| %(#{k}="#{self.class.encode(v)}") }.join(', ')
+        signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.encode(v)}") }.join(', ')
       end
 
       def signed_attributes
@@ -103,7 +103,7 @@ module SimpleOAuth
       end
 
       def normalized_params
-        signature_params.sort_by(&:to_s).map{|p| p.map{|v| self.class.encode(v) }.join('=') }.join('&')
+        signature_params.map{|p| p.map{|v| self.class.encode(v) } }.sort.map{|p| p.join('=') }.join('&')
       end
 
       def signature_params
