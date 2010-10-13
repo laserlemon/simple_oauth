@@ -177,7 +177,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
     header.expects(:hmac_sha1_signature).once.returns('HMAC_SHA1_SIGNATURE')
     assert_equal 'HMAC_SHA1_SIGNATURE', header.send(:signature)
 
-    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'RSA-SHA1', :private_key => 'PRIVATE_KEY')
+    header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'RSA-SHA1')
     header.expects(:rsa_sha1_signature).once.returns('RSA_SHA1_SIGNATURE')
     assert_equal 'RSA_SHA1_SIGNATURE', header.send(:signature)
 
@@ -222,15 +222,6 @@ class SimpleOAuthTest < Test::Unit::TestCase
   end
 
   def test_valid
-    # With no consumer or token secrets, built headers should be valid when
-    # parsed without secrets, regardless of signature method.
-    ['HMAC-SHA1', 'RSA-SHA1', 'PLAINTEXT'].each do |signature_method|
-      header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => signature_method)
-      parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
-      assert_equal signature_method, parsed_header.options[:signature_method]
-      assert parsed_header.valid?
-    end
-
     # When given consumer and token secrets, those secrets must be passed into
     # the parsed header validation in order for the validity check to pass.
     secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'}
@@ -239,13 +230,13 @@ class SimpleOAuthTest < Test::Unit::TestCase
     assert !parsed_header.valid?
     assert parsed_header.valid?(secrets)
 
-    # Using the RSA-SHA1 signature method, a private key should be included
-    # with the options. When parsing the header on the server side, the
-    # the private key must be included in order for the header to validate.
-    secrets = {:private_key => 'PRIVATE_KEY'}
+    # Using the RSA-SHA1 signature method, the consumer secret must be a valid
+    # RSA private key. When parsing the header on the server side, the same
+    # consumer secret must be included in order for the header to validate.
+    secrets = {:consumer_secret => File.read('test/rsa_private_key').to_s}
     header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'RSA-SHA1'))
     parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
-    assert !parsed_header.valid?
+    assert_raise(TypeError){ parsed_header.valid? }
     assert parsed_header.valid?(secrets)
 
     # Like the default HMAC-RSA1 signature method, the PLAINTEXT method

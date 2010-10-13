@@ -85,11 +85,15 @@ module SimpleOAuth
       end
 
       def hmac_sha1_signature
-        Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha1'), secret, signature_base)).chomp
+        Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, secret, signature_base)).chomp.gsub(/\n/, '')
       end
 
       def rsa_sha1_signature
-        Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha1'), options[:private_key].to_s, signature_base)).chomp
+        Base64.encode64(private_key.sign(OpenSSL::Digest::SHA1.new, signature_base)).chomp.gsub(/\n/, '')
+      end
+
+      def private_key
+        OpenSSL::PKey::RSA.new(options[:consumer_secret])
       end
 
       def secret
