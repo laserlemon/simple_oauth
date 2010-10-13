@@ -72,7 +72,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
     assert_equal "OAuth #{header.send(:normalized_attributes)}", header.to_s
   end
 
-  def test_valid
+  def test_valid?
     # When given consumer and token secrets, those secrets must be passed into
     # the parsed header validation in order for the validity check to pass.
     secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'}
