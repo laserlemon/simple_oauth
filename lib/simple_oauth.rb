@@ -66,14 +66,14 @@ module SimpleOAuth
       options.replace(original_options)
       valid
     end
+    
+    def signed_attributes
+      attributes.merge(:oauth_signature => signature)
+    end
 
     private
       def normalized_attributes
         signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.encode(v)}") }.join(', ')
-      end
-
-      def signed_attributes
-        attributes.merge(:oauth_signature => signature)
       end
 
       def attributes
