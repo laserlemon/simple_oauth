@@ -24,7 +24,7 @@ module SimpleOAuth
     end
 
     def self.encode(value)
-      URI.encode(value.to_s, /[^\w\-\.\~]/)
+      URI.encode(value.to_s, /[^a-z0-9\-\.\_\~]/i)
     end
 
     def self.decode(value)

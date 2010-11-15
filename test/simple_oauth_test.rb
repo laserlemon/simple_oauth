@@ -30,6 +30,19 @@ class SimpleOAuthTest < Test::Unit::TestCase
     ['-', '.', '~'].each do |character|
       assert_equal character, SimpleOAuth::Header.encode(character)
     end
+
+    major, minor, patch = RUBY_VERSION.split('.')
+    new_ruby = major.to_i >= 2 || major.to_i == 1 && minor.to_i >= 9
+    old_kcode = $KCODE if !new_ruby
+    begin
+      %w(n N e E s S u U).each do |kcode|
+        $KCODE = kcode if !new_ruby
+        assert_equal '%E3%81%82', SimpleOAuth::Header.encode('あ'), "Failed to correctly escape Japanese under $KCODE = #{kcode}"
+        assert_equal '%C3%A9', SimpleOAuth::Header.encode('é'), "Failed to correctly escape e+acute under $KCODE = #{kcode}"
+      end
+    ensure
+      $KCODE = old_kcode if !new_ruby
+    end
   end
 
   def test_decode
