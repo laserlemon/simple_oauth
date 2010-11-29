@@ -6,7 +6,7 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
-    mocha (0.9.9)
+    mocha (0.9.10)
       rake
     rake (0.8.7)
 
