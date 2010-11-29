@@ -1,3 +1,5 @@
+*.rbc
+.DS_Store
 .bundle
 coverage
 pkg
