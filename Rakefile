@@ -14,6 +14,7 @@ end
 task :default => :test
 
 Rake::RDocTask.new do |rdoc|
+  require File.expand_path('../lib/simple_oauth/version', __FILE__)
   version = SimpleOAuth::Version::STRING
   rdoc.rdoc_dir = 'rdoc'
   rdoc.title = "simple_oauth #{version}"

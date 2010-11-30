@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/simple_oauth', __FILE__)
+require File.expand_path('../lib/simple_oauth/version', __FILE__)
 
 Gem::Specification.new do |spec|
   spec.add_development_dependency('mocha', '>= 0')
