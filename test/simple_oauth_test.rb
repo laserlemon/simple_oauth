@@ -237,7 +237,7 @@ class SimpleOAuthTest < Test::Unit::TestCase
 
     # The signature parameters should be sorted and the keys/values URL encoded
     # first.
-    assert_equal signature_params.sort_by(&:to_s), pairs.map{|k,v| [URI.decode(k), URI.decode(v)] }
+    assert_equal signature_params.sort_by{|p| p.to_s}, pairs.map{|k, v| [URI.decode(k), URI.decode(v)]}
   end
 
   def test_signature_params
@@ -250,8 +250,8 @@ class SimpleOAuthTest < Test::Unit::TestCase
     # parameters into an array of key value pairs.
     signature_params = header.send(:signature_params)
     assert_kind_of Array, signature_params
-    assert_equal [:attribute, 'param', 'url_param', 'url_param'], signature_params.map(&:first)
-    assert_equal ['ATTRIBUTE', 'PARAM', '1', '2'], signature_params.map(&:last)
+    assert_equal [:attribute, 'param', 'url_param', 'url_param'], signature_params.map{|p| p.first}
+    assert_equal ['ATTRIBUTE', 'PARAM', '1', '2'], signature_params.map{|p| p.last}
   end
 
   def test_url_params

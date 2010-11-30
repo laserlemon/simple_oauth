@@ -11,9 +11,8 @@ Gem::Specification.new do |spec|
   spec.homepage = 'http://github.com/laserlemon/simple_oauth'
   spec.name = 'simple_oauth'
   spec.rdoc_options = ['--charset=UTF-8']
-  spec.required_ruby_version = '>= 1.8.7'
-  spec.required_rubygems_version = '>= 1.2.0'
-  spec.summary = 'Simply builds and verifies OAuth headers'
+  spec.required_rubygems_version = Gem::Requirement.new('>= 1.3.6') if spec.respond_to? :required_rubygems_version=
+  spec.summary = spec.description
   spec.test_files = `git ls-files -- test/**/*_test.rb`.split("\n")
   spec.version = SimpleOAuth::Version::STRING
 end
