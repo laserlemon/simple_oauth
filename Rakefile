@@ -22,20 +22,6 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-begin
-  require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |rcov|
-    rcov.libs << 'lib' << 'test'
-    rcov.pattern = 'test/**/*_test.rb'
-    rcov.verbose = true
-    rcov.rcov_opts << '--exclude "gems/*"'
-  end
-rescue LoadError
-  task :rcov do
-    abort 'RCov is not available. Install it with: gem install rcov'
-  end
-end
-
 def gemspec
   @gemspec ||= begin
     file = File.expand_path('../simple_oauth.gemspec', __FILE__)
