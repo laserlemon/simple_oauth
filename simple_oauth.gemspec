@@ -7,9 +7,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov', '~> 0.4'
   spec.add_development_dependency 'turn', '~> 0.8'
   spec.add_development_dependency 'yard', '~> 0.6'
-  spec.authors = ['Steve Richert']
+  spec.authors = ['Steve Richert', 'Erik Michaels-Ober']
   spec.description = 'Simply builds and verifies OAuth headers'
-  spec.email = ['steve.richert@gmail.com']
+  spec.email = ['steve.richert@gmail.com', 'sferik@gmail.com']
   spec.extra_rdoc_files = ['README.rdoc']
   spec.files = `git ls-files`.split("\n")
   spec.homepage = 'http://github.com/laserlemon/simple_oauth'

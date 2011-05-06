@@ -16,4 +16,5 @@ Submitting a Pull Request
 
 Copyright
 ---------
-Copyright (c) 2010 Steve Richert. See [LICENSE](https://github.com/laserlemon/simple_oauth/blob/master/LICENSE.md) for details.
+Copyright (c) 2010 Steve Richert, Erik Michaels-Ober.
+See [LICENSE](https://github.com/laserlemon/simple_oauth/blob/master/LICENSE.md) for details.
