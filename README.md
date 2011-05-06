@@ -2,6 +2,10 @@ simple_oauth
 ============
 Simply builds and verifies OAuth headers
 
+Continuous Integration
+----------------------
+[![Build Status](http://travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth)
+
 Submitting a Pull Request
 -------------------------
 1. Fork the project.
