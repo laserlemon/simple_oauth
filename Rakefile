@@ -1,10 +1,9 @@
-require 'rake'
-require 'rake/testtask'
-require 'rake/rdoctask'
-require 'bundler'
+#!/usr/bin/env rake
 
+require 'bundler'
 Bundler::GemHelper.install_tasks
 
+require 'rake/testtask'
 Rake::TestTask.new do |test|
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/*_test.rb'
@@ -13,6 +12,7 @@ end
 
 task :default => :test
 
+require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
   require File.expand_path('../lib/simple_oauth/version', __FILE__)
   version = SimpleOAuth::Version::STRING
