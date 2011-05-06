@@ -12,24 +12,13 @@ end
 
 task :default => :test
 
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  require File.expand_path('../lib/simple_oauth/version', __FILE__)
-  version = SimpleOAuth::Version::STRING
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "simple_oauth #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
-
-def gemspec
-  @gemspec ||= begin
-    file = File.expand_path('../simple_oauth.gemspec', __FILE__)
-    eval(File.read(file), binding, file)
+namespace :doc do
+  require 'yard'
+  YARD::Rake::YardocTask.new do |task|
+    task.files   = ['README.md', 'LICENSE.md', 'lib/**/*.rb']
+    task.options = [
+      '--output-dir', 'doc/yard',
+      '--markup', 'markdown',
+    ]
   end
-end
-
-desc 'Validate the gemspec'
-task :gemspec do
-  gemspec.validate
 end
