@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rake', '~> 0.8'
   gem.add_development_dependency 'simplecov', '~> 0.4'
   gem.add_development_dependency 'turn', '~> 0.8'
-  gem.add_development_dependency 'yard', '~> 0.6'
+  gem.add_development_dependency 'yard', '~> 0.7'
   gem.authors = ["Steve Richert", "Erik Michaels-Ober"]
   gem.description = 'Simply builds and verifies OAuth headers'
   gem.email = ['steve.richert@gmail.com', 'sferik@gmail.com']
