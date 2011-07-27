@@ -5,5 +5,4 @@ require 'simplecov'
 SimpleCov.start
 require 'test/unit'
 require 'mocha'
-require 'turn'
 require 'simple_oauth'
