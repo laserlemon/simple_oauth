@@ -2,7 +2,7 @@
 Simply builds and verifies OAuth headers
 
 ## <a name="ci">Continuous Integration</a>
-[![Build Status](https://travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth)
+[![Build Status](https://secure.travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth)
 
 ## <a name="pulls">Submitting a Pull Request</a>
 1. Fork the project.
