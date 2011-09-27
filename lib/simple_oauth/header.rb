@@ -66,7 +66,7 @@ module SimpleOAuth
     end
 
     def attributes
-      ATTRIBUTE_KEYS.inject({}){|a,k| options.key?(k) ? a.merge(:"oauth_#{k}" => options[k]) : a }
+      ATTRIBUTE_KEYS.inject({}){|a,k| options.key?(k) and options[k] ? a.merge(:"oauth_#{k}" => options[k]) : a }
     end
 
     def signature
