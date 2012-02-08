@@ -1,8 +1,6 @@
-# simple_oauth
-Simply builds and verifies OAuth headers
+# simple_oauth [![Build Status](https://secure.travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth) [![Dependency Status](https://gemnasium.com/laserlemon/simple_oauth.png)](https://gemnasium.com/laserlemon/simple_oauth)
 
-## <a name="ci"></a>Continuous Integration
-[![Build Status](https://secure.travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth)
+Simply builds and verifies OAuth headers
 
 ## <a name="pulls"></a>Submitting a Pull Request
 1. Fork the project.
