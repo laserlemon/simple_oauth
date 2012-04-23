@@ -30,7 +30,7 @@ module SimpleOAuth
 
     def initialize(method, url, params, oauth = {})
       @method = method.to_s.upcase
-      @uri = URI.parse(url).tap do |uri|
+      @uri = URI.parse(url.to_s).tap do |uri|
         uri.scheme = uri.scheme.downcase
         uri.normalize!
         uri.fragment = nil
