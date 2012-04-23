@@ -3,8 +3,6 @@ unless ENV['CI']
   SimpleCov.start
 end
 
-require 'bundler'
-Bundler.setup
-require 'test/unit'
-require 'mocha'
 require 'simple_oauth'
+
+Dir[File.expand_path('../support/**/*.rb', __FILE__)].each{|f| require f }

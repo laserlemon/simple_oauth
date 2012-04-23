@@ -101,7 +101,7 @@ module SimpleOAuth
     end
 
     def url_params
-      CGI.parse(@uri.query || '').inject([]){|p,(k,vs)| p + vs.map{|v| [k, v] } }
+      CGI.parse(@uri.query || '').inject([]){|p,(k,vs)| p + vs.sort.map{|v| [k, v] } }
     end
 
     def rsa_sha1_signature

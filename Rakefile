@@ -1,16 +1,12 @@
 #!/usr/bin/env rake
 
 require 'bundler/gem_tasks'
-require 'rake/testtask'
+require 'rspec/core/rake_task'
 require 'yard'
 
-Rake::TestTask.new do |test|
-  test.libs << 'lib' << 'test'
-  test.pattern = 'test/**/*_test.rb'
-  test.verbose = true
-end
+RSpec::Core::RakeTask.new(:spec)
 
-task :default => :test
+task :default => :spec
 
 namespace :doc do
   YARD::Rake::YardocTask.new do |task|
