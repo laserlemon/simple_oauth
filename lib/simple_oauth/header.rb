@@ -30,17 +30,18 @@ module SimpleOAuth
 
     def initialize(method, url, params, oauth = {})
       @method = method.to_s.upcase
-      @uri = URI.parse(url.to_s).tap do |uri|
-        uri.scheme = uri.scheme.downcase
-        uri.normalize!
-        uri.fragment = nil
-      end
+      @uri = URI.parse(url.to_s)
+      @uri.scheme = @uri.scheme.downcase
+      @uri.normalize!
+      @uri.fragment = nil
       @params = params
       @options = oauth.is_a?(Hash) ? self.class.default_options.merge(oauth) : self.class.parse(oauth)
     end
 
     def url
-      @uri.dup.tap{|u| u.query = nil }.to_s
+      uri = @uri.dup
+      uri.query = nil
+      uri.to_s
     end
 
     def to_s
