@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |gem|
   gem.name    = 'simple_oauth'
-  gem.version = '0.1.6'
+  gem.version = '0.1.7'
 
   gem.authors     = ["Steve Richert", "Erik Michaels-Ober"]
   gem.email       = ['steve.richert@gmail.com', 'sferik@gmail.com']
