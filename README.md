@@ -23,7 +23,6 @@ implementations:
 * Ruby 1.9.3
 * [JRuby](http://www.jruby.org/)
 * [Rubinius](http://rubini.us/)
-* [Ruby Enterprise Edition](http://www.rubyenterpriseedition.com/)
 
 If something doesn't work on one of these interpreters, it should be considered
 a bug.
