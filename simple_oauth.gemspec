@@ -13,7 +13,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'rspec', '~> 2.0'
   gem.add_development_dependency 'simplecov'
-  gem.add_development_dependency 'yard'
 
   gem.files         = `git ls-files`.split($\)
   gem.test_files    = gem.files.grep(/^test\//)
