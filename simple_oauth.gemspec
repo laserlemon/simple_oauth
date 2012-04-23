@@ -1,10 +1,8 @@
 # encoding: utf-8
 
-require File.expand_path('../lib/simple_oauth/version', __FILE__)
-
 Gem::Specification.new do |gem|
   gem.name    = 'simple_oauth'
-  gem.version = SimpleOAuth::Version::STRING
+  gem.version = '0.1.6'
 
   gem.authors     = ["Steve Richert", "Erik Michaels-Ober"]
   gem.email       = ['steve.richert@gmail.com', 'sferik@gmail.com']
