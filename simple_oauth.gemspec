@@ -3,7 +3,7 @@ require File.expand_path('../lib/simple_oauth/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.add_development_dependency 'minitest'
-  gem.add_development_dependency 'mocha', '~> 0.9.0'
+  gem.add_development_dependency 'mocha', '~> 0.10.0'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'simplecov'
   gem.add_development_dependency 'yard'
