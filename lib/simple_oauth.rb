@@ -1,5 +1,1 @@
-require 'base64'
-require 'cgi'
-require 'openssl'
-require 'uri'
 require 'simple_oauth/header'

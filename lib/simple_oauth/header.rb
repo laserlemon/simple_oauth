@@ -1,3 +1,8 @@
+require 'openssl'
+require 'uri'
+require 'base64'
+require 'cgi'
+
 module SimpleOAuth
   class Header
     ATTRIBUTE_KEYS = [:consumer_key, :nonce, :signature_method, :timestamp, :token, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
