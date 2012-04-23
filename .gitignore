@@ -1,9 +1,9 @@
 *.rbc
-.DS_Store
 .bundle
+.DS_Store
 .yardoc
-Gemfile.lock
 coverage
 doc
+Gemfile.lock
 pkg
 rdoc
