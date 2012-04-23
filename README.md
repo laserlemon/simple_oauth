@@ -2,16 +2,14 @@
 
 Simply builds and verifies OAuth headers
 
-## <a name="pulls"></a>Submitting a Pull Request
+## <a name="pulls"></a>Contributing
 1. Fork the project.
 2. Create a topic branch.
-3. Implement your feature or bug fix.
-4. Add documentation for your feature or bug fix.
-5. Run <tt>bundle exec rake doc:yard</tt>. If your changes are not 100% documented, go back to step 4.
-6. Add tests for your feature or bug fix.
-7. Run <tt>bundle exec rake test</tt>. If your changes are not 100% covered, go back to step 6.
-8. Commit and push your changes.
-9. Submit a pull request. Please do not include changes to the gemspec or version file. (If you want to create your own version for some reason, please do so in a separate commit.)
+3. Add failing tests.
+4. Add code to pass the failing tests.
+5. Run `bundle exec rake`. If failing, repeat step 4.
+6. Commit and push your changes.
+7. Submit a pull request. Please do not include changes to the gemspec.
 
 ## <a name="rubies"></a>Supported Rubies
 This library aims to support and is [tested
@@ -21,6 +19,7 @@ implementations:
 * Ruby 1.8.7
 * Ruby 1.9.2
 * Ruby 1.9.3
+# Ruby head
 * [JRuby](http://www.jruby.org/)
 * [Rubinius](http://rubini.us/)
 
@@ -40,4 +39,4 @@ time of a major release, support for that Ruby version may be dropped.
 
 ## <a name="copyright"></a>Copyright
 Copyright (c) 2010 Steve Richert, Erik Michaels-Ober.
-See [LICENSE](https://github.com/laserlemon/simple_oauth/blob/master/LICENSE.md) for details.
+See [LICENSE](https://github.com/laserlemon/simple_oauth/blob/master/LICENSE) for details.
