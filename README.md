@@ -2,7 +2,7 @@
 
 Simply builds and verifies OAuth headers
 
-## <a name="pulls"></a>Contributing
+## Contributing
 1. Fork the project.
 2. Create a topic branch.
 3. Add failing tests.
@@ -11,7 +11,7 @@ Simply builds and verifies OAuth headers
 6. Commit and push your changes.
 7. Submit a pull request. Please do not include changes to the gemspec.
 
-## <a name="rubies"></a>Supported Rubies
+## Supported Rubies
 This library aims to support and is [tested
 against](http://travis-ci.org/laserlemon/simple_oauth) the following Ruby
 implementations:
@@ -37,6 +37,6 @@ implementation, you will be personally responsible for providing patches in a
 timely fashion. If critical issues for a particular implementation exist at the
 time of a major release, support for that Ruby version may be dropped.
 
-## <a name="copyright"></a>Copyright
+## Copyright
 Copyright (c) 2010 Steve Richert, Erik Michaels-Ober.
 See [LICENSE](https://github.com/laserlemon/simple_oauth/blob/master/LICENSE) for details.
