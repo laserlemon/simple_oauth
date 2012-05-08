@@ -71,8 +71,12 @@ module SimpleOAuth
       signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.encode(v)}") }.join(', ')
     end
 
+    def attribute_keys
+      (ATTRIBUTE_KEYS + options.keys).uniq
+    end
+
     def attributes
-      ATTRIBUTE_KEYS.inject({}){|a,k| options.key?(k) ? a.merge(:"oauth_#{k}" => options[k]) : a }
+      attribute_keys.inject({}){|a,k| options.key?(k) ? a.merge(:"oauth_#{k}" => options[k]) : a }
     end
 
     def signature
