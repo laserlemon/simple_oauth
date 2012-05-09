@@ -25,7 +25,7 @@ module SimpleOAuth
     end
 
     def self.parse(header)
-      header.to_s.sub(/^OAuth\s/, '').split(/,[\s\t]*/).inject({}) do |attributes, pair|
+      header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
         match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
         attributes.merge(match[1].sub(/^oauth_/, '').to_sym => decode(match[2]))
       end
