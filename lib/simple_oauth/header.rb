@@ -5,7 +5,7 @@ require 'cgi'
 
 module SimpleOAuth
   class Header
-    ATTRIBUTE_KEYS = [:consumer_key, :nonce, :signature_method, :timestamp, :token, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
+    ATTRIBUTE_KEYS = [:callback, :consumer_key, :nonce, :signature_method, :timestamp, :token, :verifier, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
 
     def self.default_options
       {
