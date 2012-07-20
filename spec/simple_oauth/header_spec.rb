@@ -86,7 +86,7 @@ describe SimpleOAuth::Header do
       parsed_options.should have_key(:signature)
       parsed_options[:signature].should_not be_nil
     end
-    
+
     it 'should handle optional "linear white space"' do
       parsed_header_with_spaces = SimpleOAuth::Header.parse 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
       parsed_header_with_spaces.should be_a_kind_of(Hash)
