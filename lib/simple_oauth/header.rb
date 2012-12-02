@@ -21,7 +21,7 @@ module SimpleOAuth
       def parse(header)
         header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
           match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
-          attributes.merge(match[1].sub(/^oauth_/, '').to_sym => decode(match[2]))
+          attributes.merge(match[1].sub(/^oauth_/, '').to_sym => unescape(match[2]))
         end
       end
 
@@ -78,7 +78,7 @@ module SimpleOAuth
   private
 
     def normalized_attributes
-      signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.encode(v)}") }.join(', ')
+      signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.escape(v)}") }.join(', ')
     end
 
     def attributes
@@ -94,16 +94,16 @@ module SimpleOAuth
     end
 
     def secret
-      options.values_at(:consumer_secret, :token_secret).map{|v| self.class.encode(v) }.join('&')
+      options.values_at(:consumer_secret, :token_secret).map{|v| self.class.escape(v) }.join('&')
     end
     alias_method :plaintext_signature, :secret
 
     def signature_base
-      [method, url, normalized_params].map{|v| self.class.encode(v) }.join('&')
+      [method, url, normalized_params].map{|v| self.class.escape(v) }.join('&')
     end
 
     def normalized_params
-      signature_params.map{|p| p.map{|v| self.class.encode(v) } }.sort.map{|p| p.join('=') }.join('&')
+      signature_params.map{|p| p.map{|v| self.class.escape(v) } }.sort.map{|p| p.join('=') }.join('&')
     end
 
     def signature_params
