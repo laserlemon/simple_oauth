@@ -22,29 +22,29 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe ".encode" do
-    it "encodes (most) non-word characters" do
+  describe ".escape" do
+    it "escapes (most) non-word characters" do
       [' ', '!', '@', '#', '$', '%', '^', '&'].each do |character|
-        encoded = SimpleOAuth::Header.encode(character)
-        expect(encoded).not_to eq character
-        expect(encoded).to eq uri_parser.escape(character, /.*/)
+        escaped = SimpleOAuth::Header.escape(character)
+        expect(escaped).not_to eq character
+        expect(escaped).to eq uri_parser.escape(character, /.*/)
       end
     end
 
-    it "does not encode - . or ~" do
+    it "does not escape - . or ~" do
       ['-', '.', '~'].each do |character|
-        encoded = SimpleOAuth::Header.encode(character)
-        expect(encoded).to eq character
+        escaped = SimpleOAuth::Header.escape(character)
+        expect(escaped).to eq character
       end
     end
 
     def self.test_special_characters
-      it "encodes non-ASCII characters" do
-        expect(SimpleOAuth::Header.encode('é')).to eq '%C3%A9'
+      it "escapes non-ASCII characters" do
+        expect(SimpleOAuth::Header.escape('é')).to eq '%C3%A9'
       end
 
-      it "encodes multibyte characters" do
-        expect(SimpleOAuth::Header.encode('あ')).to eq '%E3%81%82'
+      it "escapes multibyte characters" do
+        expect(SimpleOAuth::Header.escape('あ')).to eq '%E3%81%82'
       end
     end
 
@@ -65,7 +65,7 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe ".decode" do
+  describe ".unescape" do
     pending
   end
 
@@ -163,7 +163,7 @@ describe SimpleOAuth::Header do
       expect(normalized_attributes).to eq 'a="4", b="3", c="2", d="1"'
     end
 
-    it "url-encodes its values" do
+    it "URI encodes its values" do
       header.stub(:signed_attributes => {1 => '!', 2 => '@', 3 => '#', 4 => '$'})
       expect(normalized_attributes).to eq '1="%21", 2="%40", 3="%23", 4="%24"'
     end
@@ -261,7 +261,7 @@ describe SimpleOAuth::Header do
       expect(secret).to eq 'CONSUMER_SECRET&TOKEN_SECRET'
     end
 
-    it "URL encodes each secret value before combination" do
+    it "URI encodes each secret value before combination" do
       header.stub(:options => {:consumer_secret => 'CONSUM#R_SECRET', :token_secret => 'TOKEN_S#CRET'})
       expect(secret).to eq 'CONSUM%23R_SECRET&TOKEN_S%23CRET'
     end
@@ -276,7 +276,7 @@ describe SimpleOAuth::Header do
       expect(signature_base).to eq 'METHOD&URL&NORMALIZED_PARAMS'
     end
 
-    it "URL encodes each value before combination" do
+    it "URI encodes each value before combination" do
       header.stub(:method => 'ME#HOD', :url => 'U#L', :normalized_params => 'NORMAL#ZED_PARAMS')
       expect(signature_base).to eq 'ME%23HOD&U%23L&NORMAL%23ZED_PARAMS'
     end

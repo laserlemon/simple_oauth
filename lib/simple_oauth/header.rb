@@ -6,32 +6,42 @@ require 'cgi'
 module SimpleOAuth
   class Header
     ATTRIBUTE_KEYS = [:callback, :consumer_key, :nonce, :signature_method, :timestamp, :token, :verifier, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
-
-    def self.default_options
-      {
-        :nonce => OpenSSL::Random.random_bytes(16).unpack('H*')[0],
-        :signature_method => 'HMAC-SHA1',
-        :timestamp => Time.now.to_i.to_s,
-        :version => '1.0'
-      }
-    end
-
-    def self.encode(value)
-      uri_parser.escape(value.to_s, /[^a-z0-9\-\.\_\~]/i)
-    end
-
-    def self.decode(value)
-      uri_parser.unescape(value.to_s)
-    end
-
-    def self.parse(header)
-      header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
-        match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
-        attributes.merge(match[1].sub(/^oauth_/, '').to_sym => decode(match[2]))
-      end
-    end
-
     attr_reader :method, :params, :options
+
+    class << self
+      def default_options
+        {
+          :nonce => OpenSSL::Random.random_bytes(16).unpack('H*')[0],
+          :signature_method => 'HMAC-SHA1',
+          :timestamp => Time.now.to_i.to_s,
+          :version => '1.0'
+        }
+      end
+
+      def parse(header)
+        header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
+          match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
+          attributes.merge(match[1].sub(/^oauth_/, '').to_sym => decode(match[2]))
+        end
+      end
+
+      def escape(value)
+        uri_parser.escape(value.to_s, /[^a-z0-9\-\.\_\~]/i)
+      end
+      alias encode escape
+
+      def unescape(value)
+        uri_parser.unescape(value.to_s)
+      end
+      alias decode unescape
+
+    private
+
+      def uri_parser
+        @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
+      end
+
+    end
 
     def initialize(method, url, params, oauth = {})
       @method = method.to_s.upcase
@@ -65,11 +75,7 @@ module SimpleOAuth
       attributes.merge(:oauth_signature => signature)
     end
 
-    private
-
-    def self.uri_parser
-      @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
-    end
+  private
 
     def normalized_attributes
       signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.encode(v)}") }.join(', ')
