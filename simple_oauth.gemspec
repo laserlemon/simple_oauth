@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name    = 'simple_oauth'
-  spec.version = '0.1.9'
+  spec.version = '0.2.0'
 
   spec.authors     = ["Steve Richert", "Erik Michaels-Ober"]
   spec.email       = ['steve.richert@gmail.com', 'sferik@gmail.com']
@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.licenses    = ['MIT']
 
   spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rspec', '~> 2.0'
+  spec.add_development_dependency 'rspec', '>= 2'
   spec.add_development_dependency 'simplecov'
 
   spec.files         = `git ls-files`.split($\)
