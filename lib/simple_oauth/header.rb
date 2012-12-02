@@ -17,11 +17,11 @@ module SimpleOAuth
     end
 
     def self.encode(value)
-      URI.encode(value.to_s, /[^a-z0-9\-\.\_\~]/i)
+      uri_parser.escape(value.to_s, /[^a-z0-9\-\.\_\~]/i)
     end
 
     def self.decode(value)
-      URI.decode(value.to_s)
+      uri_parser.unescape(value.to_s)
     end
 
     def self.parse(header)
@@ -66,6 +66,10 @@ module SimpleOAuth
     end
 
     private
+
+    def self.uri_parser
+      @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
+    end
 
     def normalized_attributes
       signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.encode(v)}") }.join(', ')

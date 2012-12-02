@@ -1,6 +1,6 @@
-#  encoding: utf-8
+# encoding: utf-8
 
-require 'spec_helper'
+require 'helper'
 
 describe SimpleOAuth::Header do
   describe ".default_options" do
@@ -27,7 +27,7 @@ describe SimpleOAuth::Header do
       [' ', '!', '@', '#', '$', '%', '^', '&'].each do |character|
         encoded = SimpleOAuth::Header.encode(character)
         expect(encoded).not_to eq character
-        expect(encoded).to eq URI.encode(character, /.*/)
+        expect(encoded).to eq uri_parser.escape(character, /.*/)
       end
     end
 
