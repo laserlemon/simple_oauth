@@ -11,10 +11,6 @@ Gem::Specification.new do |spec|
   spec.homepage    = 'https://github.com/laserlemon/simple_oauth'
   spec.licenses    = ['MIT']
 
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rspec', '>= 2'
-  spec.add_development_dependency 'simplecov'
-
   spec.files         = `git ls-files`.split($\)
   spec.test_files    = spec.files.grep(/^test\//)
   spec.require_paths = ["lib"]
