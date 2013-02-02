@@ -1,10 +1,7 @@
 source :rubygems
 
+gem 'jruby-openssl', :platforms => :jruby do
 gem 'rake'
-
-platforms :jruby do
-  gem 'jruby-openssl', '~> 0.7'
-end
 
 group :test do
   gem 'rspec', '>= 2.11'
