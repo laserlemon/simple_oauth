@@ -1,6 +1,6 @@
 source :rubygems
 
-gem 'jruby-openssl', :platforms => :jruby do
+gem 'jruby-openssl', :platforms => :jruby
 gem 'rake'
 
 group :test do
