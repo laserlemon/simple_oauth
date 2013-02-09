@@ -1,6 +1,4 @@
-Copyright (c) 2010 Steve Richert, Erik Michaels-Ober
-
-MIT License
+Copyright (c) 2010-2013 Steve Richert, Erik Michaels-Ober
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

@@ -28,5 +28,5 @@ fashion. If critical issues for a particular implementation exist at the time
 of a major release, support for that Ruby version may be dropped.
 
 ## Copyright
-Copyright (c) 2010 Steve Richert, Erik Michaels-Ober.
-See [LICENSE](https://github.com/laserlemon/simple_oauth/blob/master/LICENSE) for details.
+Copyright (c) 2010-2013 Steve Richert, Erik Michaels-Ober. See
+[LICENSE](LICENSE.md) for details.
