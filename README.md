@@ -10,8 +10,8 @@ implementations:
 * Ruby 1.8.7
 * Ruby 1.9.2
 * Ruby 1.9.3
-* Ruby head
-* [JRuby](http://www.jruby.org/)
+* Ruby 2.0.0
+* [JRuby](http://jruby.org/)
 * [Rubinius](http://rubini.us/)
 
 If something doesn't work on one of these interpreters, it should be considered
