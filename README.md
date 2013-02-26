@@ -1,4 +1,8 @@
-# simple_oauth [![Build Status](https://secure.travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth) [![Dependency Status](https://gemnasium.com/laserlemon/simple_oauth.png)](https://gemnasium.com/laserlemon/simple_oauth)
+# simple_oauth
+
+[![Build Status](https://secure.travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth)
+[![Dependency Status](https://gemnasium.com/laserlemon/simple_oauth.png)](https://gemnasium.com/laserlemon/simple_oauth)
+[![Coverage Status](https://coveralls.io/repos/laserlemon/simpleoauth/badge.png?branch=master)](https://coveralls.io/r/laserlemon/simple_oauth)
 
 Simply builds and verifies OAuth headers
 
