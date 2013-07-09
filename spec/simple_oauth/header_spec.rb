@@ -204,19 +204,19 @@ describe SimpleOAuth::Header do
     context "calls the appropriate signature method" do
       specify "when using HMAC-SHA1" do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'HMAC-SHA1')
-        header.should_receive(:hmac_sha1_signature).once.and_return('HMAC_SHA1_SIGNATURE')
+        expect(header).to receive(:hmac_sha1_signature).once.and_return('HMAC_SHA1_SIGNATURE')
         expect(header.send(:signature)).to eq 'HMAC_SHA1_SIGNATURE'
       end
 
       specify "when using RSA-SHA1" do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'RSA-SHA1')
-        header.should_receive(:rsa_sha1_signature).once.and_return('RSA_SHA1_SIGNATURE')
+        expect(header).to receive(:rsa_sha1_signature).once.and_return('RSA_SHA1_SIGNATURE')
         expect(header.send(:signature)).to eq 'RSA_SHA1_SIGNATURE'
       end
 
       specify "when using PLAINTEXT" do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'PLAINTEXT')
-        header.should_receive(:plaintext_signature).once.and_return('PLAINTEXT_SIGNATURE')
+        expect(header).to receive(:plaintext_signature).once.and_return('PLAINTEXT_SIGNATURE')
         expect(header.send(:signature)).to eq 'PLAINTEXT_SIGNATURE'
       end
     end
