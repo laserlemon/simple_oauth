@@ -11,7 +11,7 @@ describe SimpleOAuth::Header do
     end
 
     it "is used for new headers" do
-      SimpleOAuth::Header.stub(:default_options => default_options)
+      allow(SimpleOAuth::Header).to receive(:default_options).and_return(default_options)
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
       expect(header.options).to eq default_options
     end
@@ -159,12 +159,12 @@ describe SimpleOAuth::Header do
     let(:normalized_attributes){ header.send(:normalized_attributes) }
 
     it "returns a sorted-key, quoted-value and comma-separated list" do
-      header.stub(:signed_attributes => {:d => 1, :c => 2, :b => 3, :a => 4})
+      allow(header).to receive(:signed_attributes).and_return({:d => 1, :c => 2, :b => 3, :a => 4})
       expect(normalized_attributes).to eq 'a="4", b="3", c="2", d="1"'
     end
 
     it "URI encodes its values" do
-      header.stub(:signed_attributes => {1 => '!', 2 => '@', 3 => '#', 4 => '$'})
+      allow(header).to receive(:signed_attributes).and_return({1 => '!', 2 => '@', 3 => '#', 4 => '$'})
       expect(normalized_attributes).to eq '1="%21", 2="%40", 3="%23", 4="%24"'
     end
   end
@@ -257,12 +257,12 @@ describe SimpleOAuth::Header do
     let(:secret){ header.send(:secret) }
 
     it "combines the consumer and token secrets with an ampersand" do
-      header.stub(:options => {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'})
+      allow(header).to receive(:options).and_return({:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'})
       expect(secret).to eq 'CONSUMER_SECRET&TOKEN_SECRET'
     end
 
     it "URI encodes each secret value before combination" do
-      header.stub(:options => {:consumer_secret => 'CONSUM#R_SECRET', :token_secret => 'TOKEN_S#CRET'})
+      allow(header).to receive(:options).and_return({:consumer_secret => 'CONSUM#R_SECRET', :token_secret => 'TOKEN_S#CRET'})
       expect(secret).to eq 'CONSUM%23R_SECRET&TOKEN_S%23CRET'
     end
   end
@@ -272,12 +272,16 @@ describe SimpleOAuth::Header do
     let(:signature_base){ header.send(:signature_base) }
 
     it "combines the request method, URL and normalized parameters using ampersands" do
-      header.stub(:method => 'METHOD', :url => 'URL', :normalized_params => 'NORMALIZED_PARAMS')
+      allow(header).to receive(:method).and_return('METHOD')
+      allow(header).to receive(:url).and_return('URL')
+      allow(header).to receive(:normalized_params).and_return('NORMALIZED_PARAMS')
       expect(signature_base).to eq 'METHOD&URL&NORMALIZED_PARAMS'
     end
 
     it "URI encodes each value before combination" do
-      header.stub(:method => 'ME#HOD', :url => 'U#L', :normalized_params => 'NORMAL#ZED_PARAMS')
+      allow(header).to receive(:method).and_return('ME#HOD')
+      allow(header).to receive(:url).and_return('U#L')
+      allow(header).to receive(:normalized_params).and_return('NORMAL#ZED_PARAMS')
       expect(signature_base).to eq 'ME%23HOD&U%23L&NORMAL%23ZED_PARAMS'
     end
   end
@@ -285,7 +289,7 @@ describe SimpleOAuth::Header do
   describe "#normalized_params" do
     let(:header) do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
-      header.stub(:signature_params => [['A', '4'], ['B', '3'], ['B', '2'], ['C', '1'], ['D[]', '0 ']])
+      allow(header).to receive(:signature_params).and_return([['A', '4'], ['B', '3'], ['B', '2'], ['C', '1'], ['D[]', '0 ']])
       header
     end
     let(:signature_params){ header.send(:signature_params) }
@@ -305,11 +309,9 @@ describe SimpleOAuth::Header do
     let(:signature_params){ header.send(:signature_params) }
 
     it "combines OAuth header attributes, body parameters and URL parameters into an flattened array of key/value pairs" do
-      header.stub(
-        :attributes => {:attribute => 'ATTRIBUTE'},
-        :params => {'param' => 'PARAM'},
-        :url_params => [['url_param', '1'], ['url_param', '2']]
-      )
+      allow(header).to receive(:attributes).and_return({:attribute => 'ATTRIBUTE'})
+      allow(header).to receive(:params).and_return({'param' => 'PARAM'})
+      allow(header).to receive(:url_params).and_return([['url_param', '1'], ['url_param', '2']])
       expect(signature_params).to eq [
         [:attribute, 'ATTRIBUTE'],
         ['param', 'PARAM'],
