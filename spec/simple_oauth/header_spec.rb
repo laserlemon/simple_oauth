@@ -92,10 +92,17 @@ describe SimpleOAuth::Header do
     it "stretches inner parameters" do
       params = { :hash => { :inner_list => [1, 2], :inner_hash => { :a => 1, :b => 2 } } }
       expect(SimpleOAuth::Header.stretch_params(params)).to eq [
-        ["hash[inner_list]", 1],
-        ["hash[inner_list]", 2],
         ["hash[inner_hash][a]", 1],
-        ["hash[inner_hash][b]", 2]
+        ["hash[inner_hash][b]", 2],
+        ["hash[inner_list]", 1],
+        ["hash[inner_list]", 2]
+      ]
+    end
+    it "sorts correctly" do
+      params = { :hash => { :b => 1, :a => 2 } }
+      expect(SimpleOAuth::Header.stretch_params(params)).to eq [
+        ["hash[a]", 2],
+        ["hash[b]", 1]
       ]
     end
   end

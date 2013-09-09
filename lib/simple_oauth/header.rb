@@ -44,7 +44,11 @@ module SimpleOAuth
             value.each { |array_value| result += stretch_params [[key, array_value]] }
           when Hash
             prefixed_params = value.map { |k, v| ["#{key.to_s}[#{k.to_s}]", v] }
-            result += stretch_params prefixed_params
+            inner_result = stretch_params(prefixed_params)
+
+            # Stable sort. We want to preserve sorting of inner arrays
+            n = 0
+            result += inner_result.sort_by { |k, _| n += 1; [k.to_s, n] }
           else
             result << [key, value]
           end
