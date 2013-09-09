@@ -35,6 +35,24 @@ module SimpleOAuth
       end
       alias decode unescape
 
+      def stretch_params(params)
+        result = []
+
+        params.each do |key, value|
+          case value
+          when Array
+            value.each { |array_value| result += stretch_params [[key, array_value]] }
+          when Hash
+            prefixed_params = value.map { |k, v| ["#{key.to_s}[#{k.to_s}]", v] }
+            result += stretch_params prefixed_params
+          else
+            result << [key, value]
+          end
+        end
+
+        result
+      end
+
     private
 
       def uri_parser
@@ -107,7 +125,7 @@ module SimpleOAuth
     end
 
     def signature_params
-      attributes.to_a + params.to_a + url_params
+      self.class.stretch_params(attributes.to_a + params.to_a + url_params)
     end
 
     def url_params

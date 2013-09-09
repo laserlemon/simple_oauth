@@ -69,6 +69,37 @@ describe SimpleOAuth::Header do
     pending
   end
 
+  describe ".stretch_params" do
+    test_cases = [
+      [
+        { a: 1 },
+        [[:a, 1]]
+      ],
+      [
+        { a: [1, 2] },
+        [[:a, 1], [:a, 2]]
+      ],
+      [
+        { a: { b: 1, c: 2 } },
+        [["a[b]", 1], ["a[c]", 2]]
+      ]
+    ]
+    test_cases.each do |input, expected|
+      it "stretches the parameter" do
+        expect(SimpleOAuth::Header.stretch_params(input)).to eq expected
+      end
+    end
+    it "stretches inner parameters" do
+      params = { hash: { inner_list: [1, 2], inner_hash: { a: 1, b: 2 } } }
+      expect(SimpleOAuth::Header.stretch_params(params)).to eq [
+        ["hash[inner_list]", 1],
+        ["hash[inner_list]", 2],
+        ["hash[inner_hash][a]", 1],
+        ["hash[inner_hash][b]", 2]
+      ]
+    end
+  end
+
   describe ".parse" do
     let(:header){ SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}) }
     let(:parsed_options){ SimpleOAuth::Header.parse(header) }
@@ -317,6 +348,17 @@ describe SimpleOAuth::Header do
         ['param', 'PARAM'],
         ['url_param', '1'],
         ['url_param', '2']
+      ]
+    end
+    it "streches parameters that are arrays or hashes" do
+      allow(header).to receive(:attributes).and_return({})
+      allow(header).to receive(:params).and_return({'list' => ['1', '2'], 'hash' => { 'first' => '3', 'second' => '4' }})
+      allow(header).to receive(:url_params).and_return([])
+      expect(signature_params).to eq [
+        ['list', '1'],
+        ['list', '2'],
+        ['hash[first]', '3'],
+        ['hash[second]', '4']
       ]
     end
   end
