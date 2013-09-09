@@ -359,7 +359,10 @@ describe SimpleOAuth::Header do
     end
     it "streches parameters that are arrays or hashes" do
       allow(header).to receive(:attributes).and_return({})
-      allow(header).to receive(:params).and_return({'list' => ['1', '2'], 'hash' => { 'first' => '3', 'second' => '4' }})
+      allow(header).to receive(:params).and_return([
+        ['list', ['1', '2']],
+        ['hash', { 'first' => '3', 'second' => '4' } ]
+      ])
       allow(header).to receive(:url_params).and_return([])
       expect(signature_params).to eq [
         ['list', '1'],
