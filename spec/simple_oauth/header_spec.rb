@@ -72,15 +72,15 @@ describe SimpleOAuth::Header do
   describe ".stretch_params" do
     test_cases = [
       [
-        { a: 1 },
+        { :a => 1 },
         [[:a, 1]]
       ],
       [
-        { a: [1, 2] },
+        { :a => [1, 2] },
         [[:a, 1], [:a, 2]]
       ],
       [
-        { a: { b: 1, c: 2 } },
+        { :a => { :b => 1, :c => 2 } },
         [["a[b]", 1], ["a[c]", 2]]
       ]
     ]
@@ -90,7 +90,7 @@ describe SimpleOAuth::Header do
       end
     end
     it "stretches inner parameters" do
-      params = { hash: { inner_list: [1, 2], inner_hash: { a: 1, b: 2 } } }
+      params = { :hash => { :inner_list => [1, 2], :inner_hash => { :a => 1, :b => 2 } } }
       expect(SimpleOAuth::Header.stretch_params(params)).to eq [
         ["hash[inner_list]", 1],
         ["hash[inner_list]", 2],
