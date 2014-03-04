@@ -50,7 +50,15 @@ module SimpleOAuth
       @uri.normalize!
       @uri.fragment = nil
       @params = params
-      @options = oauth.is_a?(Hash) ? self.class.default_options.merge(oauth) : self.class.parse(oauth)
+      @options = oauth.is_a?(Hash) ? self.class.default_options.merge(symbolize_keys(oauth)) : self.class.parse(oauth)
+    end
+
+    def symbolize_keys(options)
+      keys = options.keys
+      keys.each do |key|
+        options[key.to_sym] = options.delete(key)
+      end
+      options
     end
 
     def url
