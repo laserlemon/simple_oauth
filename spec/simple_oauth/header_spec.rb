@@ -120,6 +120,10 @@ describe SimpleOAuth::Header do
     it "raises ParseError on Authorization attributes not prefixed with oauth_" do
       expect { SimpleOAuth::Header.parse(%q(OAuth foobar="baz")) }.to raise_error(SimpleOAuth::ParseError)
     end
+
+    it "raises ParseError when the header does not start with 'OAuth '" do
+      expect { SimpleOAuth::Header.parse(%q(FooAuth foo="baz")) }.to raise_error(SimpleOAuth::ParseError)
+    end
   end
 
   describe "#initialize" do

@@ -22,7 +22,13 @@ module SimpleOAuth
       end
 
       def parse(header)
-        header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
+        header = header.to_s
+        if header =~ /^OAuth\s/
+          header = $'
+        else
+          raise ParseError, "Received non-OAuth header: #{header}"
+        end
+        header.split(/,\s*/).inject({}) do |attributes, pair|
           match = pair.match(/^oauth_(\w+)\=\"([^\"]*)\"$/)
           if match
             key_s = match[1]
