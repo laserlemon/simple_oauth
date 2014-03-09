@@ -23,9 +23,9 @@ module SimpleOAuth
 
       def parse(header)
         header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
-          match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
+          match = pair.match(/^oauth_(\w+)\=\"([^\"]*)\"$/)
           if match
-            key_s = match[1].sub(/^oauth_/, '')
+            key_s = match[1]
             # use a symbol only when the parameter is a recognized header key
             key = HEADER_KEYS.detect { |k| k.to_s == key_s } || key_s
             attributes.merge(key => unescape(match[2]))

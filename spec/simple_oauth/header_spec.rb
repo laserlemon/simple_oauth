@@ -116,6 +116,10 @@ describe SimpleOAuth::Header do
     it "raises ParseError on malformed input" do
       expect { SimpleOAuth::Header.parse(%q(OAuth huh=/)) }.to raise_error(SimpleOAuth::ParseError)
     end
+
+    it "raises ParseError on Authorization attributes not prefixed with oauth_" do
+      expect { SimpleOAuth::Header.parse(%q(OAuth foobar="baz")) }.to raise_error(SimpleOAuth::ParseError)
+    end
   end
 
   describe "#initialize" do
