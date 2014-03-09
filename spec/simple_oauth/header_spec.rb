@@ -112,6 +112,10 @@ describe SimpleOAuth::Header do
       expect(parsed_header_without_spaces).to be_a_kind_of(Hash)
       expect(parsed_header_without_spaces.keys.size).to eq 7
     end
+
+    it "raises ParseError on malformed input" do
+      expect { SimpleOAuth::Header.parse(%q(OAuth huh=/)) }.to raise_error(SimpleOAuth::ParseError)
+    end
   end
 
   describe "#initialize" do

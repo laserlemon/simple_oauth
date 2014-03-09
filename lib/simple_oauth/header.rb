@@ -4,6 +4,8 @@ require 'base64'
 require 'cgi'
 
 module SimpleOAuth
+  class ParseError < StandardError; end
+
   class Header
     ATTRIBUTE_KEYS = [:callback, :consumer_key, :nonce, :signature_method, :timestamp, :token, :verifier, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
     HEADER_KEYS = ATTRIBUTE_KEYS + [:signature]
@@ -22,10 +24,14 @@ module SimpleOAuth
       def parse(header)
         header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
           match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
-          key_s = match[1].sub(/^oauth_/, '')
-          # use a symbol only when the parameter is a recognized header key
-          key = HEADER_KEYS.detect { |k| k.to_s == key_s } || key_s
-          attributes.merge(key => unescape(match[2]))
+          if match
+            key_s = match[1].sub(/^oauth_/, '')
+            # use a symbol only when the parameter is a recognized header key
+            key = HEADER_KEYS.detect { |k| k.to_s == key_s } || key_s
+            attributes.merge(key => unescape(match[2]))
+          else
+            raise ParseError, "invalid: #{pair}"
+          end
         end
       end
 
