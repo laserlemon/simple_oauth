@@ -2,6 +2,7 @@ require 'openssl'
 require 'uri'
 require 'base64'
 require 'cgi'
+require 'strscan'
 
 module SimpleOAuth
   class ParseError < StandardError; end
@@ -23,22 +24,20 @@ module SimpleOAuth
 
       def parse(header)
         header = header.to_s
-        if header =~ /^OAuth\s/
-          header = $'
-        else
-          raise ParseError, "Received non-OAuth header: #{header}"
+        scanner = StringScanner.new(header)
+        scanner.scan(/OAuth\s*/) || raise(ParseError, "Authorization header must begin with 'OAuth ' - recieved: #{header}")
+        attributes = {}
+        while match = scanner.scan(/oauth_(\w+)="([^"]*)"\s*,?\s*/)
+          key_s = scanner[1]
+          value = scanner[2]
+          # use a symbol only when the parameter is a recognized header key
+          key = HEADER_KEYS.detect { |k| k.to_s == key_s } || key_s
+          attributes.update(key => unescape(value))
         end
-        header.split(/,\s*/).inject({}) do |attributes, pair|
-          match = pair.match(/^oauth_(\w+)\=\"([^\"]*)\"$/)
-          if match
-            key_s = match[1]
-            # use a symbol only when the parameter is a recognized header key
-            key = HEADER_KEYS.detect { |k| k.to_s == key_s } || key_s
-            attributes.merge(key => unescape(match[2]))
-          else
-            raise ParseError, "invalid: #{pair}"
-          end
+        unless scanner.eos?
+          raise ParseError, "Could not parse Authorization header: #{header}\naround or after character #{scanner.pos}: #{scanner.rest}"
         end
+        attributes
       end
 
       def escape(value)

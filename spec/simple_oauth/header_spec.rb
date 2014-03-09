@@ -113,6 +113,14 @@ describe SimpleOAuth::Header do
       expect(parsed_header_without_spaces.keys.size).to eq 7
     end
 
+    it "handles commas inside quoted values" do
+      # note that this is invalid according to the spec; commas should be %-encoded, but this is accepted in 
+      # the interests of robustness and consistency (other characters are accepted when they should really be 
+      # escaped). 
+      header_with_commas = 'OAuth oauth_consumer_key="a,bcd", oauth_nonce="o,LKtec51GQy", oauth_signature="efgh%2Cmnop"'
+      expect(SimpleOAuth::Header.parse(header_with_commas)).to eq({:consumer_key => "a,bcd", :nonce => "o,LKtec51GQy", :signature => "efgh,mnop"})
+    end
+
     it "raises ParseError on malformed input" do
       expect { SimpleOAuth::Header.parse(%q(OAuth huh=/)) }.to raise_error(SimpleOAuth::ParseError)
     end
