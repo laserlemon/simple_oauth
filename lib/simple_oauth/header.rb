@@ -6,6 +6,7 @@ require 'cgi'
 module SimpleOAuth
   class Header
     ATTRIBUTE_KEYS = [:callback, :consumer_key, :nonce, :signature_method, :timestamp, :token, :verifier, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
+    HEADER_KEYS = ATTRIBUTE_KEYS + [:signature]
     attr_reader :method, :params, :options
 
     class << self
@@ -21,7 +22,10 @@ module SimpleOAuth
       def parse(header)
         header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
           match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
-          attributes.merge(match[1].sub(/^oauth_/, '').to_sym => unescape(match[2]))
+          key_s = match[1].sub(/^oauth_/, '')
+          # use a symbol only when the parameter is a recognized header key
+          key = HEADER_KEYS.detect { |k| k.to_s == key_s } || key_s
+          attributes.merge(key => unescape(match[2]))
         end
       end
 
