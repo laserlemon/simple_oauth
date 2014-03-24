@@ -1,9 +1,10 @@
 *.rbc
-.bundle
 .DS_Store
+.bundle
 .yardoc
+Gemfile.lock
 coverage
 doc
-Gemfile.lock
+measurement
 pkg
 rdoc
