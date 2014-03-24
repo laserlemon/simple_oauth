@@ -28,19 +28,18 @@ module SimpleOAuth
       def escape(value)
         uri_parser.escape(value.to_s, /[^a-z0-9\-\.\_\~]/i)
       end
-      alias encode escape
+      alias_method :encode, :escape
 
       def unescape(value)
         uri_parser.unescape(value.to_s)
       end
-      alias decode unescape
+      alias_method :decode, :unescape
 
     private
 
       def uri_parser
         @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
       end
-
     end
 
     def initialize(method, url, params, oauth = {})
@@ -78,11 +77,11 @@ module SimpleOAuth
   private
 
     def normalized_attributes
-      signed_attributes.sort_by{|k,v| k.to_s }.map{|k,v| %(#{k}="#{self.class.escape(v)}") }.join(', ')
+      signed_attributes.sort_by { |k, v| k.to_s }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(', ')
     end
 
     def attributes
-      ATTRIBUTE_KEYS.inject({}){|a,k| options[k] ? a.merge(:"oauth_#{k}" => options[k]) : a }
+      ATTRIBUTE_KEYS.inject({}) { |a, e| options[e] ? a.merge(:"oauth_#{e}" => options[e]) : a }
     end
 
     def signature
@@ -94,16 +93,16 @@ module SimpleOAuth
     end
 
     def secret
-      options.values_at(:consumer_secret, :token_secret).map{|v| self.class.escape(v) }.join('&')
+      options.values_at(:consumer_secret, :token_secret).collect { |v| self.class.escape(v) }.join('&')
     end
     alias_method :plaintext_signature, :secret
 
     def signature_base
-      [method, url, normalized_params].map{|v| self.class.escape(v) }.join('&')
+      [method, url, normalized_params].collect { |v| self.class.escape(v) }.join('&')
     end
 
     def normalized_params
-      signature_params.map{|p| p.map{|v| self.class.escape(v) } }.sort.map{|p| p.join('=') }.join('&')
+      signature_params.collect { |p| p.collect { |v| self.class.escape(v) } }.sort.collect { |p| p.join('=') }.join('&')
     end
 
     def signature_params
@@ -111,7 +110,7 @@ module SimpleOAuth
     end
 
     def url_params
-      CGI.parse(@uri.query || '').inject([]){|p,(k,vs)| p + vs.sort.map{|v| [k, v] } }
+      CGI.parse(@uri.query || '').inject([]) { |p, (k, vs)| p + vs.sort.collect { |v| [k, v] } }
     end
 
     def rsa_sha1_signature
@@ -121,6 +120,5 @@ module SimpleOAuth
     def private_key
       OpenSSL::PKey::RSA.new(options[:consumer_secret])
     end
-
   end
 end

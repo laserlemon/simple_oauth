@@ -3,27 +3,27 @@
 require 'helper'
 
 describe SimpleOAuth::Header do
-  describe ".default_options" do
-    let(:default_options){ SimpleOAuth::Header.default_options }
+  describe '.default_options' do
+    let(:default_options) { SimpleOAuth::Header.default_options }
 
-    it "is different every time" do
+    it 'is different every time' do
       expect(SimpleOAuth::Header.default_options).not_to eq default_options
     end
 
-    it "is used for new headers" do
+    it 'is used for new headers' do
       allow(SimpleOAuth::Header).to receive(:default_options).and_return(default_options)
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
       expect(header.options).to eq default_options
     end
 
-    it "includes a signature method and an OAuth version" do
+    it 'includes a signature method and an OAuth version' do
       expect(default_options[:signature_method]).not_to be_nil
       expect(default_options[:version]).not_to be_nil
     end
   end
 
-  describe ".escape" do
-    it "escapes (most) non-word characters" do
+  describe '.escape' do
+    it 'escapes (most) non-word characters' do
       [' ', '!', '@', '#', '$', '%', '^', '&'].each do |character|
         escaped = SimpleOAuth::Header.escape(character)
         expect(escaped).not_to eq character
@@ -31,7 +31,7 @@ describe SimpleOAuth::Header do
       end
     end
 
-    it "does not escape - . or ~" do
+    it 'does not escape - . or ~' do
       ['-', '.', '~'].each do |character|
         escaped = SimpleOAuth::Header.escape(character)
         expect(escaped).to eq character
@@ -39,11 +39,11 @@ describe SimpleOAuth::Header do
     end
 
     def self.test_special_characters
-      it "escapes non-ASCII characters" do
+      it 'escapes non-ASCII characters' do
         expect(SimpleOAuth::Header.escape('é')).to eq '%C3%A9'
       end
 
-      it "escapes multibyte characters" do
+      it 'escapes multibyte characters' do
         expect(SimpleOAuth::Header.escape('あ')).to eq '%E3%81%82'
       end
     end
@@ -51,37 +51,37 @@ describe SimpleOAuth::Header do
     if RUBY_VERSION >= '1.9'
       test_special_characters
     else
-      %w(n N e E s S u U).each do |kcode|
+      %w[n N e E s S u U].each do |kcode|
         describe %(when $KCODE = "#{kcode}") do
-          original_kcode = $KCODE
+          original_kcode = $KCODE # rubocop:disable GlobalVars
           begin
-            $KCODE = kcode
+            $KCODE = kcode # rubocop:disable GlobalVars
             test_special_characters
           ensure
-            $KCODE = original_kcode
+            $KCODE = original_kcode # rubocop:disable GlobalVars
           end
         end
       end
     end
   end
 
-  describe ".unescape" do
+  describe '.unescape' do
     pending
   end
 
-  describe ".parse" do
-    let(:header){ SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}) }
-    let(:parsed_options){ SimpleOAuth::Header.parse(header) }
+  describe '.parse' do
+    let(:header) { SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}) }
+    let(:parsed_options) { SimpleOAuth::Header.parse(header) }
 
-    it "returns a hash" do
+    it 'returns a hash' do
       expect(parsed_options).to be_a(Hash)
     end
 
-    it "includes the options used to build the header" do
-      expect(parsed_options.reject{|k,_| k == :signature }).to eq header.options
+    it 'includes the options used to build the header' do
+      expect(parsed_options.reject { |k, _| k == :signature }).to eq header.options
     end
 
-    it "includes a signature" do
+    it 'includes a signature' do
       expect(header.options).not_to have_key(:signature)
       expect(parsed_options).to have_key(:signature)
       expect(parsed_options[:signature]).not_to be_nil
@@ -106,25 +106,25 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe "#initialize" do
-    let(:header){ SimpleOAuth::Header.new(:get, 'HTTPS://api.TWITTER.com:443/1/statuses/friendships.json?foo=bar#anchor', {}) }
+  describe '#initialize' do
+    let(:header) { SimpleOAuth::Header.new(:get, 'HTTPS://api.TWITTER.com:443/1/statuses/friendships.json?foo=bar#anchor', {}) }
 
-    it "stringifies and uppercases the request method" do
+    it 'stringifies and uppercases the request method' do
       expect(header.method).to eq 'GET'
     end
 
-    it "downcases the scheme and authority" do
-      expect(header.url).to match %r(^https://api\.twitter\.com/)
+    it 'downcases the scheme and authority' do
+      expect(header.url).to match %r{^https://api\.twitter\.com/}
     end
 
-    it "ignores the query and fragment" do
-      expect(header.url).to match %r(/1/statuses/friendships\.json$)
+    it 'ignores the query and fragment' do
+      expect(header.url).to match %r{/1/statuses/friendships\.json$}
     end
   end
 
-  describe "#valid?" do
-    context "using the HMAC-SHA1 signature method" do
-      it "requires consumer and token secrets" do
+  describe '#valid?' do
+    context 'using the HMAC-SHA1 signature method' do
+      it 'requires consumer and token secrets' do
         secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets)
         parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
@@ -133,18 +133,18 @@ describe SimpleOAuth::Header do
       end
     end
 
-    context "using the RSA-SHA1 signature method" do
-      it "requires an identical private key" do
+    context 'using the RSA-SHA1 signature method' do
+      it 'requires an identical private key' do
         secrets = {:consumer_secret => rsa_private_key}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'RSA-SHA1'))
         parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
-        expect{ parsed_header.valid? }.to raise_error(TypeError)
+        expect { parsed_header.valid? }.to raise_error(TypeError)
         expect(parsed_header).to be_valid(secrets)
       end
     end
 
-    context "using the RSA-SHA1 signature method" do
-      it "requires consumer and token secrets" do
+    context 'using the RSA-SHA1 signature method' do
+      it 'requires consumer and token secrets' do
         secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'PLAINTEXT'))
         parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
@@ -154,67 +154,67 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe "#normalized_attributes" do
-    let(:header){ SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}) }
-    let(:normalized_attributes){ header.send(:normalized_attributes) }
+  describe '#normalized_attributes' do
+    let(:header) { SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}) }
+    let(:normalized_attributes) { header.send(:normalized_attributes) }
 
-    it "returns a sorted-key, quoted-value and comma-separated list" do
-      allow(header).to receive(:signed_attributes).and_return({:d => 1, :c => 2, :b => 3, :a => 4})
+    it 'returns a sorted-key, quoted-value and comma-separated list' do
+      allow(header).to receive(:signed_attributes).and_return(:d => 1, :c => 2, :b => 3, :a => 4)
       expect(normalized_attributes).to eq 'a="4", b="3", c="2", d="1"'
     end
 
-    it "URI encodes its values" do
-      allow(header).to receive(:signed_attributes).and_return({1 => '!', 2 => '@', 3 => '#', 4 => '$'})
+    it 'URI encodes its values' do
+      allow(header).to receive(:signed_attributes).and_return(1 => '!', 2 => '@', 3 => '#', 4 => '$')
       expect(normalized_attributes).to eq '1="%21", 2="%40", 3="%23", 4="%24"'
     end
   end
 
-  describe "#signed_attributes" do
-    it "includes the OAuth signature" do
+  describe '#signed_attributes' do
+    it 'includes the OAuth signature' do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {})
       expect(header.send(:signed_attributes)).to have_key(:oauth_signature)
     end
   end
 
-  describe "#attributes" do
+  describe '#attributes' do
     let(:header) do
       options = {}
-      SimpleOAuth::Header::ATTRIBUTE_KEYS.each{|k| options[k] = k.to_s.upcase }
+      SimpleOAuth::Header::ATTRIBUTE_KEYS.each { |k| options[k] = k.to_s.upcase }
       options[:other] = 'OTHER'
       SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}, options)
     end
-    let(:attributes){ header.send(:attributes) }
+    let(:attributes) { header.send(:attributes) }
 
     it "prepends keys with 'oauth_'" do
-      expect(attributes.keys).to be_all{|k| k.to_s =~ /^oauth_/ }
+      expect(attributes.keys).to be_all { |k| k.to_s =~ /^oauth_/ }
     end
 
-    it "excludes keys not included in the list of valid attributes" do
-      expect(attributes.keys).to be_all{|k| k.is_a?(Symbol) }
+    it 'excludes keys not included in the list of valid attributes' do
+      expect(attributes.keys).to be_all { |k| k.is_a?(Symbol) }
       expect(attributes).not_to have_key(:oauth_other)
     end
 
-    it "preserves values for valid keys" do
+    it 'preserves values for valid keys' do
       expect(attributes.size).to eq SimpleOAuth::Header::ATTRIBUTE_KEYS.size
-      expect(attributes).to be_all{|k,v| k.to_s == "oauth_#{v.downcase}" }
+      expect(attributes).to be_all { |k, v| k.to_s == "oauth_#{v.downcase}" }
     end
   end
 
-  describe "#signature" do
-    context "calls the appropriate signature method" do
-      specify "when using HMAC-SHA1" do
+  describe '#signature' do
+    context 'calls the appropriate signature method' do
+      specify 'when using HMAC-SHA1' do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'HMAC-SHA1')
         expect(header).to receive(:hmac_sha1_signature).once.and_return('HMAC_SHA1_SIGNATURE')
         expect(header.send(:signature)).to eq 'HMAC_SHA1_SIGNATURE'
       end
 
-      specify "when using RSA-SHA1" do
+      specify 'when using RSA-SHA1' do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'RSA-SHA1')
         expect(header).to receive(:rsa_sha1_signature).once.and_return('RSA_SHA1_SIGNATURE')
         expect(header.send(:signature)).to eq 'RSA_SHA1_SIGNATURE'
       end
 
-      specify "when using PLAINTEXT" do
+      specify 'when using PLAINTEXT' do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'PLAINTEXT')
         expect(header).to receive(:plaintext_signature).once.and_return('PLAINTEXT_SIGNATURE')
         expect(header.send(:signature)).to eq 'PLAINTEXT_SIGNATURE'
@@ -222,8 +222,8 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe "#hmac_sha1_signature" do
-    it "reproduces a successful Twitter GET" do
+  describe '#hmac_sha1_signature' do
+    it 'reproduces a successful Twitter GET' do
       options = {
         :consumer_key => '8karQBlMg6gFOwcf8kcoYw',
         :consumer_secret => '3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M',
@@ -237,7 +237,7 @@ describe SimpleOAuth::Header do
       expect(header.to_s).to eq 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="i9CT6ahDRAlfGX3hKYf78QzXsaw%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830180", oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
     end
 
-    it "reproduces a successful Twitter POST" do
+    it 'reproduces a successful Twitter POST' do
       options = {
         :consumer_key => '8karQBlMg6gFOwcf8kcoYw',
         :consumer_secret => '3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M',
@@ -252,33 +252,33 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe "#secret" do
-    let(:header){ SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}) }
-    let(:secret){ header.send(:secret) }
+  describe '#secret' do
+    let(:header) { SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}) }
+    let(:secret) { header.send(:secret) }
 
-    it "combines the consumer and token secrets with an ampersand" do
-      allow(header).to receive(:options).and_return({:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'})
+    it 'combines the consumer and token secrets with an ampersand' do
+      allow(header).to receive(:options).and_return(:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET')
       expect(secret).to eq 'CONSUMER_SECRET&TOKEN_SECRET'
     end
 
-    it "URI encodes each secret value before combination" do
-      allow(header).to receive(:options).and_return({:consumer_secret => 'CONSUM#R_SECRET', :token_secret => 'TOKEN_S#CRET'})
+    it 'URI encodes each secret value before combination' do
+      allow(header).to receive(:options).and_return(:consumer_secret => 'CONSUM#R_SECRET', :token_secret => 'TOKEN_S#CRET')
       expect(secret).to eq 'CONSUM%23R_SECRET&TOKEN_S%23CRET'
     end
   end
 
-  describe "#signature_base" do
-    let(:header){ SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}) }
-    let(:signature_base){ header.send(:signature_base) }
+  describe '#signature_base' do
+    let(:header) { SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}) }
+    let(:signature_base) { header.send(:signature_base) }
 
-    it "combines the request method, URL and normalized parameters using ampersands" do
+    it 'combines the request method, URL and normalized parameters using ampersands' do
       allow(header).to receive(:method).and_return('METHOD')
       allow(header).to receive(:url).and_return('URL')
       allow(header).to receive(:normalized_params).and_return('NORMALIZED_PARAMS')
       expect(signature_base).to eq 'METHOD&URL&NORMALIZED_PARAMS'
     end
 
-    it "URI encodes each value before combination" do
+    it 'URI encodes each value before combination' do
       allow(header).to receive(:method).and_return('ME#HOD')
       allow(header).to receive(:url).and_return('U#L')
       allow(header).to receive(:normalized_params).and_return('NORMAL#ZED_PARAMS')
@@ -286,60 +286,60 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe "#normalized_params" do
+  describe '#normalized_params' do
     let(:header) do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
-      allow(header).to receive(:signature_params).and_return([['A', '4'], ['B', '3'], ['B', '2'], ['C', '1'], ['D[]', '0 ']])
+      allow(header).to receive(:signature_params).and_return([%w[A 4], %w[B 3], %w[B 2], %w[C 1], ['D[]', '0 ']])
       header
     end
-    let(:signature_params){ header.send(:signature_params) }
-    let(:normalized_params){ header.send(:normalized_params) }
+    let(:signature_params) { header.send(:signature_params) }
+    let(:normalized_params) { header.send(:normalized_params) }
 
-    it "joins key/value pairs with equal signs and ampersands" do
+    it 'joins key/value pairs with equal signs and ampersands' do
       expect(normalized_params).to be_a(String)
       parts = normalized_params.split('&')
       expect(parts.size).to eq signature_params.size
-      pairs = parts.map{|p| p.split('=') }
-      expect(pairs).to be_all{|p| p.size == 2 }
+      pairs = parts.collect { |p| p.split('=') }
+      expect(pairs).to be_all { |p| p.size == 2 }
     end
   end
 
-  describe "#signature_params" do
-    let(:header){ SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}) }
-    let(:signature_params){ header.send(:signature_params) }
+  describe '#signature_params' do
+    let(:header) { SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}) }
+    let(:signature_params) { header.send(:signature_params) }
 
-    it "combines OAuth header attributes, body parameters and URL parameters into an flattened array of key/value pairs" do
-      allow(header).to receive(:attributes).and_return({:attribute => 'ATTRIBUTE'})
-      allow(header).to receive(:params).and_return({'param' => 'PARAM'})
-      allow(header).to receive(:url_params).and_return([['url_param', '1'], ['url_param', '2']])
+    it 'combines OAuth header attributes, body parameters and URL parameters into an flattened array of key/value pairs' do
+      allow(header).to receive(:attributes).and_return(:attribute => 'ATTRIBUTE')
+      allow(header).to receive(:params).and_return('param' => 'PARAM')
+      allow(header).to receive(:url_params).and_return([%w[url_param 1], %w[url_param 2]])
       expect(signature_params).to eq [
         [:attribute, 'ATTRIBUTE'],
-        ['param', 'PARAM'],
-        ['url_param', '1'],
-        ['url_param', '2']
+        %w[param PARAM],
+        %w[url_param 1],
+        %w[url_param 2]
       ]
     end
   end
 
-  describe "#url_params" do
-    it "returns an empty array when the URL has no query parameters" do
+  describe '#url_params' do
+    it 'returns an empty array when the URL has no query parameters' do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
       expect(header.send(:url_params)).to eq []
     end
 
-    it "returns an array of key/value pairs for each query parameter" do
+    it 'returns an array of key/value pairs for each query parameter' do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json?test=TEST', {})
-      expect(header.send(:url_params)).to eq [['test', 'TEST']]
+      expect(header.send(:url_params)).to eq [%w[test TEST]]
     end
 
-    it "sorts values for repeated keys" do
+    it 'sorts values for repeated keys' do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json?test=3&test=1&test=2', {})
-      expect(header.send(:url_params)).to eq [['test', '1'], ['test', '2'], ['test', '3']]
+      expect(header.send(:url_params)).to eq [%w[test 1], %w[test 2], %w[test 3]]
     end
   end
 
-  describe "#rsa_sha1_signature" do
-    it "reproduces a successful OAuth example GET" do
+  describe '#rsa_sha1_signature' do
+    it 'reproduces a successful OAuth example GET' do
       options = {
         :consumer_key => 'dpf43f3p2l4k3l03',
         :consumer_secret => rsa_private_key,
@@ -352,12 +352,12 @@ describe SimpleOAuth::Header do
     end
   end
 
-  describe "#private_key" do
+  describe '#private_key' do
     pending
   end
 
-  describe "#plaintext_signature" do
-    it "reproduces a successful OAuth example GET" do
+  describe '#plaintext_signature' do
+    it 'reproduces a successful OAuth example GET' do
       options = {
         :consumer_key => 'abcd',
         :consumer_secret => 'efgh',
