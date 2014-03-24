@@ -1,9 +1,16 @@
 # simple_oauth
 
-[![Build Status](https://secure.travis-ci.org/laserlemon/simple_oauth.png)](http://travis-ci.org/laserlemon/simple_oauth)
-[![Dependency Status](https://gemnasium.com/laserlemon/simple_oauth.png)](https://gemnasium.com/laserlemon/simple_oauth)
-[![Code Climate](https://codeclimate.com/github/laserlemon/simple_oauth.png)](https://codeclimate.com/github/laserlemon/simple_oauth)
-[![Coverage Status](https://coveralls.io/repos/laserlemon/simple_oauth/badge.png?branch=master)](https://coveralls.io/r/laserlemon/simple_oauth)
+[![Gem Version](http://img.shields.io/gem/v/simple_oauth.svg)][gem]
+[![Build Status](http://img.shields.io/travis/laserlemon/simple_oauth.svg)][travis]
+[![Dependency Status](http://img.shields.io/gemnasium/laserlemon/simple_oauth.svg)][gemnasium]
+[![Code Climate](http://img.shields.io/codeclimate/github/laserlemon/simple_oauth.svg)][codeclimate]
+[![Coverage Status](http://img.shields.io/coveralls/laserlemon/simple_oauth.svg)][coveralls]
+
+[gem]: https://rubygems.org/gems/simple_oauth
+[travis]: http://travis-ci.org/laserlemon/simple_oauth
+[gemnasium]: https://gemnasium.com/laserlemon/simple_oauth
+[codeclimate]: https://codeclimate.com/github/laserlemon/simple_oauth
+[coveralls]: https://coveralls.io/r/laserlemon/simple_oauth
 
 Simply builds and verifies OAuth headers
 
