@@ -121,6 +121,10 @@ describe SimpleOAuth::Header do
       expect(SimpleOAuth::Header.parse(header_with_commas)).to eq({:consumer_key => "a,bcd", :nonce => "o,LKtec51GQy", :signature => "efgh,mnop"})
     end
 
+    it "raises ParseError on input without a comma between key/value pairs" do
+      expect { SimpleOAuth::Header.parse(%q(OAuth oauth_consumer_key="k" oauth_nonce="n")) }.to raise_error(SimpleOAuth::ParseError)
+    end
+
     it "raises ParseError on malformed input" do
       expect { SimpleOAuth::Header.parse(%q(OAuth huh=/)) }.to raise_error(SimpleOAuth::ParseError)
     end

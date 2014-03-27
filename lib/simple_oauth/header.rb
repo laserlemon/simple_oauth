@@ -27,9 +27,13 @@ module SimpleOAuth
         scanner = StringScanner.new(header)
         scanner.scan(/OAuth\s*/) || raise(ParseError, "Authorization header must begin with 'OAuth ' - recieved: #{header}")
         attributes = {}
-        while match = scanner.scan(/oauth_(\w+)="([^"]*)"\s*,?\s*/)
+        while match = scanner.scan(/oauth_(\w+)="([^"]*)"\s*(,?)\s*/)
           key_s = scanner[1]
           value = scanner[2]
+          comma_follows = !scanner[3].empty?
+          if !comma_follows && !scanner.eos?
+            raise ParseError, "Could not parse Authorization header: #{header}\naround or after character #{scanner.pos}: #{scanner.rest}"
+          end
           # use a symbol only when the parameter is a recognized header key
           key = HEADER_KEYS.detect { |k| k.to_s == key_s } || key_s
           attributes.update(key => unescape(value))
