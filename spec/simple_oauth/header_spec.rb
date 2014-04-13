@@ -87,12 +87,12 @@ describe SimpleOAuth::Header do
       expect(parsed_options[:signature]).not_to be_nil
     end
 
-    it "does not symbolize unrecognized input header attributes" do
+    it "does not return unrecognized input header attributes" do
       parsed_with_extra = SimpleOAuth::Header.parse(%q(OAuth oauth_foobar="baz", oauth_nonce="thenonce", oauth_signature="signature"))
       expect(parsed_with_extra).to have_key(:signature)
       expect(parsed_with_extra).to have_key(:nonce)
       expect(parsed_with_extra).to have_key(:signature)
-      expect(parsed_with_extra).to have_key('foobar')
+      expect(parsed_with_extra).not_to have_key('foobar')
     end
 
     it "handles optional 'linear white space'" do
@@ -129,8 +129,9 @@ describe SimpleOAuth::Header do
       expect { SimpleOAuth::Header.parse(%q(OAuth huh=/)) }.to raise_error(SimpleOAuth::ParseError)
     end
 
-    it "raises ParseError on Authorization attributes not prefixed with oauth_" do
-      expect { SimpleOAuth::Header.parse(%q(OAuth foobar="baz")) }.to raise_error(SimpleOAuth::ParseError)
+    it "ignores attributes not prefixed with oauth_" do
+      parsed = SimpleOAuth::Header.parse(%q(OAuth realm="Photos", oauth_consumer_key="dpf43f3p2l4k3l03"))
+      expect(parsed).to eq({:consumer_key => "dpf43f3p2l4k3l03"})
     end
 
     it "raises ParseError when the header does not start with 'OAuth '" do
