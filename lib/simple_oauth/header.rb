@@ -77,7 +77,7 @@ module SimpleOAuth
   private
 
     def normalized_attributes
-      signed_attributes.sort_by { |k, v| k.to_s }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(', ')
+      signed_attributes.sort_by { |k, _| k.to_s }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(', ')
     end
 
     def attributes
