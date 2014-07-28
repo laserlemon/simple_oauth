@@ -80,7 +80,7 @@ module SimpleOAuth
       params.inject([{}, {}]) do |ret_array, (k, v)|
         option_key = k.to_s
         option_key = option_key.sub('oauth_', '').to_sym if option_key.start_with?('oauth_')
-        if SimpleOAuth::Header::ATTRIBUTE_KEYS.include?(option_key)
+        if SimpleOAuth::Header::ATTRIBUTE_KEYS.include?(option_key) || option_key == :signature
           ret_array[0][option_key] = v
         else
           ret_array[1][k] = v

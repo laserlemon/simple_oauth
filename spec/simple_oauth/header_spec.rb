@@ -122,7 +122,7 @@ describe SimpleOAuth::Header do
     end
 
     it 'sorts valid oauth params into options' do
-      params = {'oauth_nonce' => 'nonce', oauth_signature_method: 'special', timestamp: '123456', oauth_callback: 'callback', 'oauth_wrong' => 'a param'}
+      params = {'oauth_nonce' => 'nonce', oauth_signature_method: 'special', timestamp: '123456', oauth_callback: 'callback', oauth_signature: 'signature', 'oauth_wrong' => 'a param'}
       header = SimpleOAuth::Header.new(:get, 'HTTPS://api.TWITTER.com:443/1/statuses/friendships.json?foo=bar#anchor', params)
 
       expect(header.params.size).to eq 2
@@ -132,6 +132,7 @@ describe SimpleOAuth::Header do
       expect(header.options[:nonce]).to eq 'nonce'
       expect(header.options[:signature_method]).to eq 'special'
       expect(header.options[:callback]).to eq 'callback'
+      expect(header.options[:signature]).to eq 'signature'
     end
   end
 
