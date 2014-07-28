@@ -48,8 +48,8 @@ module SimpleOAuth
       @uri.scheme = @uri.scheme.downcase
       @uri.normalize!
       @uri.fragment = nil
-      @params = params
-      @options = oauth.is_a?(Hash) ? self.class.default_options.merge(oauth) : self.class.parse(oauth)
+      opts, @params = separate_options_from_params(params)
+      @options = oauth.is_a?(Hash) ? self.class.default_options.merge(opts).merge(oauth) : opts.merge(self.class.parse(oauth))
     end
 
     def url
@@ -75,6 +75,19 @@ module SimpleOAuth
     end
 
   private
+
+    def separate_options_from_params(params)
+      params.inject([{}, {}]) do |ret_array, (k, v)|
+        option_key = k.to_s
+        option_key = option_key.sub('oauth_', '').to_sym if option_key.start_with?('oauth_')
+        if SimpleOAuth::Header::ATTRIBUTE_KEYS.include?(option_key)
+          ret_array[0][option_key] = v
+        else
+          ret_array[1][k] = v
+        end
+        ret_array
+      end
+    end
 
     def normalized_attributes
       signed_attributes.sort_by { |k, _| k.to_s }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(', ')
