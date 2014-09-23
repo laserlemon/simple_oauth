@@ -51,7 +51,7 @@ describe SimpleOAuth::Header do
     if RUBY_VERSION >= '1.9'
       test_special_characters
     else
-      %w[n N e E s S u U].each do |kcode|
+      %w(n N e E s S u U).each do |kcode|
         describe %(when $KCODE = "#{kcode}") do
           original_kcode = $KCODE # rubocop:disable GlobalVars
           begin
@@ -298,7 +298,7 @@ describe SimpleOAuth::Header do
   describe '#normalized_params' do
     let(:header) do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {})
-      allow(header).to receive(:signature_params).and_return([%w[A 4], %w[B 3], %w[B 2], %w[C 1], ['D[]', '0 ']])
+      allow(header).to receive(:signature_params).and_return([%w(A 4), %w(B 3), %w(B 2), %w(C 1), ['D[]', '0 ']])
       header
     end
     let(:signature_params) { header.send(:signature_params) }
@@ -320,12 +320,12 @@ describe SimpleOAuth::Header do
     it 'combines OAuth header attributes, body parameters and URL parameters into an flattened array of key/value pairs' do
       allow(header).to receive(:attributes).and_return(:attribute => 'ATTRIBUTE')
       allow(header).to receive(:params).and_return('param' => 'PARAM')
-      allow(header).to receive(:url_params).and_return([%w[url_param 1], %w[url_param 2]])
+      allow(header).to receive(:url_params).and_return([%w(url_param 1), %w(url_param 2)])
       expect(signature_params).to eq [
         [:attribute, 'ATTRIBUTE'],
-        %w[param PARAM],
-        %w[url_param 1],
-        %w[url_param 2]
+        %w(param PARAM),
+        %w(url_param 1),
+        %w(url_param 2)
       ]
     end
   end
@@ -338,12 +338,12 @@ describe SimpleOAuth::Header do
 
     it 'returns an array of key/value pairs for each query parameter' do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json?test=TEST', {})
-      expect(header.send(:url_params)).to eq [%w[test TEST]]
+      expect(header.send(:url_params)).to eq [%w(test TEST)]
     end
 
     it 'sorts values for repeated keys' do
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json?test=3&test=1&test=2', {})
-      expect(header.send(:url_params)).to eq [%w[test 1], %w[test 2], %w[test 3]]
+      expect(header.send(:url_params)).to eq [%w(test 1), %w(test 2), %w(test 3)]
     end
   end
 
