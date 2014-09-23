@@ -81,7 +81,12 @@ module SimpleOAuth
     end
 
     def attributes
-      ATTRIBUTE_KEYS.inject({}) { |a, e| options[e] ? a.merge(:"oauth_#{e}" => options[e]) : a }
+      matching_keys, extra_keys = options.keys.partition { |key| ATTRIBUTE_KEYS.include?(key) }
+      if options[:ignore_extra_keys] || extra_keys.empty?
+        Hash[options.select { |key, _value| matching_keys.include?(key) }.collect { |key, value| [:"oauth_#{key}", value] }]
+      else
+        fail "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [#{extra_keys.collect(&:inspect).join(', ')}]"
+      end
     end
 
     def signature
