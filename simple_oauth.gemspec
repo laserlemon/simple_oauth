@@ -10,6 +10,6 @@ Gem::Specification.new do |spec|
   spec.homepage    = 'https://github.com/laserlemon/simple_oauth'
   spec.licenses    = %w(MIT)
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.start_with?('test/') }
+  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.start_with?('spec/') }
   spec.require_paths = %w(lib)
 end
