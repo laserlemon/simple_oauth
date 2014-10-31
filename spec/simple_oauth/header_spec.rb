@@ -144,7 +144,7 @@ describe SimpleOAuth::Header do
       end
     end
 
-    context 'using the RSA-SHA1 signature method' do
+    context 'using the PLAINTEXT signature method' do
       it 'requires consumer and token secrets' do
         secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET', :ignore_extra_keys => true}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'PLAINTEXT'))
