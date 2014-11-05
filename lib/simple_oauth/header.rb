@@ -6,6 +6,9 @@ require 'cgi'
 module SimpleOAuth
   class Header
     ATTRIBUTE_KEYS = [:callback, :consumer_key, :nonce, :signature_method, :timestamp, :token, :verifier, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
+
+    IGNORED_KEYS = [:consumer_secret, :token_secret] unless defined? ::SimpleOAuth::Header::IGNORED_KEYS
+
     attr_reader :method, :params, :options
 
     class << self
@@ -82,6 +85,7 @@ module SimpleOAuth
 
     def attributes
       matching_keys, extra_keys = options.keys.partition { |key| ATTRIBUTE_KEYS.include?(key) }
+      extra_keys -= IGNORED_KEYS
       if options[:ignore_extra_keys] || extra_keys.empty?
         Hash[options.select { |key, _value| matching_keys.include?(key) }.collect { |key, value| [:"oauth_#{key}", value] }]
       else
