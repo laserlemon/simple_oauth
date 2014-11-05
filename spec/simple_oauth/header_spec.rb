@@ -125,10 +125,9 @@ describe SimpleOAuth::Header do
   describe '#valid?' do
     context 'using the HMAC-SHA1 signature method' do
       it 'requires consumer and token secrets' do
-        secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET', :ignore_extra_keys => true}
+        secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets)
         parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
-        parsed_header.options[:ignore_extra_keys] = true
         expect(parsed_header).not_to be_valid
         expect(parsed_header).to be_valid(secrets)
       end
@@ -136,7 +135,7 @@ describe SimpleOAuth::Header do
 
     context 'using the RSA-SHA1 signature method' do
       it 'requires an identical private key' do
-        secrets = {:consumer_secret => rsa_private_key, :ignore_extra_keys => true}
+        secrets = {:consumer_secret => rsa_private_key}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'RSA-SHA1'))
         parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
         expect { parsed_header.valid? }.to raise_error(TypeError)
@@ -146,7 +145,7 @@ describe SimpleOAuth::Header do
 
     context 'using the PLAINTEXT signature method' do
       it 'requires consumer and token secrets' do
-        secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET', :ignore_extra_keys => true}
+        secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET'}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'PLAINTEXT'))
         parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
         expect(parsed_header).not_to be_valid
@@ -239,7 +238,6 @@ describe SimpleOAuth::Header do
         :timestamp => '1286830180',
         :token => '201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh',
         :token_secret => 'T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ',
-        :ignore_extra_keys => true,
       }
       header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, options)
       expect(header.to_s).to eq 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="i9CT6ahDRAlfGX3hKYf78QzXsaw%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830180", oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
@@ -254,7 +252,6 @@ describe SimpleOAuth::Header do
         :timestamp => '1286830181',
         :token => '201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh',
         :token_secret => 'T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ',
-        :ignore_extra_keys => true,
       }
       header = SimpleOAuth::Header.new(:post, 'https://api.twitter.com/1/statuses/update.json', {:status => 'hi, again'}, options)
       expect(header.to_s).to eq 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="mPqSFKejrWWk3ZT9bTQjhO5b2xI%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830181", oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
@@ -355,7 +352,6 @@ describe SimpleOAuth::Header do
         :nonce => '13917289812797014437',
         :signature_method => 'RSA-SHA1',
         :timestamp => '1196666512',
-        :ignore_extra_keys => true,
       }
       header = SimpleOAuth::Header.new(:get, 'http://photos.example.net/photos', {:file => 'vacaction.jpg', :size => 'original'}, options)
       expect(header.to_s).to eq 'OAuth oauth_consumer_key="dpf43f3p2l4k3l03", oauth_nonce="13917289812797014437", oauth_signature="jvTp%2FwX1TYtByB1m%2BPbyo0lnCOLIsyGCH7wke8AUs3BpnwZJtAuEJkvQL2%2F9n4s5wUmUl4aCI4BwpraNx4RtEXMe5qg5T1LVTGliMRpKasKsW%2F%2Fe%2BRinhejgCuzoH26dyF8iY2ZZ%2F5D1ilgeijhV%2FvBka5twt399mXwaYdCwFYE%3D", oauth_signature_method="RSA-SHA1", oauth_timestamp="1196666512", oauth_version="1.0"'
@@ -376,7 +372,6 @@ describe SimpleOAuth::Header do
         :timestamp => '1286977095',
         :token => 'ijkl',
         :token_secret => 'mnop',
-        :ignore_extra_keys => true,
       }
       header = SimpleOAuth::Header.new(:get, 'http://host.net/resource?name=value', {:name => 'value'}, options)
       expect(header.to_s).to eq 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'

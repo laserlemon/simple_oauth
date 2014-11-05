@@ -7,7 +7,7 @@ module SimpleOAuth
   class Header
     ATTRIBUTE_KEYS = [:callback, :consumer_key, :nonce, :signature_method, :timestamp, :token, :verifier, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
 
-    IGNORED_KEYS = [:consumer_secret, :token_secret] unless defined? ::SimpleOAuth::Header::IGNORED_KEYS
+    IGNORED_KEYS = [:consumer_secret, :token_secret, :signature] unless defined? ::SimpleOAuth::Header::IGNORED_KEYS
 
     attr_reader :method, :params, :options
 
