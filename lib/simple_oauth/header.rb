@@ -2,10 +2,14 @@ require 'openssl'
 require 'uri'
 require 'base64'
 require 'cgi'
+require 'strscan'
 
 module SimpleOAuth
+  class ParseError < StandardError; end
+
   class Header
     ATTRIBUTE_KEYS = [:callback, :consumer_key, :nonce, :signature_method, :timestamp, :token, :verifier, :version] unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
+    HEADER_KEYS = ATTRIBUTE_KEYS + [:signature]
     attr_reader :method, :params, :options
 
     class << self
@@ -19,10 +23,27 @@ module SimpleOAuth
       end
 
       def parse(header)
-        header.to_s.sub(/^OAuth\s/, '').split(/,\s*/).inject({}) do |attributes, pair|
-          match = pair.match(/^(\w+)\=\"([^\"]*)\"$/)
-          attributes.merge(match[1].sub(/^oauth_/, '').to_sym => unescape(match[2]))
+        header = header.to_s
+        scanner = StringScanner.new(header)
+        scanner.scan(/OAuth\s*/) || raise(ParseError, "Authorization header must begin with 'OAuth ' - recieved: #{header}")
+        attributes = {}
+        while match = scanner.scan(/(\w+)="([^"]*)"\s*(,?)\s*/)
+          key_s = scanner[1]
+          value = scanner[2]
+          comma_follows = !scanner[3].empty?
+          if !comma_follows && !scanner.eos?
+            raise ParseError, "Could not parse Authorization header: #{header}\naround or after character #{scanner.pos}: #{scanner.rest}"
+          end
+          # only return recognized header keys with an oauth_ prefix 
+          key = HEADER_KEYS.detect { |k| "oauth_#{k}" == key_s }
+          if key
+            attributes.update(key => unescape(value))
+          end
         end
+        unless scanner.eos?
+          raise ParseError, "Could not parse Authorization header: #{header}\naround or after character #{scanner.pos}: #{scanner.rest}"
+        end
+        attributes
       end
 
       def escape(value)

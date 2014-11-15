@@ -87,6 +87,14 @@ describe SimpleOAuth::Header do
       expect(parsed_options[:signature]).not_to be_nil
     end
 
+    it "does not return unrecognized input header attributes" do
+      parsed_with_extra = SimpleOAuth::Header.parse(%q(OAuth oauth_foobar="baz", oauth_nonce="thenonce", oauth_signature="signature"))
+      expect(parsed_with_extra).to have_key(:signature)
+      expect(parsed_with_extra).to have_key(:nonce)
+      expect(parsed_with_extra).to have_key(:signature)
+      expect(parsed_with_extra).not_to have_key('foobar')
+    end
+
     it "handles optional 'linear white space'" do
       parsed_header_with_spaces = SimpleOAuth::Header.parse 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
       expect(parsed_header_with_spaces).to be_a_kind_of(Hash)
@@ -103,6 +111,31 @@ describe SimpleOAuth::Header do
       parsed_header_without_spaces = SimpleOAuth::Header.parse 'OAuth oauth_consumer_key="abcd",oauth_nonce="oLKtec51GQy",oauth_signature="efgh%26mnop",oauth_signature_method="PLAINTEXT",oauth_timestamp="1286977095",oauth_token="ijkl",oauth_version="1.0"'
       expect(parsed_header_without_spaces).to be_a_kind_of(Hash)
       expect(parsed_header_without_spaces.keys.size).to eq 7
+    end
+
+    it "handles commas inside quoted values" do
+      # note that this is invalid according to the spec; commas should be %-encoded, but this is accepted in 
+      # the interests of robustness and consistency (other characters are accepted when they should really be 
+      # escaped). 
+      header_with_commas = 'OAuth oauth_consumer_key="a,bcd", oauth_nonce="o,LKtec51GQy", oauth_signature="efgh%2Cmnop"'
+      expect(SimpleOAuth::Header.parse(header_with_commas)).to eq({:consumer_key => "a,bcd", :nonce => "o,LKtec51GQy", :signature => "efgh,mnop"})
+    end
+
+    it "raises ParseError on input without a comma between key/value pairs" do
+      expect { SimpleOAuth::Header.parse(%q(OAuth oauth_consumer_key="k" oauth_nonce="n")) }.to raise_error(SimpleOAuth::ParseError)
+    end
+
+    it "raises ParseError on malformed input" do
+      expect { SimpleOAuth::Header.parse(%q(OAuth huh=/)) }.to raise_error(SimpleOAuth::ParseError)
+    end
+
+    it "ignores attributes not prefixed with oauth_" do
+      parsed = SimpleOAuth::Header.parse(%q(OAuth realm="Photos", oauth_consumer_key="dpf43f3p2l4k3l03"))
+      expect(parsed).to eq({:consumer_key => "dpf43f3p2l4k3l03"})
+    end
+
+    it "raises ParseError when the header does not start with 'OAuth '" do
+      expect { SimpleOAuth::Header.parse(%q(FooAuth foo="baz")) }.to raise_error(SimpleOAuth::ParseError)
     end
   end
 
