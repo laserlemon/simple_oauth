@@ -87,6 +87,14 @@ describe SimpleOAuth::Header do
       expect(parsed_options[:signature]).not_to be_nil
     end
 
+    it "does not symbolize unrecognized input header attributes" do
+      parsed_with_extra = SimpleOAuth::Header.parse(%q(OAuth oauth_foobar="baz", oauth_nonce="thenonce", oauth_signature="signature"))
+      expect(parsed_with_extra).to have_key(:signature)
+      expect(parsed_with_extra).to have_key(:nonce)
+      expect(parsed_with_extra).to have_key(:signature)
+      expect(parsed_with_extra).to have_key('foobar')
+    end
+
     it "handles optional 'linear white space'" do
       parsed_header_with_spaces = SimpleOAuth::Header.parse 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
       expect(parsed_header_with_spaces).to be_a_kind_of(Hash)
