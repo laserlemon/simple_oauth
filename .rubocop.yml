@@ -1,3 +1,6 @@
+Metrics/AbcSize:
+  Max: 16
+
 Metrics/BlockNesting:
   Max: 1
 
