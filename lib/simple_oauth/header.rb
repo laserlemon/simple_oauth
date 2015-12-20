@@ -1,6 +1,5 @@
 require 'openssl'
 require 'uri'
-require 'base64'
 require 'cgi'
 
 module SimpleOAuth
@@ -98,7 +97,7 @@ module SimpleOAuth
     end
 
     def hmac_sha1_signature
-      Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, secret, signature_base)).chomp.gsub(/\n/, '')
+      [OpenSSL::HMAC.digest(OpenSSL::Digest::SHA1.new, secret, signature_base)].pack('m').chomp.gsub(/\n/, '')
     end
 
     def secret
@@ -123,7 +122,7 @@ module SimpleOAuth
     end
 
     def rsa_sha1_signature
-      Base64.encode64(private_key.sign(OpenSSL::Digest::SHA1.new, signature_base)).chomp.gsub(/\n/, '')
+      [private_key.sign(OpenSSL::Digest::SHA1.new, signature_base)].pack('m').chomp.gsub(/\n/, '')
     end
 
     def private_key
