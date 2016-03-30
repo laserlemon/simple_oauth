@@ -1,5 +1,4 @@
 # encoding: utf-8
-
 require 'helper'
 
 describe SimpleOAuth::Header do
@@ -210,19 +209,22 @@ describe SimpleOAuth::Header do
     context 'calls the appropriate signature method' do
       specify 'when using HMAC-SHA1' do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'HMAC-SHA1')
-        expect(header).to receive(:hmac_sha1_signature).once.and_return('HMAC_SHA1_SIGNATURE')
+        # expect(header).to receive(:hmac_sha1_signature).once.and_return('HMAC_SHA1_SIGNATURE')
+        expect(Signatures::ENCODERS['HMAC-SHA1']).to receive(:create).once.and_return('HMAC_SHA1_SIGNATURE')
         expect(header.send(:signature)).to eq 'HMAC_SHA1_SIGNATURE'
       end
 
       specify 'when using RSA-SHA1' do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'RSA-SHA1')
-        expect(header).to receive(:rsa_sha1_signature).once.and_return('RSA_SHA1_SIGNATURE')
+        # expect(header).to receive(:rsa_sha1_signature).once.and_return('RSA_SHA1_SIGNATURE')
+        expect(Signatures::ENCODERS['RSA-SHA1']).to receive(:create).once.and_return('RSA_SHA1_SIGNATURE')
         expect(header.send(:signature)).to eq 'RSA_SHA1_SIGNATURE'
       end
 
       specify 'when using PLAINTEXT' do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'PLAINTEXT')
-        expect(header).to receive(:plaintext_signature).once.and_return('PLAINTEXT_SIGNATURE')
+        # expect(header).to receive(:plaintext_signature).once.and_return('PLAINTEXT_SIGNATURE')
+        expect(Signatures::ENCODERS['PLAINTEXT']).to receive(:create).once.and_return('PLAINTEXT_SIGNATURE')
         expect(header.send(:signature)).to eq 'PLAINTEXT_SIGNATURE'
       end
     end
@@ -255,21 +257,6 @@ describe SimpleOAuth::Header do
       }
       header = SimpleOAuth::Header.new(:post, 'https://api.twitter.com/1/statuses/update.json', {:status => 'hi, again'}, options)
       expect(header.to_s).to eq 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="mPqSFKejrWWk3ZT9bTQjhO5b2xI%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830181", oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
-    end
-  end
-
-  describe '#secret' do
-    let(:header) { SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}) }
-    let(:secret) { header.send(:secret) }
-
-    it 'combines the consumer and token secrets with an ampersand' do
-      allow(header).to receive(:options).and_return(:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET')
-      expect(secret).to eq 'CONSUMER_SECRET&TOKEN_SECRET'
-    end
-
-    it 'URI encodes each secret value before combination' do
-      allow(header).to receive(:options).and_return(:consumer_secret => 'CONSUM#R_SECRET', :token_secret => 'TOKEN_S#CRET')
-      expect(secret).to eq 'CONSUM%23R_SECRET&TOKEN_S%23CRET'
     end
   end
 
