@@ -120,6 +120,21 @@ describe SimpleOAuth::Header do
     it 'ignores the query and fragment' do
       expect(header.url).to match %r{/1/statuses/friendships\.json$}
     end
+
+    it 'sorts valid oauth params into options' do
+       params = {'oauth_nonce' => 'nonce', oauth_signature_method: 'special', timestamp: '123456', oauth_callback: 'callback', oauth_signature: 'signature', 'oauth_wrong' => 'a param'}
+       header = SimpleOAuth::Header.new(:get, 'HTTPS://api.TWITTER.com:443/1/statuses/friendships.json?foo=bar#anchor', params)
+
+       expect(header.params.size).to eq 2
+       expect(header.params[:timestamp]).to eq('123456')
+       expect(header.params['oauth_wrong']).to eq('a param')
+
+       expect(header.options[:nonce]).to eq 'nonce'
+       expect(header.options[:signature_method]).to eq 'special'
+       expect(header.options[:callback]).to eq 'callback'
+       expect(header.options[:signature]).to eq 'signature'
+     end
+
   end
 
   describe '#valid?' do
