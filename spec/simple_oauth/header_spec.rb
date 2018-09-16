@@ -138,7 +138,10 @@ describe SimpleOAuth::Header do
         secrets = {:consumer_secret => rsa_private_key}
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets.merge(:signature_method => 'RSA-SHA1'))
         parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
-        expect { parsed_header.valid? }.to raise_error
+        
+        expect do 
+          parsed_header.valid?
+        end.to raise_error(TypeError)
         expect(parsed_header).to be_valid(secrets)
       end
     end
