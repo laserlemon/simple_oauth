@@ -6,7 +6,7 @@ if RUBY_VERSION >= '1.9'
     [SimpleCov::Formatter::HTMLFormatter, Coveralls::SimpleCov::Formatter]
   SimpleCov.start do
     add_filter '/spec/'
-    add_filter '.bundle'
+    add_filter '/.bundle/'
     minimum_coverage(100)
   end
 end
