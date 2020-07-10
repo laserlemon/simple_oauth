@@ -133,6 +133,16 @@ describe SimpleOAuth::Header do
       end
     end
 
+    context 'using the HMAC-SHA256 signature method' do
+      it 'requires consumer and token secrets' do
+        secrets = {:consumer_secret => 'CONSUMER_SECRET', :token_secret => 'TOKEN_SECRET', :signature_method => 'HMAC-SHA256'}
+        header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, secrets)
+        parsed_header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, header)
+        expect(parsed_header).not_to be_valid
+        expect(parsed_header).to be_valid(secrets)
+      end
+    end
+
     context 'using the RSA-SHA1 signature method' do
       it 'requires an identical private key' do
         secrets = {:consumer_secret => rsa_private_key}
@@ -214,6 +224,12 @@ describe SimpleOAuth::Header do
         expect(header.send(:signature)).to eq 'HMAC_SHA1_SIGNATURE'
       end
 
+      specify 'when using HMAC-SHA256' do
+        header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'HMAC-SHA256')
+        expect(header).to receive(:hmac_sha256_signature).once.and_return('HMAC_SHA256_SIGNATURE')
+        expect(header.send(:signature)).to eq 'HMAC_SHA256_SIGNATURE'
+      end
+
       specify 'when using RSA-SHA1' do
         header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, :signature_method => 'RSA-SHA1')
         expect(header).to receive(:rsa_sha1_signature).once.and_return('RSA_SHA1_SIGNATURE')
@@ -225,6 +241,22 @@ describe SimpleOAuth::Header do
         expect(header).to receive(:plaintext_signature).once.and_return('PLAINTEXT_SIGNATURE')
         expect(header.send(:signature)).to eq 'PLAINTEXT_SIGNATURE'
       end
+    end
+  end
+
+  describe '#hmac_sha256_signature' do
+    it 'reproduces a successful Twitter GET' do
+      options = {
+        :consumer_key => '98ea1e175c700ef88090a78af04e381e',
+        :consumer_secret => '3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M',
+        :nonce => '74fb1d06-d6d8-4eb8-8e7c-2ff125051eea',
+        :signature_method => 'HMAC-SHA256',
+        :timestamp => '1594620035',
+        :token => '201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh',
+        :token_secret => 'B6gHLMQFg3Qvwce/ik+wtkk+evkMxDOhDsSQfsL36Eo=',
+      }
+      header = SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friends.json', {}, options)
+      expect(header.to_s).to eq 'OAuth oauth_consumer_key="98ea1e175c700ef88090a78af04e381e", oauth_nonce="74fb1d06-d6d8-4eb8-8e7c-2ff125051eea", oauth_signature="grFhB%2BblNMmJzm5faJVJ6JaIzo5M%2FpHgP8hjYeMAOtI%3D", oauth_signature_method="HMAC-SHA256", oauth_timestamp="1594620035", oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
     end
   end
 
