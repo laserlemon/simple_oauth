@@ -1,44 +1,24 @@
 # simple_oauth
 
-[![Gem Version](http://img.shields.io/gem/v/simple_oauth.svg)][gem]
-[![Build Status](http://img.shields.io/travis/laserlemon/simple_oauth.svg)][travis]
-[![Dependency Status](http://img.shields.io/gemnasium/laserlemon/simple_oauth.svg)][gemnasium]
-[![Code Climate](http://img.shields.io/codeclimate/github/laserlemon/simple_oauth.svg)][codeclimate]
-[![Coverage Status](http://img.shields.io/coveralls/laserlemon/simple_oauth.svg)][coveralls]
-
-[gem]: https://rubygems.org/gems/simple_oauth
-[travis]: http://travis-ci.org/laserlemon/simple_oauth
-[gemnasium]: https://gemnasium.com/laserlemon/simple_oauth
-[codeclimate]: https://codeclimate.com/github/laserlemon/simple_oauth
-[coveralls]: https://coveralls.io/r/laserlemon/simple_oauth
-
 Simply builds and verifies OAuth headers
 
-## Supported Rubies
-This library aims to support and is [tested
-against](http://travis-ci.org/laserlemon/simple_oauth) the following Ruby
-implementations:
+## Installation
 
-* Ruby 1.8.7
-* Ruby 1.9.3
-* Ruby 2.0.0
-* Ruby 2.1
-* [JRuby](http://jruby.org/)
-* [Rubinius](http://rubini.us/)
+Install the gem and add to the application's Gemfile by executing:
 
-If something doesn't work on one of these interpreters, it's a bug.
+    $ bundle add simple_oauth
 
-This library may inadvertently work (or seem to work) on other Ruby
-implementations, however support will only be provided for the versions listed
-above.
+If bundler is not being used to manage dependencies, install the gem by executing:
 
-If you would like this library to support another Ruby version, you may
-volunteer to be a maintainer. Being a maintainer entails making sure all tests
-run and pass on that implementation. When something breaks on your
-implementation, you will be responsible for providing patches in a timely
-fashion. If critical issues for a particular implementation exist at the time
-of a major release, support for that Ruby version may be dropped.
+    $ gem install simple_oauth
 
-## Copyright
-Copyright (c) 2010-2013 Steve Richert, Erik Michaels-Ober. See
-[LICENSE](LICENSE.md) for details.
+
+## Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/laserlemon/simple_oauth.
+
+This project conforms to [Standard Ruby](https://github.com/standardrb/standard). Patches that don’t maintain that standard will not be accepted.
+
+## License
+
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

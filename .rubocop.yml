@@ -1,57 +1,72 @@
-Metrics/AbcSize:
-  Max: 16
+require:
+ - standard
+ - standard-performance
+ - rubocop-rspec
+ - rubocop-performance
+ - rubocop-rake
 
-Metrics/BlockNesting:
-  Max: 1
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.0
 
-Metrics/LineLength:
-  AllowURI: true
+Layout/ArgumentAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Layout/ArrayAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+
+Layout/EndAlignment:
+  Enabled: true
+  EnforcedStyleAlignWith: variable
+
+Layout/HashAlignment:
+  Enabled: true
+  EnforcedHashRocketStyle: key
+  EnforcedColonStyle: key
+  EnforcedLastArgumentHashStyle: always_inspect
+
+Layout/LineLength:
   Enabled: false
 
-Metrics/MethodLength:
-  CountComments: false
-  Max: 7
+Layout/ParameterAlignment:
+  Enabled: true
+  EnforcedStyle: with_fixed_indentation
+  IndentationWidth: ~
+
+Layout/SpaceInsideHashLiteralBraces:
+  Enabled: false
 
 Metrics/ParameterLists:
-  Max: 4
-  CountKeywordArgs: true
+  CountKeywordArgs: false
 
-Style/AccessModifierIndentation:
-  EnforcedStyle: outdent
-
-Style/CollectionMethods:
-  PreferredMethods:
-    map:      'collect'
-    reduce:   'inject'
-    find:     'detect'
-    find_all: 'select'
-
-Style/Documentation:
+RSpec/MultipleExpectations:
   Enabled: false
 
-Style/DotPosition:
-  EnforcedStyle: trailing
-
-Style/DoubleNegation:
+RSpec/ExampleLength:
   Enabled: false
 
-Style/EachWithObject:
+RSpec/MessageSpies:
   Enabled: false
 
-Style/Encoding:
+RSpec/PendingWithoutReason:
   Enabled: false
 
-Style/HashSyntax:
-  EnforcedStyle: hash_rockets
-
-Style/Lambda:
+RSpec/FilePath:
   Enabled: false
 
-Style/RaiseArgs:
-  EnforcedStyle: compact
+Style/Alias:
+  Enabled: true
+  EnforcedStyle: prefer_alias_method
 
-Style/SpaceInsideHashLiteralBraces:
-  EnforcedStyle: no_space
+Style/FrozenStringLiteralComment:
+  Enabled: false
 
-Style/TrailingComma:
-  EnforcedStyleForMultiline: 'comma'
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
+  EnforcedStyle: double_quotes

@@ -1,20 +1,17 @@
-if RUBY_VERSION >= '1.9'
-  require 'simplecov'
-  require 'coveralls'
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
-  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[SimpleCov::Formatter::HTMLFormatter, Coveralls::SimpleCov::Formatter]
+require "simplecov"
 
-  SimpleCov.start do
-    add_filter '/spec/'
-    minimum_coverage(100)
-  end
+SimpleCov.start do
+  add_filter "/spec/"
+  minimum_coverage(100)
 end
 
-require 'simple_oauth'
-require 'rspec'
+require "rspec"
+require "simple_oauth"
 
 def uri_parser
-  @uri_parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
+  @uri_parser ||= URI.const_defined?(:Parser) ? URI::DEFAULT_PARSER : URI
 end
 
 RSpec.configure do |config|
@@ -23,4 +20,4 @@ RSpec.configure do |config|
   end
 end
 
-Dir[File.expand_path('../support/**/*.rb', __FILE__)].each { |f| require f }
+Dir[File.expand_path("support/**/*.rb", __dir__)].each { |f| require f }
