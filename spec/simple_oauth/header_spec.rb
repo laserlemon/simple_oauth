@@ -179,6 +179,12 @@ describe SimpleOAuth::Header do
       expect(header.send(:attributes)).not_to have_key(:oauth_other)
     end
 
+    it "includes string keys" do
+      SimpleOAuth::Header.new(:get, 'https://api.twitter.com/1/statuses/friendships.json', {}, {"callback" => "CALLBACK"})
+      expect(attributes.keys).to be_all{|k| k.is_a?(Symbol) }
+      expect(attributes).to have_key(:oauth_callback)
+    end
+
     it "preserves values for valid keys" do
       header.options[:ignore_extra_keys] = true
       expect(header.send(:attributes).size).to eq SimpleOAuth::Header::ATTRIBUTE_KEYS.size
