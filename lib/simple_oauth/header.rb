@@ -42,7 +42,7 @@ module SimpleOAuth
       private
 
       def uri_parser
-        @uri_parser ||= URI.const_defined?(:Parser) ? URI::DEFAULT_PARSER : URI
+        @uri_parser ||= URI.const_defined?(:Parser) ? URI::RFC2396_PARSER : URI
       end
     end
 
@@ -89,7 +89,7 @@ module SimpleOAuth
       extra_keys -= IGNORED_KEYS
       raise "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [#{extra_keys.collect(&:inspect).join(", ")}]" unless options[:ignore_extra_keys] || extra_keys.empty?
 
-      options.select { |key, _| matching_keys.include?(key) }.transform_keys { |key| :"oauth_#{key}" }
+      options.slice(*matching_keys).transform_keys { |key| :"oauth_#{key}" }
     end
 
     def signature
