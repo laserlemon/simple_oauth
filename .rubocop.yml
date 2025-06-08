@@ -1,5 +1,7 @@
 require:
  - standard
+
+plugins:
  - standard-performance
  - rubocop-rspec
  - rubocop-performance
@@ -53,7 +55,10 @@ RSpec/MessageSpies:
 RSpec/PendingWithoutReason:
   Enabled: false
 
-RSpec/FilePath:
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+RSpec/SpecFilePathSuffix:
   Enabled: false
 
 Style/Alias:
