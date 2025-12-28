@@ -5,7 +5,7 @@ gemspec
 
 gem "rake", ">= 13.0.6"
 gem "rspec", ">= 3.12"
-gem "rubocop", ">= 1.21"
+gem "rubocop", ">= 1.72"
 gem "rubocop-performance", ">= 1.18"
 gem "rubocop-rake", ">= 0.6"
 gem "rubocop-rspec", ">= 3.0.0"
