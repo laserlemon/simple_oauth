@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
   spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.add_dependency "base64"
+  spec.add_dependency "cgi"
 end
