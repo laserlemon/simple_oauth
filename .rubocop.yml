@@ -53,7 +53,7 @@ RSpec/MessageSpies:
 RSpec/PendingWithoutReason:
   Enabled: false
 
-RSpec/FilePath:
+RSpec/SpecFilePathFormat:
   Enabled: false
 
 Style/Alias:
