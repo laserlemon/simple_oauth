@@ -11,7 +11,7 @@ module SimpleOAuth
     # Type aliases for clarity
     type oauth_key = :callback | :consumer_key | :nonce | :signature_method | :timestamp | :token | :verifier | :version
     type ignored_key = :consumer_secret | :token_secret | :signature
-    type signature_method = "HMAC-SHA1" | "RSA-SHA1" | "PLAINTEXT"
+    type signature_method = "HMAC-SHA1" | "HMAC-SHA256" | "RSA-SHA1" | "PLAINTEXT"
     type params_hash = Hash[String | Symbol, untyped]
     type oauth_options = Hash[Symbol, untyped]
     type signed_attributes_hash = Hash[Symbol, untyped]
@@ -74,6 +74,9 @@ module SimpleOAuth
 
     # Computes HMAC-SHA1 signature
     def hmac_sha1_signature: () -> String
+
+    # Computes HMAC-SHA256 signature
+    def hmac_sha256_signature: () -> String
 
     # Builds the secret string from consumer and token secrets
     def secret: () -> String

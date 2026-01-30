@@ -46,6 +46,27 @@ module SimpleOAuth
       assert_equal "RSA_SHA1_SIGNATURE", header.send(:signature)
     end
 
+    # #signature tests - HMAC-SHA256
+
+    def test_signature_hmac_sha256_calls_hmac_sha256_signature_once
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA256")
+      call_count = 0
+      header.define_singleton_method(:hmac_sha256_signature) do
+        call_count += 1
+        "HMAC_SHA256_SIGNATURE"
+      end
+      header.send(:signature)
+
+      assert_equal 1, call_count
+    end
+
+    def test_signature_hmac_sha256_returns_hmac_sha256_signature
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA256")
+      header.define_singleton_method(:hmac_sha256_signature) { "HMAC_SHA256_SIGNATURE" }
+
+      assert_equal "HMAC_SHA256_SIGNATURE", header.send(:signature)
+    end
+
     # #signature tests - PLAINTEXT
 
     def test_signature_plaintext_calls_plaintext_signature_once

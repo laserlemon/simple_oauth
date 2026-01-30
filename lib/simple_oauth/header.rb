@@ -218,6 +218,14 @@ module SimpleOAuth
       Base64.encode64(OpenSSL::HMAC.digest("SHA1", secret, signature_base)).delete("\n")
     end
 
+    # Computes HMAC-SHA256 signature
+    #
+    # @api private
+    # @return [String] HMAC-SHA256 signature
+    def hmac_sha256_signature
+      Base64.encode64(OpenSSL::HMAC.digest("SHA256", secret, signature_base)).delete("\n")
+    end
+
     # Builds the secret string from consumer and token secrets
     #
     # @api private
