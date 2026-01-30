@@ -16,8 +16,4 @@ module TestHelpers
   def rsa_private_key
     @rsa_private_key ||= File.read(PRIVATE_KEY_PATH)
   end
-
-  def uri_parser
-    @uri_parser ||= URI.const_defined?(:Parser) ? URI::DEFAULT_PARSER : URI
-  end
 end

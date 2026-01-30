@@ -38,7 +38,7 @@ module SimpleOAuth
         escaped = SimpleOAuth::Header.escape(character)
 
         refute_equal character, escaped
-        assert_equal uri_parser.escape(character, /.*/), escaped
+        assert_equal URI::RFC2396_PARSER.escape(character, /.*/), escaped
       end
     end
 

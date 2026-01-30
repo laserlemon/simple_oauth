@@ -32,20 +32,14 @@ module SimpleOAuth
       end
 
       def escape(value)
-        uri_parser.escape(value.to_s, /[^a-z0-9\-._~]/i)
+        URI::RFC2396_PARSER.escape(value.to_s, /[^a-z0-9\-._~]/i)
       end
       alias_method :encode, :escape
 
       def unescape(value)
-        uri_parser.unescape(value.to_s)
+        URI::RFC2396_PARSER.unescape(value.to_s)
       end
       alias_method :decode, :unescape
-
-      private
-
-      def uri_parser
-        @uri_parser ||= URI.const_defined?(:Parser) ? URI::DEFAULT_PARSER : URI
-      end
     end
 
     def initialize(method, url, params, oauth = {})
