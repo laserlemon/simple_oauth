@@ -245,8 +245,9 @@ describe SimpleOAuth::Header do
       let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA1") }
 
       it "calls hmac_sha1_signature once" do
-        expect(header).to receive(:hmac_sha1_signature).once.and_return("HMAC_SHA1_SIGNATURE")
+        allow(header).to receive(:hmac_sha1_signature).and_return("HMAC_SHA1_SIGNATURE")
         header.send(:signature)
+        expect(header).to have_received(:hmac_sha1_signature).once
       end
 
       it "returns the HMAC-SHA1 signature" do
@@ -259,8 +260,9 @@ describe SimpleOAuth::Header do
       let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "RSA-SHA1") }
 
       it "calls rsa_sha1_signature once" do
-        expect(header).to receive(:rsa_sha1_signature).once.and_return("RSA_SHA1_SIGNATURE")
+        allow(header).to receive(:rsa_sha1_signature).and_return("RSA_SHA1_SIGNATURE")
         header.send(:signature)
+        expect(header).to have_received(:rsa_sha1_signature).once
       end
 
       it "returns the RSA-SHA1 signature" do
@@ -273,8 +275,9 @@ describe SimpleOAuth::Header do
       let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "PLAINTEXT") }
 
       it "calls plaintext_signature once" do
-        expect(header).to receive(:plaintext_signature).once.and_return("PLAINTEXT_SIGNATURE")
+        allow(header).to receive(:plaintext_signature).and_return("PLAINTEXT_SIGNATURE")
         header.send(:signature)
+        expect(header).to have_received(:plaintext_signature).once
       end
 
       it "returns the PLAINTEXT signature" do
