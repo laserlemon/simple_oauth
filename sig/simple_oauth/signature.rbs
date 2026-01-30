@@ -1,16 +1,45 @@
 # Signature computation methods for OAuth 1.0
+#
+# This module provides a registry of signature methods that can be extended
+# with custom implementations.
 module SimpleOAuth
   module Signature
-    # Computes HMAC-SHA1 signature
-    def self.hmac_sha1: (String secret, String signature_base) -> String
+    # Type for signature implementation block
+    type signature_block = ^(String secret, String signature_base) -> String
 
-    # Computes HMAC-SHA256 signature
-    def self.hmac_sha256: (String secret, String signature_base) -> String
+    # Type for registry entry
+    type registry_entry = { implementation: signature_block, rsa: bool }
 
-    # Computes RSA-SHA1 signature using private key
-    def self.rsa_sha1: (String private_key_pem, String signature_base) -> String
+    # Registry of signature method implementations (class-level instance variable)
+    self.@registry: Hash[String, registry_entry]
 
-    # Returns PLAINTEXT signature (escaped secrets joined by &)
-    def self.plaintext: (String secret, ?String? _signature_base) -> String
+    # Registers a custom signature method
+    def self.register: (String name, ?rsa: bool) { (String, String) -> String } -> void
+
+    # Checks if a signature method is registered
+    def self.registered?: (String name) -> bool
+
+    # Returns list of registered signature method names
+    def self.methods: () -> Array[String]
+
+    # Checks if a signature method uses RSA
+    def self.rsa?: (String name) -> bool
+
+    # Computes a signature using the specified method
+    def self.sign: (String name, String secret, String signature_base) -> String
+
+    # Unregisters a signature method
+    def self.unregister: (String name) -> void
+
+    # Resets the registry to only built-in methods
+    def self.reset!: () -> void
+
+    private
+
+    # Normalizes signature method name for registry lookup
+    def self.normalize_name: (String | Symbol name) -> String
+
+    # Registers the built-in OAuth signature methods
+    def self.register_builtin_methods: () -> void
   end
 end

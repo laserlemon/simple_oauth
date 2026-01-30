@@ -241,9 +241,9 @@ module SimpleOAuth
     # @api private
     # @return [String] the computed signature based on signature_method
     def signature
-      sig_method = options.fetch(:signature_method).downcase.tr("-", "_")
-      sig_secret = sig_method.eql?("rsa_sha1") ? options[:consumer_secret] : secret
-      Signature.public_send(sig_method, sig_secret, signature_base)
+      sig_method = options.fetch(:signature_method)
+      sig_secret = Signature.rsa?(sig_method) ? options[:consumer_secret] : secret
+      Signature.sign(sig_method, sig_secret, signature_base)
     end
 
     # Builds the secret string from consumer and token secrets
