@@ -11,4 +11,9 @@ end
 
 RuboCop::RakeTask.new
 
-task default: %i[test rubocop standard]
+desc "Run mutation tests"
+task :mutant do
+  system("bundle", "exec", "mutant", "run") || exit(1)
+end
+
+task default: %i[test rubocop standard mutant]

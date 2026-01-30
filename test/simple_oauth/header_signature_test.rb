@@ -2,6 +2,8 @@ require "test_helper"
 
 module SimpleOAuth
   class HeaderSignatureTest < Minitest::Test
+    cover "SimpleOAuth::Header*"
+
     # #signature tests - HMAC-SHA1
 
     def test_signature_hmac_sha1_calls_hmac_sha1_signature_once
@@ -63,6 +65,30 @@ module SimpleOAuth
       header.define_singleton_method(:plaintext_signature) { "PLAINTEXT_SIGNATURE" }
 
       assert_equal "PLAINTEXT_SIGNATURE", header.send(:signature)
+    end
+
+    def test_signature_method_converts_dashes_to_underscores
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA1")
+      called_method = nil
+      header.define_singleton_method(:hmac_sha1_signature) do
+        called_method = :hmac_sha1_signature
+        "SIG"
+      end
+      header.send(:signature)
+
+      assert_equal :hmac_sha1_signature, called_method
+    end
+
+    def test_signature_method_downcases_signature_method
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "PLAINTEXT")
+      called_method = nil
+      header.define_singleton_method(:plaintext_signature) do
+        called_method = :plaintext_signature
+        "SIG"
+      end
+      header.send(:signature)
+
+      assert_equal :plaintext_signature, called_method
     end
   end
 end

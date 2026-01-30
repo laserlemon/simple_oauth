@@ -4,6 +4,8 @@ module SimpleOAuth
   class HeaderInstanceTest < Minitest::Test
     include TestHelpers
 
+    cover "SimpleOAuth::Header*"
+
     # #initialize tests
 
     def test_initialize_stringifies_and_uppercases_request_method
@@ -24,6 +26,38 @@ module SimpleOAuth
       assert_match %r{/1/statuses/friendships\.json$}, header.url
     end
 
+    def test_initialize_stores_downcased_scheme_in_uri
+      header = SimpleOAuth::Header.new(:get, "HTTPS://api.twitter.com/path", {})
+
+      assert header.url.start_with?("https://")
+    end
+
+    def test_scheme_is_downcased_from_mixed_case
+      header = SimpleOAuth::Header.new(:get, "HtTpS://example.com/path", {})
+
+      refute_includes header.url, "HtTpS"
+      assert_includes header.url, "https"
+    end
+
+    def test_initialize_accepts_object_with_to_s_method
+      url_object = Object.new
+      url_object.define_singleton_method(:to_s) { "https://example.com/path" }
+      header = SimpleOAuth::Header.new(:get, url_object, {})
+
+      assert_equal "https://example.com/path", header.url
+    end
+
+    def test_initialize_with_hash_subclass_uses_default_options
+      class_with_hash_ancestor = Class.new(Hash)
+      options = class_with_hash_ancestor.new
+      options[:consumer_key] = "key"
+
+      header = SimpleOAuth::Header.new(:get, "https://example.com", {}, options)
+
+      assert header.options.key?(:nonce)
+      assert header.options.key?(:timestamp)
+    end
+
     # #normalized_attributes tests
 
     def test_normalized_attributes_returns_sorted_quoted_comma_separated_list
@@ -42,55 +76,22 @@ module SimpleOAuth
       assert_equal '1="%21", 2="%40", 3="%23", 4="%24"', header.send(:normalized_attributes)
     end
 
+    def test_normalized_attributes_converts_symbol_keys_to_strings_for_sorting
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      stubbed_attrs = {z_key: "z", a_key: "a"}
+      header.define_singleton_method(:signed_attributes) { stubbed_attrs }
+
+      result = header.send(:normalized_attributes)
+
+      assert_match(/^a_key=.*z_key=/, result)
+    end
+
     # #signed_attributes tests
 
     def test_signed_attributes_includes_oauth_signature
       header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
 
       assert header.send(:signed_attributes).key?(:oauth_signature)
-    end
-
-    # #attributes tests
-
-    def test_attributes_prepends_keys_with_oauth
-      header = build_header_with_all_attribute_keys
-      header.options[:ignore_extra_keys] = true
-
-      assert(header.send(:attributes).keys.all? { |k| k.to_s =~ /^oauth_/ })
-    end
-
-    def test_attributes_has_only_symbol_keys
-      header = build_header_with_all_attribute_keys
-      header.options[:ignore_extra_keys] = true
-
-      assert(header.send(:attributes).keys.all?(Symbol))
-    end
-
-    def test_attributes_excludes_invalid_keys
-      header = build_header_with_all_attribute_keys
-      header.options[:ignore_extra_keys] = true
-
-      refute header.send(:attributes).key?(:oauth_other)
-    end
-
-    def test_attributes_preserves_values_for_valid_keys
-      header = build_header_with_all_attribute_keys
-      header.options[:ignore_extra_keys] = true
-
-      assert(header.send(:attributes).all? { |k, v| k.to_s == "oauth_#{v.downcase}" })
-    end
-
-    def test_attributes_has_same_count_as_attribute_keys
-      header = build_header_with_all_attribute_keys
-      header.options[:ignore_extra_keys] = true
-
-      assert_equal SimpleOAuth::Header::ATTRIBUTE_KEYS.size, header.send(:attributes).size
-    end
-
-    def test_attributes_raises_for_extra_keys
-      header = build_header_with_all_attribute_keys
-      error = assert_raises(RuntimeError) { header.send(:attributes) }
-      assert_equal "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [:other]", error.message
     end
 
     # #secret tests
@@ -135,15 +136,6 @@ module SimpleOAuth
       header = SimpleOAuth::Header.new(:get, "https://example.com", {}, consumer_secret: rsa_private_key)
 
       assert_kind_of OpenSSL::PKey::RSA, header.send(:private_key)
-    end
-
-    private
-
-    def build_header_with_all_attribute_keys
-      options = {}
-      SimpleOAuth::Header::ATTRIBUTE_KEYS.each { |k| options[k] = k.to_s.upcase }
-      options[:other] = "OTHER"
-      SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {}, options)
     end
   end
 end

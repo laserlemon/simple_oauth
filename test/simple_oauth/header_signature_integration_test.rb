@@ -4,6 +4,8 @@ module SimpleOAuth
   class HeaderSignatureIntegrationTest < Minitest::Test
     include TestHelpers
 
+    cover "SimpleOAuth::Header*"
+
     # #hmac_sha1_signature tests
 
     def test_hmac_sha1_signature_reproduces_twitter_get

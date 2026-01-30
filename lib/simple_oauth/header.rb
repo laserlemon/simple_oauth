@@ -1,33 +1,31 @@
-require "openssl"
-require "uri"
 require "base64"
 require "cgi"
+require "openssl"
+require "securerandom"
+require "uri"
 
 module SimpleOAuth
   # Generates OAuth header for HTTP request
   class Header
-    unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
-      ATTRIBUTE_KEYS = %i[callback consumer_key nonce signature_method timestamp token verifier version].freeze
-    end
-
-    IGNORED_KEYS = %i[consumer_secret token_secret signature].freeze unless defined? ::SimpleOAuth::Header::IGNORED_KEYS
+    ATTRIBUTE_KEYS = %i[callback consumer_key nonce signature_method timestamp token verifier version].freeze
+    IGNORED_KEYS = %i[consumer_secret token_secret signature].freeze
 
     attr_reader :method, :params, :options
 
     class << self
       def default_options
         {
-          nonce: OpenSSL::Random.random_bytes(16).unpack1("H*"),
+          nonce: Random.random_bytes.unpack1("H*"),
           signature_method: "HMAC-SHA1",
-          timestamp: Time.now.to_i.to_s,
+          timestamp: Integer(Time.now).to_s,
           version: "1.0"
         }
       end
 
       def parse(header)
-        header.to_s.sub(/^OAuth\s/, "").split(/,\s*/).inject({}) do |attributes, pair|
-          match = pair.match(/^(\w+)="([^"]*)"$/)
-          attributes.merge(match[1].sub(/^oauth_/, "").to_sym => unescape(match[2]))
+        header.to_s.sub(/\AOAuth\s/, "").split(/,\s*/).inject({}) do |attributes, pair|
+          match = pair.match(/\A(\w+)="([^"]*)"\z/)
+          attributes.merge(match[1].delete_prefix("oauth_").to_sym => unescape(match[2]))
         end
       end
 
@@ -45,7 +43,6 @@ module SimpleOAuth
     def initialize(method, url, params, oauth = {})
       @method = method.to_s.upcase
       @uri = URI.parse(url.to_s)
-      @uri.scheme = @uri.scheme.downcase
       @uri.normalize!
       @uri.fragment = nil
       @params = params
@@ -55,7 +52,7 @@ module SimpleOAuth
     def url
       uri = @uri.dup
       uri.query = nil
-      uri.to_s
+      uri.to_str
     end
 
     def to_s
@@ -65,7 +62,7 @@ module SimpleOAuth
     def valid?(secrets = {})
       original_options = options.dup
       options.merge!(secrets)
-      valid = options[:signature] == signature
+      valid = options.fetch(:signature).eql?(signature)
       options.replace(original_options)
       valid
     end
@@ -77,7 +74,7 @@ module SimpleOAuth
     private
 
     def normalized_attributes
-      signed_attributes.sort_by { |k, _| k.to_s }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(", ")
+      signed_attributes.sort_by { |k, _| k }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(", ")
     end
 
     def attributes
@@ -91,11 +88,11 @@ module SimpleOAuth
     end
 
     def signature
-      send("#{options[:signature_method].downcase.tr("-", "_")}_signature")
+      __send__("#{options.fetch(:signature_method).downcase.tr("-", "_")}_signature")
     end
 
     def hmac_sha1_signature
-      Base64.encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new("SHA1"), secret, signature_base)).chomp.delete("\n")
+      Base64.encode64(OpenSSL::HMAC.digest("SHA1", secret, signature_base)).delete("\n")
     end
 
     def secret
@@ -120,7 +117,7 @@ module SimpleOAuth
     end
 
     def rsa_sha1_signature
-      Base64.encode64(private_key.sign(OpenSSL::Digest.new("SHA1"), signature_base)).chomp.delete("\n")
+      Base64.encode64(private_key.sign("SHA1", signature_base)).delete("\n")
     end
 
     def private_key

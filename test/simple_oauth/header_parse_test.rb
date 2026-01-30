@@ -2,6 +2,8 @@ require "test_helper"
 
 module SimpleOAuth
   class HeaderParseTest < Minitest::Test
+    cover "SimpleOAuth::Header*"
+
     # .parse tests
 
     def test_parse_returns_a_hash
@@ -72,6 +74,21 @@ module SimpleOAuth
       parsed = SimpleOAuth::Header.parse(header_without_spaces)
 
       assert_equal 7, parsed.keys.size
+    end
+
+    def test_parse_handles_empty_value
+      header_with_empty = 'OAuth oauth_callback=""'
+      parsed = SimpleOAuth::Header.parse(header_with_empty)
+
+      assert_equal "", parsed[:callback]
+    end
+
+    def test_parse_strips_oauth_prefix_from_keys
+      header = 'OAuth oauth_consumer_key="key123"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      assert parsed.key?(:consumer_key)
+      refute parsed.key?(:oauth_consumer_key)
     end
   end
 end

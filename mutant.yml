@@ -1,0 +1,17 @@
+usage: opensource
+integration:
+  name: minitest
+includes:
+  - lib
+  - test
+requires:
+  - simple_oauth
+mutation:
+  operators: full
+  timeout: 5.0
+matcher:
+  subjects:
+    - SimpleOAuth*
+coverage_criteria:
+  process_abort: true
+  test_result: true

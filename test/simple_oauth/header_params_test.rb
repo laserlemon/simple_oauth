@@ -2,6 +2,8 @@ require "test_helper"
 
 module SimpleOAuth
   class HeaderParamsTest < Minitest::Test
+    cover "SimpleOAuth::Header*"
+
     # #normalized_params tests
 
     def test_normalized_params_returns_a_string
@@ -58,6 +60,28 @@ module SimpleOAuth
       header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json?test=3&test=1&test=2", {})
 
       assert_equal [%w[test 1], %w[test 2], %w[test 3]], header.send(:url_params)
+    end
+
+    def test_url_params_handles_empty_query_string
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json?", {})
+
+      assert_empty header.send(:url_params)
+    end
+
+    def test_normalized_params_sorts_params_alphabetically
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {})
+      header.define_singleton_method(:signature_params) { [%w[z last], %w[a first], %w[m middle]] }
+      result = header.send(:normalized_params)
+
+      assert_equal "a=first&m=middle&z=last", result
+    end
+
+    def test_url_params_accumulates_multiple_keys
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json?foo=1&bar=2&baz=3", {})
+      url_params = header.send(:url_params)
+      expected = [%w[bar 2], %w[baz 3], %w[foo 1]]
+
+      assert_equal expected, url_params.sort
     end
   end
 end

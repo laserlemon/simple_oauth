@@ -2,6 +2,8 @@ require "test_helper"
 
 module SimpleOAuth
   class HeaderEscapeTest < Minitest::Test
+    cover "SimpleOAuth::Header*"
+
     # .escape tests
 
     def test_escape_escapes_non_word_characters
@@ -41,6 +43,14 @@ module SimpleOAuth
 
     def test_unescape_returns_unencoded_characters_as_is
       assert_equal "hello", SimpleOAuth::Header.unescape("hello")
+    end
+
+    def test_unescape_converts_non_string_to_string
+      assert_equal "123", SimpleOAuth::Header.unescape(123)
+    end
+
+    def test_escape_converts_non_string_to_string
+      assert_equal "123", SimpleOAuth::Header.escape(123)
     end
   end
 end
