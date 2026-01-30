@@ -1,0 +1,23 @@
+name: Yardstick
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+
+jobs:
+  yardstick:
+    runs-on: ubuntu-latest
+    name: Documentation Coverage
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: "3.4"
+        bundler-cache: true
+    - name: Check documentation coverage
+      run: bundle exec rake yardstick

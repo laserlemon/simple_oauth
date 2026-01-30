@@ -1,5 +1,12 @@
 # simple_oauth
 
+[![Gem Version](https://badge.fury.io/rb/simple_oauth.svg)](https://badge.fury.io/rb/simple_oauth)
+[![Test](https://github.com/laserlemon/simple_oauth/actions/workflows/test.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/test.yml)
+[![Mutant](https://github.com/laserlemon/simple_oauth/actions/workflows/mutant.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/mutant.yml)
+[![Lint](https://github.com/laserlemon/simple_oauth/actions/workflows/lint.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/lint.yml)
+[![Typecheck](https://github.com/laserlemon/simple_oauth/actions/workflows/typecheck.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/typecheck.yml)
+[![Yardstick](https://github.com/laserlemon/simple_oauth/actions/workflows/yardstick.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/yardstick.yml)
+
 Simply builds and verifies OAuth headers
 
 ## Installation

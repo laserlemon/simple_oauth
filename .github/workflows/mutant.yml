@@ -1,0 +1,23 @@
+name: Mutant
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+
+jobs:
+  mutant:
+    runs-on: ubuntu-latest
+    name: Mutation Testing
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: "3.4"
+        bundler-cache: true
+    - name: Run mutation tests
+      run: bundle exec rake mutant

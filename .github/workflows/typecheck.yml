@@ -1,0 +1,23 @@
+name: Typecheck
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    name: Steep Type Checking
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: "3.4"
+        bundler-cache: true
+    - name: Run type checker
+      run: bundle exec rake steep
