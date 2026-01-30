@@ -7,34 +7,34 @@ module SimpleOAuth
     # .parse tests
 
     def test_parse_returns_a_hash
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
       parsed_options = SimpleOAuth::Header.parse(header)
 
       assert_kind_of Hash, parsed_options
     end
 
     def test_parse_includes_options_used_to_build_header
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
       parsed_options = SimpleOAuth::Header.parse(header)
 
       assert_equal header.options, parsed_options.except(:signature)
     end
 
     def test_parse_header_options_does_not_include_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
 
       refute header.options.key?(:signature)
     end
 
     def test_parse_includes_signature_in_parsed_options
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
       parsed_options = SimpleOAuth::Header.parse(header)
 
       assert parsed_options.key?(:signature)
     end
 
     def test_parse_has_non_nil_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
       parsed_options = SimpleOAuth::Header.parse(header)
 
       refute_nil parsed_options[:signature]

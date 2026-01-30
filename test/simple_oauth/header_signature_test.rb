@@ -7,7 +7,7 @@ module SimpleOAuth
     # #signature tests - HMAC-SHA1
 
     def test_signature_hmac_sha1_calls_hmac_sha1_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA1")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA1")
       call_count = 0
       header.define_singleton_method(:hmac_sha1_signature) do
         call_count += 1
@@ -19,7 +19,7 @@ module SimpleOAuth
     end
 
     def test_signature_hmac_sha1_returns_hmac_sha1_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA1")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA1")
       header.define_singleton_method(:hmac_sha1_signature) { "HMAC_SHA1_SIGNATURE" }
 
       assert_equal "HMAC_SHA1_SIGNATURE", header.send(:signature)
@@ -28,7 +28,7 @@ module SimpleOAuth
     # #signature tests - RSA-SHA1
 
     def test_signature_rsa_sha1_calls_rsa_sha1_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "RSA-SHA1")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "RSA-SHA1")
       call_count = 0
       header.define_singleton_method(:rsa_sha1_signature) do
         call_count += 1
@@ -40,7 +40,7 @@ module SimpleOAuth
     end
 
     def test_signature_rsa_sha1_returns_rsa_sha1_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "RSA-SHA1")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "RSA-SHA1")
       header.define_singleton_method(:rsa_sha1_signature) { "RSA_SHA1_SIGNATURE" }
 
       assert_equal "RSA_SHA1_SIGNATURE", header.send(:signature)
@@ -49,7 +49,7 @@ module SimpleOAuth
     # #signature tests - HMAC-SHA256
 
     def test_signature_hmac_sha256_calls_hmac_sha256_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA256")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA256")
       call_count = 0
       header.define_singleton_method(:hmac_sha256_signature) do
         call_count += 1
@@ -61,7 +61,7 @@ module SimpleOAuth
     end
 
     def test_signature_hmac_sha256_returns_hmac_sha256_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA256")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA256")
       header.define_singleton_method(:hmac_sha256_signature) { "HMAC_SHA256_SIGNATURE" }
 
       assert_equal "HMAC_SHA256_SIGNATURE", header.send(:signature)
@@ -70,7 +70,7 @@ module SimpleOAuth
     # #signature tests - PLAINTEXT
 
     def test_signature_plaintext_calls_plaintext_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "PLAINTEXT")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "PLAINTEXT")
       call_count = 0
       header.define_singleton_method(:plaintext_signature) do
         call_count += 1
@@ -82,14 +82,14 @@ module SimpleOAuth
     end
 
     def test_signature_plaintext_returns_plaintext_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "PLAINTEXT")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "PLAINTEXT")
       header.define_singleton_method(:plaintext_signature) { "PLAINTEXT_SIGNATURE" }
 
       assert_equal "PLAINTEXT_SIGNATURE", header.send(:signature)
     end
 
     def test_signature_method_converts_dashes_to_underscores
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA1")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA1")
       called_method = nil
       header.define_singleton_method(:hmac_sha1_signature) do
         called_method = :hmac_sha1_signature
@@ -101,7 +101,7 @@ module SimpleOAuth
     end
 
     def test_signature_method_downcases_signature_method
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "PLAINTEXT")
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "PLAINTEXT")
       called_method = nil
       header.define_singleton_method(:plaintext_signature) do
         called_method = :plaintext_signature

@@ -7,7 +7,7 @@ module SimpleOAuth
     cover "SimpleOAuth::Header*"
 
     def test_hmac_sha1_signature_contains_no_newlines
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, twitter_options)
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, twitter_options)
       signature = header.send(:hmac_sha1_signature)
 
       refute_includes signature, "\n"
@@ -22,7 +22,7 @@ module SimpleOAuth
     end
 
     def test_hmac_sha1_signature_is_base64_encoded
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, twitter_options)
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, twitter_options)
       signature = header.send(:hmac_sha1_signature)
 
       assert_match %r{\A[A-Za-z0-9+/]+=*\z}, signature

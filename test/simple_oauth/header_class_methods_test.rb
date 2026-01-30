@@ -14,7 +14,7 @@ module SimpleOAuth
     end
 
     def test_default_options_is_used_for_new_headers
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {})
 
       assert_includes header.options.keys, :nonce
       assert_includes header.options.keys, :signature_method
@@ -22,7 +22,7 @@ module SimpleOAuth
     end
 
     def test_default_options_includes_version_key
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {})
 
       assert_includes header.options.keys, :version
     end

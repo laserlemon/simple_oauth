@@ -53,14 +53,14 @@ module SimpleOAuth
     end
 
     def test_attributes_does_not_raise_when_no_extra_keys
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {},
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {},
         consumer_key: "key")
 
       assert header.send(:attributes)
     end
 
     def test_attributes_raises_when_ignore_extra_keys_is_explicitly_false
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {},
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {},
         other: "OTHER")
       header.options[:ignore_extra_keys] = false
 
@@ -68,7 +68,7 @@ module SimpleOAuth
     end
 
     def test_attributes_error_message_includes_comma_separator_for_multiple_extra_keys
-      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {},
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {},
         extra1: "EXTRA1", extra2: "EXTRA2")
 
       error = assert_raises(RuntimeError) { header.send(:attributes) }
@@ -81,7 +81,7 @@ module SimpleOAuth
       options = {}
       SimpleOAuth::Header::ATTRIBUTE_KEYS.each { |k| options[k] = k.to_s.upcase }
       options[:other] = "OTHER"
-      SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {}, options)
+      SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {}, options)
     end
   end
 end
