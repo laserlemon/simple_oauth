@@ -3,7 +3,7 @@ require:
 
 plugins:
   - standard-performance
-  - rubocop-rspec
+  - rubocop-minitest
   - rubocop-performance
   - rubocop-rake
 
@@ -42,9 +42,6 @@ Layout/SpaceInsideHashLiteralBraces:
 
 Metrics/ParameterLists:
   CountKeywordArgs: false
-
-RSpec/SpecFilePathFormat:
-  Enabled: false
 
 Style/Alias:
   Enabled: true
