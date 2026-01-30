@@ -16,4 +16,16 @@ task :mutant do
   system("bundle", "exec", "mutant", "run") || exit(1)
 end
 
-task default: %i[test rubocop standard mutant]
+require "yard"
+YARD::Rake::YardocTask.new(:yard)
+
+desc "Check documentation coverage"
+task :yardstick do
+  require "yardstick/rake/verify"
+  Yardstick::Rake::Verify.new(:verify_docs) do |verify|
+    verify.threshold = 100
+  end
+  Rake::Task[:verify_docs].invoke
+end
+
+task default: %i[test mutant rubocop standard yardstick]
