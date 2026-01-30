@@ -1,0 +1,16 @@
+# Signature computation methods for OAuth 1.0
+module SimpleOAuth
+  module Signature
+    # Computes HMAC-SHA1 signature
+    def self.hmac_sha1: (String secret, String signature_base) -> String
+
+    # Computes HMAC-SHA256 signature
+    def self.hmac_sha256: (String secret, String signature_base) -> String
+
+    # Computes RSA-SHA1 signature using private key
+    def self.rsa_sha1: (String private_key_pem, String signature_base) -> String
+
+    # Returns PLAINTEXT signature (escaped secrets joined by &)
+    def self.plaintext: (String secret, ?String? _signature_base) -> String
+  end
+end

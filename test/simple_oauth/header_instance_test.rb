@@ -129,13 +129,5 @@ module SimpleOAuth
 
       assert_equal "ME%23HOD&U%23L&NORMAL%23ZED_PARAMS", header.send(:signature_base)
     end
-
-    # #private_key tests
-
-    def test_private_key_returns_rsa_private_key_from_consumer_secret
-      header = SimpleOAuth::Header.new(:get, "https://example.com", {}, consumer_secret: rsa_private_key)
-
-      assert_kind_of OpenSSL::PKey::RSA, header.send(:private_key)
-    end
   end
 end

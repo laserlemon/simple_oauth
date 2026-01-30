@@ -2,114 +2,107 @@ require "test_helper"
 
 module SimpleOAuth
   class HeaderSignatureTest < Minitest::Test
+    include TestHelpers
+
     cover "SimpleOAuth::Header*"
 
-    # #signature tests - HMAC-SHA1
+    # #signature tests - dispatches to correct Signature method
 
-    def test_signature_hmac_sha1_calls_hmac_sha1_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA1")
-      call_count = 0
-      header.define_singleton_method(:hmac_sha1_signature) do
-        call_count += 1
-        "HMAC_SHA1_SIGNATURE"
-      end
-      header.send(:signature)
+    def test_signature_uses_hmac_sha1_for_hmac_sha1_method
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA1",
+        nonce: "nonce", timestamp: "12345")
 
-      assert_equal 1, call_count
+      # Verify signature is computed (non-empty string)
+      assert_kind_of String, header.send(:signature)
+      refute_empty header.send(:signature)
     end
 
-    def test_signature_hmac_sha1_returns_hmac_sha1_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA1")
-      header.define_singleton_method(:hmac_sha1_signature) { "HMAC_SHA1_SIGNATURE" }
+    def test_signature_uses_hmac_sha256_for_hmac_sha256_method
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA256",
+        nonce: "nonce", timestamp: "12345")
 
-      assert_equal "HMAC_SHA1_SIGNATURE", header.send(:signature)
+      assert_kind_of String, header.send(:signature)
+      refute_empty header.send(:signature)
     end
 
-    # #signature tests - RSA-SHA1
+    def test_signature_uses_rsa_sha1_for_rsa_sha1_method
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: rsa_private_key, signature_method: "RSA-SHA1",
+        nonce: "nonce", timestamp: "12345")
 
-    def test_signature_rsa_sha1_calls_rsa_sha1_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "RSA-SHA1")
-      call_count = 0
-      header.define_singleton_method(:rsa_sha1_signature) do
-        call_count += 1
-        "RSA_SHA1_SIGNATURE"
-      end
-      header.send(:signature)
-
-      assert_equal 1, call_count
+      assert_kind_of String, header.send(:signature)
+      refute_empty header.send(:signature)
     end
 
-    def test_signature_rsa_sha1_returns_rsa_sha1_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "RSA-SHA1")
-      header.define_singleton_method(:rsa_sha1_signature) { "RSA_SHA1_SIGNATURE" }
+    def test_signature_uses_plaintext_for_plaintext_method
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", token_secret: "token_secret",
+        signature_method: "PLAINTEXT", nonce: "nonce", timestamp: "12345")
 
-      assert_equal "RSA_SHA1_SIGNATURE", header.send(:signature)
-    end
-
-    # #signature tests - HMAC-SHA256
-
-    def test_signature_hmac_sha256_calls_hmac_sha256_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA256")
-      call_count = 0
-      header.define_singleton_method(:hmac_sha256_signature) do
-        call_count += 1
-        "HMAC_SHA256_SIGNATURE"
-      end
-      header.send(:signature)
-
-      assert_equal 1, call_count
-    end
-
-    def test_signature_hmac_sha256_returns_hmac_sha256_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA256")
-      header.define_singleton_method(:hmac_sha256_signature) { "HMAC_SHA256_SIGNATURE" }
-
-      assert_equal "HMAC_SHA256_SIGNATURE", header.send(:signature)
-    end
-
-    # #signature tests - PLAINTEXT
-
-    def test_signature_plaintext_calls_plaintext_signature_once
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "PLAINTEXT")
-      call_count = 0
-      header.define_singleton_method(:plaintext_signature) do
-        call_count += 1
-        "PLAINTEXT_SIGNATURE"
-      end
-      header.send(:signature)
-
-      assert_equal 1, call_count
-    end
-
-    def test_signature_plaintext_returns_plaintext_signature
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "PLAINTEXT")
-      header.define_singleton_method(:plaintext_signature) { "PLAINTEXT_SIGNATURE" }
-
-      assert_equal "PLAINTEXT_SIGNATURE", header.send(:signature)
+      # PLAINTEXT signature is just the escaped secrets joined with &
+      assert_equal "secret&token_secret", header.send(:signature)
     end
 
     def test_signature_method_converts_dashes_to_underscores
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "HMAC-SHA1")
-      called_method = nil
-      header.define_singleton_method(:hmac_sha1_signature) do
-        called_method = :hmac_sha1_signature
-        "SIG"
-      end
-      header.send(:signature)
+      header1 = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA1",
+        nonce: "nonce", timestamp: "12345")
+      header2 = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA256",
+        nonce: "nonce", timestamp: "12345")
 
-      assert_equal :hmac_sha1_signature, called_method
+      # Different signature methods produce different signatures
+      refute_equal header1.send(:signature), header2.send(:signature)
     end
 
-    def test_signature_method_downcases_signature_method
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, signature_method: "PLAINTEXT")
-      called_method = nil
-      header.define_singleton_method(:plaintext_signature) do
-        called_method = :plaintext_signature
-        "SIG"
-      end
-      header.send(:signature)
+    def test_signature_method_dispatches_correctly_regardless_of_case
+      # Both uppercase and lowercase signature methods should work
+      header_upper = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA1",
+        nonce: "nonce", timestamp: "12345")
+      header_lower = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", signature_method: "hmac-sha1",
+        nonce: "nonce", timestamp: "12345")
 
-      assert_equal :plaintext_signature, called_method
+      # Both should produce valid signatures (non-empty base64 strings)
+      assert_match %r{\A[A-Za-z0-9+/]+=*\z}, header_upper.send(:signature)
+      assert_match %r{\A[A-Za-z0-9+/]+=*\z}, header_lower.send(:signature)
+    end
+
+    def test_same_inputs_produce_same_signature
+      options = {consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA1",
+                 nonce: "nonce", timestamp: "12345"}
+      header1 = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, options)
+      header2 = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, options)
+
+      assert_equal header1.send(:signature), header2.send(:signature)
+    end
+
+    def test_different_secrets_produce_different_signatures
+      header1 = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret1", signature_method: "HMAC-SHA1",
+        nonce: "nonce", timestamp: "12345")
+      header2 = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret2", signature_method: "HMAC-SHA1",
+        nonce: "nonce", timestamp: "12345")
+
+      refute_equal header1.send(:signature), header2.send(:signature)
+    end
+
+    def test_rsa_sha1_uses_raw_consumer_secret_not_escaped_secret
+      # RSA-SHA1 needs the raw PEM key, not the escaped secret string
+      # This test ensures the signature method comparison works correctly
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: rsa_private_key, token_secret: "ignored",
+        signature_method: "RSA-SHA1", nonce: "nonce", timestamp: "12345")
+
+      # If the secret was escaped (like for HMAC), this would fail because
+      # the PEM key would be mangled
+      signature = header.send(:signature)
+
+      assert_match %r{\A[A-Za-z0-9+/]+=*\z}, signature
     end
   end
 end

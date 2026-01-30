@@ -3,6 +3,7 @@ require "cgi"
 require "openssl"
 require "securerandom"
 require "uri"
+require_relative "signature"
 
 # OAuth 1.0 header generation library
 module SimpleOAuth
@@ -11,7 +12,7 @@ module SimpleOAuth
   # @api public
   class Header
     # Valid OAuth attribute keys that can be included in the header
-    ATTRIBUTE_KEYS = %i[callback consumer_key nonce signature_method timestamp token verifier version].freeze
+    ATTRIBUTE_KEYS = %i[body_hash callback consumer_key nonce signature_method timestamp token verifier version].freeze
 
     # Keys that are used internally but should not appear in attributes
     IGNORED_KEYS = %i[consumer_secret token_secret signature].freeze
@@ -34,6 +35,15 @@ module SimpleOAuth
     #   # => {status: "Hello"}
     attr_reader :params
 
+    # The raw request body for oauth_body_hash computation
+    #
+    # @return [String, nil] the raw request body
+    # @api public
+    # @example
+    #   header.body
+    #   # => '{"text": "Hello"}'
+    attr_reader :body
+
     # The OAuth options including credentials and signature
     #
     # @return [Hash] the OAuth options
@@ -47,17 +57,36 @@ module SimpleOAuth
       # Returns default OAuth options with generated nonce and timestamp
       #
       # @api public
+      # @param body [String, nil] optional request body for computing oauth_body_hash
       # @return [Hash] default options including nonce, signature_method, timestamp, and version
       # @example
       #   SimpleOAuth::Header.default_options
       #   # => {nonce: "abc123...", signature_method: "HMAC-SHA1", timestamp: "1234567890", version: "1.0"}
-      def default_options
-        {
+      # @example With body for oauth_body_hash
+      #   SimpleOAuth::Header.default_options('{"text": "Hello"}')
+      #   # => {nonce: "abc123...", signature_method: "HMAC-SHA1", timestamp: "1234567890", version: "1.0", body_hash: "..."}
+      def default_options(body = nil)
+        options = {
           nonce: Random.random_bytes.unpack1("H*"),
           signature_method: "HMAC-SHA1",
           timestamp: Integer(Time.now).to_s,
           version: "1.0"
         }
+        options[:body_hash] = body_hash(body) if body
+        options
+      end
+
+      # Computes the oauth_body_hash for a request body
+      #
+      # @api public
+      # @param body [String] the raw request body
+      # @param hash_algorithm [String] the hash algorithm to use (default: "SHA1")
+      # @return [String] Base64-encoded hash of the body
+      # @example
+      #   SimpleOAuth::Header.body_hash('{"text": "Hello"}')
+      #   # => "aOjMoMwMP1RZ0hKa1HryYDlCKck="
+      def body_hash(body, hash_algorithm = "SHA1")
+        Base64.encode64(OpenSSL::Digest.digest(hash_algorithm, body || "")).delete("\n")
       end
 
       # Parses an OAuth Authorization header string into a hash
@@ -107,20 +136,25 @@ module SimpleOAuth
     # @api public
     # @param method [String, Symbol] the HTTP method
     # @param url [String, URI] the request URL
-    # @param params [Hash] the request parameters
+    # @param params [Hash] the request parameters (for form-encoded bodies)
     # @param oauth [Hash, String] OAuth options hash or an existing Authorization header to parse
+    # @param body [String, nil] raw request body for oauth_body_hash (for non-form-encoded bodies)
     # @example Create a header with OAuth options
     #   SimpleOAuth::Header.new(:get, "https://api.example.com/resource", {},
     #     consumer_key: "key", consumer_secret: "secret")
     # @example Create a header by parsing an existing Authorization header
     #   SimpleOAuth::Header.new(:get, "https://api.example.com/resource", {}, existing_header)
-    def initialize(method, url, params, oauth = {})
+    # @example Create a header with a JSON body (oauth_body_hash will be computed)
+    #   SimpleOAuth::Header.new(:post, "https://api.example.com/resource", {},
+    #     {consumer_key: "key", consumer_secret: "secret"}, '{"text": "Hello"}')
+    def initialize(method, url, params, oauth = {}, body = nil)
       @method = method.to_s.upcase
       @uri = URI.parse(url.to_s)
       @uri.normalize!
       @uri.fragment = nil
       @params = params
-      @options = oauth.is_a?(Hash) ? self.class.default_options.merge(oauth) : self.class.parse(oauth)
+      @body = body
+      @options = oauth.is_a?(Hash) ? self.class.default_options(body).merge(oauth) : self.class.parse(oauth)
     end
 
     # Returns the normalized URL without query string or fragment
@@ -207,23 +241,9 @@ module SimpleOAuth
     # @api private
     # @return [String] the computed signature based on signature_method
     def signature
-      __send__("#{options.fetch(:signature_method).downcase.tr("-", "_")}_signature")
-    end
-
-    # Computes HMAC-SHA1 signature
-    #
-    # @api private
-    # @return [String] HMAC-SHA1 signature
-    def hmac_sha1_signature
-      Base64.encode64(OpenSSL::HMAC.digest("SHA1", secret, signature_base)).delete("\n")
-    end
-
-    # Computes HMAC-SHA256 signature
-    #
-    # @api private
-    # @return [String] HMAC-SHA256 signature
-    def hmac_sha256_signature
-      Base64.encode64(OpenSSL::HMAC.digest("SHA256", secret, signature_base)).delete("\n")
+      sig_method = options.fetch(:signature_method).downcase.tr("-", "_")
+      sig_secret = sig_method.eql?("rsa_sha1") ? options[:consumer_secret] : secret
+      Signature.public_send(sig_method, sig_secret, signature_base)
     end
 
     # Builds the secret string from consumer and token secrets
@@ -233,11 +253,6 @@ module SimpleOAuth
     def secret
       options.values_at(:consumer_secret, :token_secret).collect { |v| self.class.escape(v) }.join("&")
     end
-    # @!method plaintext_signature
-    #   Returns the PLAINTEXT signature (same as secret)
-    #   @api private
-    #   @return [String] the PLAINTEXT signature
-    alias_method :plaintext_signature, :secret
 
     # Builds the signature base string from method, URL, and params
     #
@@ -269,22 +284,6 @@ module SimpleOAuth
     # @return [Array] URL query parameters as key-value pairs
     def url_params
       CGI.parse(@uri.query || "").inject([]) { |p, (k, vs)| p + vs.sort.collect { |v| [k, v] } }
-    end
-
-    # Computes RSA-SHA1 signature using private key
-    #
-    # @api private
-    # @return [String] RSA-SHA1 signature
-    def rsa_sha1_signature
-      Base64.encode64(private_key.sign("SHA1", signature_base)).delete("\n")
-    end
-
-    # Parses the RSA private key from consumer_secret
-    #
-    # @api private
-    # @return [OpenSSL::PKey::RSA] the RSA private key
-    def private_key
-      OpenSSL::PKey::RSA.new(options[:consumer_secret])
     end
   end
 end

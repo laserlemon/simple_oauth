@@ -9,7 +9,7 @@ module SimpleOAuth
     IGNORED_KEYS: Array[Symbol]
 
     # Type aliases for clarity
-    type oauth_key = :callback | :consumer_key | :nonce | :signature_method | :timestamp | :token | :verifier | :version
+    type oauth_key = :body_hash | :callback | :consumer_key | :nonce | :signature_method | :timestamp | :token | :verifier | :version
     type ignored_key = :consumer_secret | :token_secret | :signature
     type signature_method = "HMAC-SHA1" | "HMAC-SHA256" | "RSA-SHA1" | "PLAINTEXT"
     type params_hash = Hash[String | Symbol, untyped]
@@ -22,11 +22,17 @@ module SimpleOAuth
     # The request parameters to be signed
     attr_reader params: params_hash
 
+    # The raw request body for oauth_body_hash computation
+    attr_reader body: String?
+
     # The OAuth options including credentials and signature
     attr_reader options: oauth_options
 
     # Returns default OAuth options with generated nonce and timestamp
-    def self.default_options: () -> oauth_options
+    def self.default_options: (?String? body) -> oauth_options
+
+    # Computes the oauth_body_hash for a request body
+    def self.body_hash: (String? body, ?String hash_algorithm) -> String
 
     # Parses an OAuth Authorization header string into a hash
     def self.parse: (String | _ToS header) -> oauth_options
@@ -44,7 +50,7 @@ module SimpleOAuth
     def self.decode: (String | _ToS value) -> String
 
     # Creates a new OAuth header
-    def initialize: (String | Symbol method, String | URI::Generic url, params_hash params, ?oauth_options | String oauth) -> void
+    def initialize: (String | Symbol method, String | URI::Generic url, params_hash params, ?oauth_options | String oauth, ?String? body) -> void
 
     # Returns the normalized URL without query string or fragment
     def url: () -> String
@@ -72,17 +78,8 @@ module SimpleOAuth
     # Computes the OAuth signature using the configured signature method
     def signature: () -> String
 
-    # Computes HMAC-SHA1 signature
-    def hmac_sha1_signature: () -> String
-
-    # Computes HMAC-SHA256 signature
-    def hmac_sha256_signature: () -> String
-
     # Builds the secret string from consumer and token secrets
     def secret: () -> String
-
-    # Returns the PLAINTEXT signature (same as secret)
-    def plaintext_signature: () -> String
 
     # Builds the signature base string from method, URL, and params
     def signature_base: () -> String
@@ -95,12 +92,6 @@ module SimpleOAuth
 
     # Extracts query parameters from the request URL
     def url_params: () -> Array[untyped]
-
-    # Computes RSA-SHA1 signature using private key
-    def rsa_sha1_signature: () -> String
-
-    # Parses the RSA private key from consumer_secret
-    def private_key: () -> OpenSSL::PKey::RSA
   end
 end
 
