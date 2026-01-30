@@ -90,5 +90,23 @@ module SimpleOAuth
       assert parsed.key?(:consumer_key)
       refute parsed.key?(:oauth_consumer_key)
     end
+
+    def test_parse_skips_malformed_pairs
+      header_with_malformed = 'OAuth oauth_consumer_key="key123", malformed_without_quotes, oauth_token="token456"'
+      parsed = SimpleOAuth::Header.parse(header_with_malformed)
+
+      assert_equal 2, parsed.keys.size
+      assert_equal "key123", parsed[:consumer_key]
+      assert_equal "token456", parsed[:token]
+    end
+
+    def test_parse_skips_multiple_malformed_pairs
+      header_with_malformed = 'OAuth invalid1, oauth_consumer_key="key", invalid2, oauth_token="tok", invalid3'
+      parsed = SimpleOAuth::Header.parse(header_with_malformed)
+
+      assert_equal 2, parsed.keys.size
+      assert_equal "key", parsed[:consumer_key]
+      assert_equal "tok", parsed[:token]
+    end
   end
 end

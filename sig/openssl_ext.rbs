@@ -1,0 +1,9 @@
+# Extensions to OpenSSL types
+module OpenSSL
+  module PKey
+    class PKey
+      # Sign with digest name as String (in addition to Digest object)
+      def sign: (String | OpenSSL::Digest digest, String data) -> String
+    end
+  end
+end

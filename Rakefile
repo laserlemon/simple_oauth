@@ -28,4 +28,9 @@ task :yardstick do
   Rake::Task[:verify_docs].invoke
 end
 
-task default: %i[test mutant rubocop standard yardstick]
+desc "Run type checker"
+task :steep do
+  system("bundle", "exec", "steep", "check") || exit(1)
+end
+
+task default: %i[test mutant rubocop standard yardstick steep]

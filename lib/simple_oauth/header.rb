@@ -69,9 +69,9 @@ module SimpleOAuth
       #   SimpleOAuth::Header.parse('OAuth oauth_consumer_key="key", oauth_signature="sig"')
       #   # => {consumer_key: "key", signature: "sig"}
       def parse(header)
-        header.to_s.sub(/\AOAuth\s/, "").split(/,\s*/).inject({}) do |attributes, pair|
-          match = pair.match(/\A(\w+)="([^"]*)"\z/)
-          attributes.merge(match[1].delete_prefix("oauth_").to_sym => unescape(match[2]))
+        header.to_s.sub(/\AOAuth\s/, "").split(/,\s*/).each_with_object(Hash.new) do |pair, attributes| # rubocop:disable Style/EmptyLiteral
+          match = pair.match(/\A(\w+)="([^"]*)"\z/) or next
+          attributes[match[1].delete_prefix("oauth_").to_sym] = unescape(match[2])
         end
       end
 

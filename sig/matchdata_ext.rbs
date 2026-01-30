@@ -1,0 +1,6 @@
+# Extension to MatchData for indexed access with Integer
+class MatchData
+  # Override [] to return non-nil String for Integer index
+  # (when we know the group exists)
+  def []: (Integer index) -> String
+end

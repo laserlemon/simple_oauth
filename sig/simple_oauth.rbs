@@ -1,0 +1,108 @@
+# OAuth 1.0 header generation library
+module SimpleOAuth
+  # Generates OAuth 1.0 Authorization headers for HTTP requests
+  class Header
+    # Valid OAuth attribute keys that can be included in the header
+    ATTRIBUTE_KEYS: Array[Symbol]
+
+    # Keys that are used internally but should not appear in attributes
+    IGNORED_KEYS: Array[Symbol]
+
+    # Type aliases for clarity
+    type oauth_key = :callback | :consumer_key | :nonce | :signature_method | :timestamp | :token | :verifier | :version
+    type ignored_key = :consumer_secret | :token_secret | :signature
+    type signature_method = "HMAC-SHA1" | "RSA-SHA1" | "PLAINTEXT"
+    type params_hash = Hash[String | Symbol, untyped]
+    type oauth_options = Hash[Symbol, untyped]
+    type signed_attributes_hash = Hash[Symbol, untyped]
+
+    # The HTTP method for the request
+    attr_reader method: String
+
+    # The request parameters to be signed
+    attr_reader params: params_hash
+
+    # The OAuth options including credentials and signature
+    attr_reader options: oauth_options
+
+    # Returns default OAuth options with generated nonce and timestamp
+    def self.default_options: () -> oauth_options
+
+    # Parses an OAuth Authorization header string into a hash
+    def self.parse: (String | _ToS header) -> oauth_options
+
+    # Percent-encodes a value according to OAuth specification
+    def self.escape: (String | _ToS value) -> String
+
+    # Alias for escape
+    def self.encode: (String | _ToS value) -> String
+
+    # Decodes a percent-encoded value
+    def self.unescape: (String | _ToS value) -> String
+
+    # Alias for unescape
+    def self.decode: (String | _ToS value) -> String
+
+    # Creates a new OAuth header
+    def initialize: (String | Symbol method, String | URI::Generic url, params_hash params, ?oauth_options | String oauth) -> void
+
+    # Returns the normalized URL without query string or fragment
+    def url: () -> String
+
+    # Returns the OAuth Authorization header string
+    def to_s: () -> String
+
+    # Validates the signature in the header against the provided secrets
+    def valid?: (?oauth_options secrets) -> bool
+
+    # Returns the OAuth attributes including the signature
+    def signed_attributes: () -> signed_attributes_hash
+
+    private
+
+    # Internal URI instance
+    @uri: URI::Generic
+
+    # Builds the normalized OAuth attributes string for the Authorization header
+    def normalized_attributes: () -> String
+
+    # Extracts valid OAuth attributes from options
+    def attributes: () -> signed_attributes_hash
+
+    # Computes the OAuth signature using the configured signature method
+    def signature: () -> String
+
+    # Computes HMAC-SHA1 signature
+    def hmac_sha1_signature: () -> String
+
+    # Builds the secret string from consumer and token secrets
+    def secret: () -> String
+
+    # Returns the PLAINTEXT signature (same as secret)
+    def plaintext_signature: () -> String
+
+    # Builds the signature base string from method, URL, and params
+    def signature_base: () -> String
+
+    # Normalizes and sorts all request parameters for signing
+    def normalized_params: () -> String
+
+    # Collects all parameters to include in signature
+    def signature_params: () -> Array[untyped]
+
+    # Extracts query parameters from the request URL
+    def url_params: () -> Array[untyped]
+
+    # Computes RSA-SHA1 signature using private key
+    def rsa_sha1_signature: () -> String
+
+    # Parses the RSA private key from consumer_secret
+    def private_key: () -> OpenSSL::PKey::RSA
+  end
+end
+
+# Version module
+module SimpleOauth
+  # The current version of the SimpleOAuth gem
+  VERSION: String
+end
