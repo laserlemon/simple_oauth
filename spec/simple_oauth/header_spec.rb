@@ -49,7 +49,17 @@ describe SimpleOAuth::Header do
   end
 
   describe ".unescape" do
-    pending
+    it "unescapes percent-encoded characters" do
+      expect(described_class.unescape("%C3%A9")).to eq "é"
+    end
+
+    it "unescapes multibyte characters" do
+      expect(described_class.unescape("%E3%81%82")).to eq "あ"
+    end
+
+    it "returns unencoded characters as-is" do
+      expect(described_class.unescape("hello")).to eq "hello"
+    end
   end
 
   describe ".parse" do
@@ -455,7 +465,10 @@ describe SimpleOAuth::Header do
   end
 
   describe "#private_key" do
-    pending
+    it "returns an RSA private key from consumer_secret" do
+      header = described_class.new(:get, "https://example.com", {}, consumer_secret: rsa_private_key)
+      expect(header.send(:private_key)).to be_a(OpenSSL::PKey::RSA)
+    end
   end
 
   describe "#plaintext_signature" do
