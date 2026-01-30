@@ -68,19 +68,31 @@ describe SimpleOAuth::Header do
     end
 
     it "handles optional 'linear white space'" do
-      parsed_header_with_spaces = described_class.parse 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      header_with_spaces = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", ' \
+                           'oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", ' \
+                           'oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      parsed_header_with_spaces = described_class.parse(header_with_spaces)
       expect(parsed_header_with_spaces).to be_a(Hash)
       expect(parsed_header_with_spaces.keys.size).to eq 7
 
-      parsed_header_with_tabs = described_class.parse 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy",  oauth_signature="efgh%26mnop",  oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      header_with_tabs = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy",  ' \
+                         'oauth_signature="efgh%26mnop",  oauth_signature_method="PLAINTEXT", ' \
+                         'oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      parsed_header_with_tabs = described_class.parse(header_with_tabs)
       expect(parsed_header_with_tabs).to be_a(Hash)
       expect(parsed_header_with_tabs.keys.size).to eq 7
 
-      parsed_header_with_spaces_and_tabs = described_class.parse 'OAuth oauth_consumer_key="abcd",  oauth_nonce="oLKtec51GQy",   oauth_signature="efgh%26mnop",   oauth_signature_method="PLAINTEXT",  oauth_timestamp="1286977095",  oauth_token="ijkl",  oauth_version="1.0"'
+      header_with_spaces_and_tabs = 'OAuth oauth_consumer_key="abcd",  oauth_nonce="oLKtec51GQy",   ' \
+                                    'oauth_signature="efgh%26mnop",   oauth_signature_method="PLAINTEXT",  ' \
+                                    'oauth_timestamp="1286977095",  oauth_token="ijkl",  oauth_version="1.0"'
+      parsed_header_with_spaces_and_tabs = described_class.parse(header_with_spaces_and_tabs)
       expect(parsed_header_with_spaces_and_tabs).to be_a(Hash)
       expect(parsed_header_with_spaces_and_tabs.keys.size).to eq 7
 
-      parsed_header_without_spaces = described_class.parse 'OAuth oauth_consumer_key="abcd",oauth_nonce="oLKtec51GQy",oauth_signature="efgh%26mnop",oauth_signature_method="PLAINTEXT",oauth_timestamp="1286977095",oauth_token="ijkl",oauth_version="1.0"'
+      header_without_spaces = 'OAuth oauth_consumer_key="abcd",oauth_nonce="oLKtec51GQy",' \
+                              'oauth_signature="efgh%26mnop",oauth_signature_method="PLAINTEXT",' \
+                              'oauth_timestamp="1286977095",oauth_token="ijkl",oauth_version="1.0"'
+      parsed_header_without_spaces = described_class.parse(header_without_spaces)
       expect(parsed_header_without_spaces).to be_a(Hash)
       expect(parsed_header_without_spaces.keys.size).to eq 7
     end
@@ -225,7 +237,11 @@ describe SimpleOAuth::Header do
         token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
       }
       header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, options)
-      expect(header.to_s).to eq 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="i9CT6ahDRAlfGX3hKYf78QzXsaw%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830180", oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
+      expected = 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
+                 'oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="i9CT6ahDRAlfGX3hKYf78QzXsaw%3D", ' \
+                 'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830180", ' \
+                 'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
+      expect(header.to_s).to eq expected
     end
 
     it "reproduces a successful Twitter POST" do
@@ -240,7 +256,11 @@ describe SimpleOAuth::Header do
       }
       header = described_class.new(:post, "https://api.twitter.com/1/statuses/update.json",
         {status: "hi, again"}, options)
-      expect(header.to_s).to eq 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="mPqSFKejrWWk3ZT9bTQjhO5b2xI%3D", oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830181", oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
+      expected = 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
+                 'oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="mPqSFKejrWWk3ZT9bTQjhO5b2xI%3D", ' \
+                 'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830181", ' \
+                 'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
+      expect(header.to_s).to eq expected
     end
   end
 
@@ -339,7 +359,11 @@ describe SimpleOAuth::Header do
       }
       header = described_class.new(:get, "http://photos.example.net/photos",
         {file: "vacaction.jpg", size: "original"}, options)
-      expect(header.to_s).to eq 'OAuth oauth_consumer_key="dpf43f3p2l4k3l03", oauth_nonce="13917289812797014437", oauth_signature="jvTp%2FwX1TYtByB1m%2BPbyo0lnCOLIsyGCH7wke8AUs3BpnwZJtAuEJkvQL2%2F9n4s5wUmUl4aCI4BwpraNx4RtEXMe5qg5T1LVTGliMRpKasKsW%2F%2Fe%2BRinhejgCuzoH26dyF8iY2ZZ%2F5D1ilgeijhV%2FvBka5twt399mXwaYdCwFYE%3D", oauth_signature_method="RSA-SHA1", oauth_timestamp="1196666512", oauth_version="1.0"'
+      expected = 'OAuth oauth_consumer_key="dpf43f3p2l4k3l03", oauth_nonce="13917289812797014437", ' \
+                 'oauth_signature="jvTp%2FwX1TYtByB1m%2BPbyo0lnCOLIsyGCH7wke8AUs3BpnwZJtAuEJkvQL2%2F9n4s5wUmUl4aCI4BwpraNx4RtEXMe' \
+                 '5qg5T1LVTGliMRpKasKsW%2F%2Fe%2BRinhejgCuzoH26dyF8iY2ZZ%2F5D1ilgeijhV%2FvBka5twt399mXwaYdCwFYE%3D", ' \
+                 'oauth_signature_method="RSA-SHA1", oauth_timestamp="1196666512", oauth_version="1.0"'
+      expect(header.to_s).to eq expected
     end
   end
 
@@ -359,7 +383,9 @@ describe SimpleOAuth::Header do
         token_secret: "mnop"
       }
       header = described_class.new(:get, "http://host.net/resource?name=value", {name: "value"}, options)
-      expect(header.to_s).to eq 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      expected = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", ' \
+                 'oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      expect(header.to_s).to eq expected
     end
   end
 end

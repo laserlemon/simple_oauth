@@ -30,7 +30,7 @@ Layout/HashAlignment:
   EnforcedLastArgumentHashStyle: always_inspect
 
 Layout/LineLength:
-  Enabled: false
+  Max: 140
 
 Layout/ParameterAlignment:
   Enabled: true
@@ -42,18 +42,6 @@ Layout/SpaceInsideHashLiteralBraces:
 
 Metrics/ParameterLists:
   CountKeywordArgs: false
-
-RSpec/MultipleExpectations:
-  Enabled: false
-
-RSpec/ExampleLength:
-  Enabled: false
-
-RSpec/MessageSpies:
-  Enabled: false
-
-RSpec/PendingWithoutReason:
-  Enabled: false
 
 RSpec/SpecFilePathFormat:
   Enabled: false

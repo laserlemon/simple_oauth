@@ -6,7 +6,9 @@ require "cgi"
 module SimpleOAuth
   # Generates OAuth header for HTTP request
   class Header
-    ATTRIBUTE_KEYS = %i[callback consumer_key nonce signature_method timestamp token verifier version].freeze unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
+    unless defined? ::SimpleOAuth::Header::ATTRIBUTE_KEYS
+      ATTRIBUTE_KEYS = %i[callback consumer_key nonce signature_method timestamp token verifier version].freeze
+    end
 
     IGNORED_KEYS = %i[consumer_secret token_secret signature].freeze unless defined? ::SimpleOAuth::Header::IGNORED_KEYS
 
@@ -87,7 +89,9 @@ module SimpleOAuth
     def attributes
       matching_keys, extra_keys = options.keys.partition { |key| ATTRIBUTE_KEYS.include?(key) }
       extra_keys -= IGNORED_KEYS
-      raise "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [#{extra_keys.collect(&:inspect).join(", ")}]" unless options[:ignore_extra_keys] || extra_keys.empty?
+      unless options[:ignore_extra_keys] || extra_keys.empty?
+        raise "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [#{extra_keys.collect(&:inspect).join(", ")}]"
+      end
 
       options.slice(*matching_keys).transform_keys { |key| :"oauth_#{key}" }
     end
