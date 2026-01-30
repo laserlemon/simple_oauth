@@ -285,41 +285,56 @@ describe SimpleOAuth::Header do
   end
 
   describe "#hmac_sha1_signature" do
-    it "reproduces a successful Twitter GET" do
-      options = {
-        consumer_key: "8karQBlMg6gFOwcf8kcoYw",
-        consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
-        nonce: "547fed103e122eecf84c080843eedfe6",
-        signature_method: "HMAC-SHA1",
-        timestamp: "1286830180",
-        token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
-        token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
-      }
-      header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, options)
-      expected = 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
-                 'oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="i9CT6ahDRAlfGX3hKYf78QzXsaw%3D", ' \
-                 'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830180", ' \
-                 'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
-      expect(header.to_s).to eq expected
+    context "with Twitter GET request" do
+      let(:options) do
+        {
+          consumer_key: "8karQBlMg6gFOwcf8kcoYw",
+          consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
+          nonce: "547fed103e122eecf84c080843eedfe6",
+          signature_method: "HMAC-SHA1",
+          timestamp: "1286830180",
+          token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
+          token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
+        }
+      end
+      let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, options) }
+      let(:expected) do
+        'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
+          'oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="i9CT6ahDRAlfGX3hKYf78QzXsaw%3D", ' \
+          'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830180", ' \
+          'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
+      end
+
+      it "reproduces a successful Twitter GET" do
+        expect(header.to_s).to eq expected
+      end
     end
 
-    it "reproduces a successful Twitter POST" do
-      options = {
-        consumer_key: "8karQBlMg6gFOwcf8kcoYw",
-        consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
-        nonce: "b40a3e0f18590ecdcc0e273f7d7c82f8",
-        signature_method: "HMAC-SHA1",
-        timestamp: "1286830181",
-        token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
-        token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
-      }
-      header = described_class.new(:post, "https://api.twitter.com/1/statuses/update.json",
-        {status: "hi, again"}, options)
-      expected = 'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
-                 'oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="mPqSFKejrWWk3ZT9bTQjhO5b2xI%3D", ' \
-                 'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830181", ' \
-                 'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
-      expect(header.to_s).to eq expected
+    context "with Twitter POST request" do
+      let(:options) do
+        {
+          consumer_key: "8karQBlMg6gFOwcf8kcoYw",
+          consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
+          nonce: "b40a3e0f18590ecdcc0e273f7d7c82f8",
+          signature_method: "HMAC-SHA1",
+          timestamp: "1286830181",
+          token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
+          token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
+        }
+      end
+      let(:header) do
+        described_class.new(:post, "https://api.twitter.com/1/statuses/update.json", {status: "hi, again"}, options)
+      end
+      let(:expected) do
+        'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
+          'oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="mPqSFKejrWWk3ZT9bTQjhO5b2xI%3D", ' \
+          'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830181", ' \
+          'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
+      end
+
+      it "reproduces a successful Twitter POST" do
+        expect(header.to_s).to eq expected
+      end
     end
   end
 
@@ -381,17 +396,15 @@ describe SimpleOAuth::Header do
 
   describe "#signature_params" do
     let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friendships.json", {}) }
-    let(:signature_params) { header.send(:signature_params) }
-
-    it "combines OAuth header attributes, body parameters and URL parameters into an flattened array of key/value pairs" do
+    let(:signature_params) do
       allow(header).to receive_messages(attributes: {attribute: "ATTRIBUTE"}, params: {"param" => "PARAM"},
         url_params: [%w[url_param 1], %w[url_param 2]])
-      expect(signature_params).to eq [
-        [:attribute, "ATTRIBUTE"],
-        %w[param PARAM],
-        %w[url_param 1],
-        %w[url_param 2]
-      ]
+      header.send(:signature_params)
+    end
+    let(:expected) { [[:attribute, "ATTRIBUTE"], %w[param PARAM], %w[url_param 1], %w[url_param 2]] }
+
+    it "combines OAuth header attributes, body parameters and URL parameters into a flattened array" do
+      expect(signature_params).to eq expected
     end
   end
 
@@ -414,20 +427,26 @@ describe SimpleOAuth::Header do
   end
 
   describe "#rsa_sha1_signature" do
-    it "reproduces a successful OAuth example GET" do
-      options = {
+    let(:options) do
+      {
         consumer_key: "dpf43f3p2l4k3l03",
         consumer_secret: rsa_private_key,
         nonce: "13917289812797014437",
         signature_method: "RSA-SHA1",
         timestamp: "1196666512"
       }
-      header = described_class.new(:get, "http://photos.example.net/photos",
-        {file: "vacaction.jpg", size: "original"}, options)
-      expected = 'OAuth oauth_consumer_key="dpf43f3p2l4k3l03", oauth_nonce="13917289812797014437", ' \
-                 'oauth_signature="jvTp%2FwX1TYtByB1m%2BPbyo0lnCOLIsyGCH7wke8AUs3BpnwZJtAuEJkvQL2%2F9n4s5wUmUl4aCI4BwpraNx4RtEXMe' \
-                 '5qg5T1LVTGliMRpKasKsW%2F%2Fe%2BRinhejgCuzoH26dyF8iY2ZZ%2F5D1ilgeijhV%2FvBka5twt399mXwaYdCwFYE%3D", ' \
-                 'oauth_signature_method="RSA-SHA1", oauth_timestamp="1196666512", oauth_version="1.0"'
+    end
+    let(:header) do
+      described_class.new(:get, "http://photos.example.net/photos", {file: "vacaction.jpg", size: "original"}, options)
+    end
+    let(:expected) do
+      'OAuth oauth_consumer_key="dpf43f3p2l4k3l03", oauth_nonce="13917289812797014437", ' \
+        'oauth_signature="jvTp%2FwX1TYtByB1m%2BPbyo0lnCOLIsyGCH7wke8AUs3BpnwZJtAuEJkvQL2%2F9n4s5wUmUl4aCI4BwpraNx4RtEXMe' \
+        '5qg5T1LVTGliMRpKasKsW%2F%2Fe%2BRinhejgCuzoH26dyF8iY2ZZ%2F5D1ilgeijhV%2FvBka5twt399mXwaYdCwFYE%3D", ' \
+        'oauth_signature_method="RSA-SHA1", oauth_timestamp="1196666512", oauth_version="1.0"'
+    end
+
+    it "reproduces a successful OAuth example GET" do
       expect(header.to_s).to eq expected
     end
   end
@@ -437,8 +456,8 @@ describe SimpleOAuth::Header do
   end
 
   describe "#plaintext_signature" do
-    it "reproduces a successful OAuth example GET" do
-      options = {
+    let(:options) do
+      {
         consumer_key: "abcd",
         consumer_secret: "efgh",
         nonce: "oLKtec51GQy",
@@ -447,9 +466,14 @@ describe SimpleOAuth::Header do
         token: "ijkl",
         token_secret: "mnop"
       }
-      header = described_class.new(:get, "http://host.net/resource?name=value", {name: "value"}, options)
-      expected = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", ' \
-                 'oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+    end
+    let(:header) { described_class.new(:get, "http://host.net/resource?name=value", {name: "value"}, options) }
+    let(:expected) do
+      'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", ' \
+        'oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+    end
+
+    it "reproduces a successful OAuth example GET" do
       expect(header.to_s).to eq expected
     end
   end
