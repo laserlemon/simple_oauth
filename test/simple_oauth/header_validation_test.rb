@@ -1,0 +1,64 @@
+require "test_helper"
+
+module SimpleOAuth
+  class HeaderValidationTest < Minitest::Test
+    include TestHelpers
+
+    # #valid? tests - HMAC-SHA1
+
+    def test_valid_hmac_sha1_is_not_valid_without_secrets
+      secrets = {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"}
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, secrets)
+      parsed_header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+
+      refute_predicate parsed_header, :valid?
+    end
+
+    def test_valid_hmac_sha1_is_valid_with_secrets
+      secrets = {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"}
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, secrets)
+      parsed_header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+
+      assert parsed_header.valid?(secrets)
+    end
+
+    # #valid? tests - RSA-SHA1
+
+    def test_valid_rsa_sha1_raises_type_error_without_private_key
+      secrets = {consumer_secret: rsa_private_key}
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
+        secrets.merge(signature_method: "RSA-SHA1"))
+      parsed_header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+      assert_raises(TypeError) { parsed_header.valid? }
+    end
+
+    def test_valid_rsa_sha1_is_valid_with_private_key
+      secrets = {consumer_secret: rsa_private_key}
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
+        secrets.merge(signature_method: "RSA-SHA1"))
+      parsed_header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+
+      assert parsed_header.valid?(secrets)
+    end
+
+    # #valid? tests - PLAINTEXT
+
+    def test_valid_plaintext_is_not_valid_without_secrets
+      secrets = {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"}
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
+        secrets.merge(signature_method: "PLAINTEXT"))
+      parsed_header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+
+      refute_predicate parsed_header, :valid?
+    end
+
+    def test_valid_plaintext_is_valid_with_secrets
+      secrets = {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"}
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
+        secrets.merge(signature_method: "PLAINTEXT"))
+      parsed_header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+
+      assert parsed_header.valid?(secrets)
+    end
+  end
+end

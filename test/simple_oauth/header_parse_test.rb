@@ -1,0 +1,77 @@
+require "test_helper"
+
+module SimpleOAuth
+  class HeaderParseTest < Minitest::Test
+    # .parse tests
+
+    def test_parse_returns_a_hash
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      parsed_options = SimpleOAuth::Header.parse(header)
+
+      assert_kind_of Hash, parsed_options
+    end
+
+    def test_parse_includes_options_used_to_build_header
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      parsed_options = SimpleOAuth::Header.parse(header)
+
+      assert_equal header.options, parsed_options.except(:signature)
+    end
+
+    def test_parse_header_options_does_not_include_signature
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+
+      refute header.options.key?(:signature)
+    end
+
+    def test_parse_includes_signature_in_parsed_options
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      parsed_options = SimpleOAuth::Header.parse(header)
+
+      assert parsed_options.key?(:signature)
+    end
+
+    def test_parse_has_non_nil_signature
+      header = SimpleOAuth::Header.new(:get, "https://api.twitter.com/1/statuses/friends.json", {})
+      parsed_options = SimpleOAuth::Header.parse(header)
+
+      refute_nil parsed_options[:signature]
+    end
+
+    def test_parse_parses_header_with_spaces_after_commas
+      header_with_spaces = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", ' \
+                           'oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", ' \
+                           'oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      parsed = SimpleOAuth::Header.parse(header_with_spaces)
+
+      assert_equal 7, parsed.keys.size
+    end
+
+    def test_parse_parses_header_with_multiple_spaces_after_commas
+      header_with_tabs = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy",  ' \
+                         'oauth_signature="efgh%26mnop",  oauth_signature_method="PLAINTEXT", ' \
+                         'oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
+      parsed = SimpleOAuth::Header.parse(header_with_tabs)
+
+      assert_equal 7, parsed.keys.size
+    end
+
+    def test_parse_parses_header_with_mixed_whitespace_after_commas
+      header_with_spaces_and_tabs = 'OAuth oauth_consumer_key="abcd",  oauth_nonce="oLKtec51GQy",   ' \
+                                    'oauth_signature="efgh%26mnop",   oauth_signature_method="PLAINTEXT",  ' \
+                                    'oauth_timestamp="1286977095",  oauth_token="ijkl",  oauth_version="1.0"'
+      parsed = SimpleOAuth::Header.parse(header_with_spaces_and_tabs)
+
+      assert_equal 7, parsed.keys.size
+    end
+
+    def test_parse_parses_header_without_spaces_after_commas
+      header_without_spaces = 'OAuth oauth_consumer_key="abcd",oauth_nonce="oLKtec51GQy",' \
+                              'oauth_signature="efgh%26mnop",oauth_signature_method="PLAINTEXT",' \
+                              'oauth_timestamp="1286977095",oauth_token="ijkl",oauth_version="1.0"'
+      parsed = SimpleOAuth::Header.parse(header_without_spaces)
+
+      assert_equal 7, parsed.keys.size
+    end
+  end
+end
