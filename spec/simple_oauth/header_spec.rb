@@ -14,14 +14,17 @@ describe SimpleOAuth::Header do
       expect(header.options).to eq default_options
     end
 
-    it "includes a signature method and an OAuth version" do
+    it "includes a signature method" do
       expect(default_options[:signature_method]).not_to be_nil
+    end
+
+    it "includes an OAuth version" do
       expect(default_options[:version]).not_to be_nil
     end
   end
 
   describe ".escape" do
-    it "escapes (most) non-word characters" do
+    it "escapes (most) non-word characters", :aggregate_failures do
       [" ", "!", "@", "#", "$", "%", "^", "&"].each do |character|
         escaped = described_class.escape(character)
         expect(escaped).not_to eq character
@@ -61,39 +64,47 @@ describe SimpleOAuth::Header do
       expect(parsed_options.except(:signature)).to eq header.options
     end
 
-    it "includes a signature" do
+    it "does not include signature in header options" do
       expect(header.options).not_to have_key(:signature)
+    end
+
+    it "includes a signature in parsed options" do
       expect(parsed_options).to have_key(:signature)
+    end
+
+    it "has a non-nil signature" do
       expect(parsed_options[:signature]).not_to be_nil
     end
 
-    it "handles optional 'linear white space'" do
+    it "parses header with spaces after commas" do
       header_with_spaces = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", ' \
                            'oauth_signature="efgh%26mnop", oauth_signature_method="PLAINTEXT", ' \
                            'oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
       parsed_header_with_spaces = described_class.parse(header_with_spaces)
-      expect(parsed_header_with_spaces).to be_a(Hash)
       expect(parsed_header_with_spaces.keys.size).to eq 7
+    end
 
+    it "parses header with multiple spaces after commas" do
       header_with_tabs = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy",  ' \
                          'oauth_signature="efgh%26mnop",  oauth_signature_method="PLAINTEXT", ' \
                          'oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
       parsed_header_with_tabs = described_class.parse(header_with_tabs)
-      expect(parsed_header_with_tabs).to be_a(Hash)
       expect(parsed_header_with_tabs.keys.size).to eq 7
+    end
 
+    it "parses header with mixed whitespace after commas" do
       header_with_spaces_and_tabs = 'OAuth oauth_consumer_key="abcd",  oauth_nonce="oLKtec51GQy",   ' \
                                     'oauth_signature="efgh%26mnop",   oauth_signature_method="PLAINTEXT",  ' \
                                     'oauth_timestamp="1286977095",  oauth_token="ijkl",  oauth_version="1.0"'
       parsed_header_with_spaces_and_tabs = described_class.parse(header_with_spaces_and_tabs)
-      expect(parsed_header_with_spaces_and_tabs).to be_a(Hash)
       expect(parsed_header_with_spaces_and_tabs.keys.size).to eq 7
+    end
 
+    it "parses header without spaces after commas" do
       header_without_spaces = 'OAuth oauth_consumer_key="abcd",oauth_nonce="oLKtec51GQy",' \
                               'oauth_signature="efgh%26mnop",oauth_signature_method="PLAINTEXT",' \
                               'oauth_timestamp="1286977095",oauth_token="ijkl",oauth_version="1.0"'
       parsed_header_without_spaces = described_class.parse(header_without_spaces)
-      expect(parsed_header_without_spaces).to be_a(Hash)
       expect(parsed_header_without_spaces.keys.size).to eq 7
     end
   end
@@ -118,33 +129,49 @@ describe SimpleOAuth::Header do
 
   describe "#valid?" do
     context "when using the HMAC-SHA1 signature method" do
-      it "requires consumer and token secrets" do
-        secrets = {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"}
-        header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, secrets)
-        parsed_header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+      let(:secrets) { {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"} }
+      let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, secrets) }
+      let(:parsed_header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header) }
+
+      it "is not valid without secrets" do
         expect(parsed_header).not_to be_valid
+      end
+
+      it "is valid with consumer and token secrets" do
         expect(parsed_header).to be_valid(secrets)
       end
     end
 
     context "when using the RSA-SHA1 signature method" do
-      it "requires an identical private key" do
-        secrets = {consumer_secret: rsa_private_key}
-        header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
+      let(:secrets) { {consumer_secret: rsa_private_key} }
+      let(:header) do
+        described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
           secrets.merge(signature_method: "RSA-SHA1"))
-        parsed_header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+      end
+      let(:parsed_header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header) }
+
+      it "raises TypeError without private key" do
         expect { parsed_header.valid? }.to raise_error(TypeError)
+      end
+
+      it "is valid with identical private key" do
         expect(parsed_header).to be_valid(secrets)
       end
     end
 
     context "when using the PLAINTEXT signature method" do
-      it "requires consumer and token secrets" do
-        secrets = {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"}
-        header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
+      let(:secrets) { {consumer_secret: "CONSUMER_SECRET", token_secret: "TOKEN_SECRET"} }
+      let(:header) do
+        described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {},
           secrets.merge(signature_method: "PLAINTEXT"))
-        parsed_header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header)
+      end
+      let(:parsed_header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, header) }
+
+      it "is not valid without secrets" do
         expect(parsed_header).not_to be_valid
+      end
+
+      it "is valid with consumer and token secrets" do
         expect(parsed_header).to be_valid(secrets)
       end
     end
@@ -185,16 +212,24 @@ describe SimpleOAuth::Header do
       expect(header.send(:attributes).keys).to(be_all { |k| k.to_s =~ /^oauth_/ })
     end
 
-    it "excludes keys not included in the list of valid attributes" do
+    it "has only symbol keys" do
       header.options[:ignore_extra_keys] = true
       expect(header.send(:attributes).keys).to(be_all { |k| k.is_a?(Symbol) })
+    end
+
+    it "excludes keys not included in the list of valid attributes" do
+      header.options[:ignore_extra_keys] = true
       expect(header.send(:attributes)).not_to have_key(:oauth_other)
     end
 
     it "preserves values for valid keys" do
       header.options[:ignore_extra_keys] = true
-      expect(header.send(:attributes).size).to eq SimpleOAuth::Header::ATTRIBUTE_KEYS.size
       expect(header.send(:attributes)).to(be_all { |k, v| k.to_s == "oauth_#{v.downcase}" })
+    end
+
+    it "has the same number of attributes as ATTRIBUTE_KEYS" do
+      header.options[:ignore_extra_keys] = true
+      expect(header.send(:attributes).size).to eq SimpleOAuth::Header::ATTRIBUTE_KEYS.size
     end
 
     it "raises exception for extra keys" do
@@ -206,22 +241,46 @@ describe SimpleOAuth::Header do
   end
 
   describe "#signature" do
-    specify "when using HMAC-SHA1" do
-      header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA1")
-      expect(header).to receive(:hmac_sha1_signature).once.and_return("HMAC_SHA1_SIGNATURE")
-      expect(header.send(:signature)).to eq "HMAC_SHA1_SIGNATURE"
+    context "when using HMAC-SHA1" do
+      let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "HMAC-SHA1") }
+
+      it "calls hmac_sha1_signature once" do
+        expect(header).to receive(:hmac_sha1_signature).once.and_return("HMAC_SHA1_SIGNATURE")
+        header.send(:signature)
+      end
+
+      it "returns the HMAC-SHA1 signature" do
+        allow(header).to receive(:hmac_sha1_signature).and_return("HMAC_SHA1_SIGNATURE")
+        expect(header.send(:signature)).to eq "HMAC_SHA1_SIGNATURE"
+      end
     end
 
-    specify "when using RSA-SHA1" do
-      header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "RSA-SHA1")
-      expect(header).to receive(:rsa_sha1_signature).once.and_return("RSA_SHA1_SIGNATURE")
-      expect(header.send(:signature)).to eq "RSA_SHA1_SIGNATURE"
+    context "when using RSA-SHA1" do
+      let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "RSA-SHA1") }
+
+      it "calls rsa_sha1_signature once" do
+        expect(header).to receive(:rsa_sha1_signature).once.and_return("RSA_SHA1_SIGNATURE")
+        header.send(:signature)
+      end
+
+      it "returns the RSA-SHA1 signature" do
+        allow(header).to receive(:rsa_sha1_signature).and_return("RSA_SHA1_SIGNATURE")
+        expect(header.send(:signature)).to eq "RSA_SHA1_SIGNATURE"
+      end
     end
 
-    specify "when using PLAINTEXT" do
-      header = described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "PLAINTEXT")
-      expect(header).to receive(:plaintext_signature).once.and_return("PLAINTEXT_SIGNATURE")
-      expect(header.send(:signature)).to eq "PLAINTEXT_SIGNATURE"
+    context "when using PLAINTEXT" do
+      let(:header) { described_class.new(:get, "https://api.twitter.com/1/statuses/friends.json", {}, signature_method: "PLAINTEXT") }
+
+      it "calls plaintext_signature once" do
+        expect(header).to receive(:plaintext_signature).once.and_return("PLAINTEXT_SIGNATURE")
+        header.send(:signature)
+      end
+
+      it "returns the PLAINTEXT signature" do
+        allow(header).to receive(:plaintext_signature).and_return("PLAINTEXT_SIGNATURE")
+        expect(header.send(:signature)).to eq "PLAINTEXT_SIGNATURE"
+      end
     end
   end
 
@@ -305,11 +364,17 @@ describe SimpleOAuth::Header do
     let(:signature_params) { header.send(:signature_params) }
     let(:normalized_params) { header.send(:normalized_params) }
 
-    it "joins key/value pairs with equal signs and ampersands" do
+    it "returns a string" do
       expect(normalized_params).to be_a(String)
+    end
+
+    it "joins pairs with ampersands matching signature_params count" do
       parts = normalized_params.split("&")
       expect(parts.size).to eq signature_params.size
-      pairs = parts.collect { |p| p.split("=") }
+    end
+
+    it "joins key/value with equal signs" do
+      pairs = normalized_params.split("&").collect { |p| p.split("=") }
       expect(pairs).to(be_all { |p| p.size == 2 })
     end
   end
