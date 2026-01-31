@@ -102,8 +102,11 @@ module SimpleOAuth
     # Builds the normalized OAuth attributes string for the Authorization header
     def normalized_attributes: () -> String
 
-    # Extracts valid OAuth attributes from options
+    # Extracts valid OAuth attributes from options (excludes realm per RFC 5849)
     def attributes: () -> signed_attributes_hash
+
+    # Returns OAuth attributes including realm for Authorization header output
+    def header_attributes: () -> signed_attributes_hash
 
     # Computes the OAuth signature using the configured signature method
     def signature: () -> String

@@ -22,12 +22,15 @@ module SimpleOAuth
       assert_equal "Example", header.signed_attributes[:realm]
     end
 
-    def test_realm_is_included_in_signature_computation
+    def test_realm_is_excluded_from_signature_computation
+      # Per RFC 5849 Section 3.4.1.3.1, realm MUST be excluded from signature base string
       options = {consumer_key: "key", consumer_secret: "secret", nonce: "fixed", timestamp: "1234567890"}
       header1 = SimpleOAuth::Header.new(:get, "https://api.example.com/resource", {}, options.merge(realm: "Example1"))
       header2 = SimpleOAuth::Header.new(:get, "https://api.example.com/resource", {}, options.merge(realm: "Example2"))
+      header_no_realm = SimpleOAuth::Header.new(:get, "https://api.example.com/resource", {}, options)
 
-      refute_equal header1.signed_attributes[:oauth_signature], header2.signed_attributes[:oauth_signature]
+      assert_equal header1.signed_attributes[:oauth_signature], header2.signed_attributes[:oauth_signature]
+      assert_equal header1.signed_attributes[:oauth_signature], header_no_realm.signed_attributes[:oauth_signature]
     end
 
     def test_no_realm_by_default

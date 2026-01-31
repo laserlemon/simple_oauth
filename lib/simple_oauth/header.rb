@@ -209,7 +209,7 @@ module SimpleOAuth
     #   header.signed_attributes
     #   # => {oauth_consumer_key: "key", oauth_signature: "...", ...}
     def signed_attributes
-      attributes.merge(oauth_signature: signature)
+      header_attributes.merge(oauth_signature: signature)
     end
 
     private
@@ -222,14 +222,25 @@ module SimpleOAuth
       signed_attributes.sort_by { |k, _| k }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(", ")
     end
 
-    # Extracts valid OAuth attributes from options
+    # Extracts valid OAuth attributes from options (excludes realm per RFC 5849)
     #
     # @api private
-    # @return [Hash] OAuth attributes without signature
+    # @return [Hash] OAuth attributes without signature or realm
     def attributes
       extra_keys = options.keys - ATTRIBUTE_KEYS - IGNORED_KEYS
       raise_extra_keys_error(extra_keys) unless options[:ignore_extra_keys] || extra_keys.empty?
-      attrs = options.slice(*ATTRIBUTE_KEYS).transform_keys { |key| :"oauth_#{key}" }
+      options.slice(*ATTRIBUTE_KEYS).transform_keys { |key| :"oauth_#{key}" }
+    end
+
+    # Returns OAuth attributes including realm for Authorization header output
+    #
+    # Per RFC 5849 Section 3.5.1, realm is included in the Authorization header
+    # but excluded from signature calculation (Section 3.4.1.3.1)
+    #
+    # @api private
+    # @return [Hash] OAuth attributes with realm if present
+    def header_attributes
+      attrs = attributes
       realm = options[:realm]
       attrs[:realm] = realm if realm
       attrs
