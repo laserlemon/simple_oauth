@@ -104,8 +104,8 @@ module SimpleOAuth
       def parse(header)
         header.to_s.sub(/\AOAuth\s/, "").split(/,\s*/).each_with_object(Hash.new) do |pair, attributes| # rubocop:disable Style/EmptyLiteral
           match = pair.match(/\A(\w+)="([^"]*)"\z/) or next
-          key = match[1].delete_prefix("oauth_").to_sym
-          attributes[key] = unescape(match[2]) if PARSE_KEYS.include?(key)
+          key = match[1].delete_prefix("oauth_")
+          attributes[key.to_sym] = unescape(match[2]) if PARSE_KEYS.map(&:to_s).include?(key)
         end
       end
 
@@ -124,8 +124,8 @@ module SimpleOAuth
         CGI.parse(body.to_s).each_with_object(Hash.new) do |(key, values), attributes| # rubocop:disable Style/EmptyLiteral
           next unless key.start_with?("oauth_")
 
-          parsed_key = key.delete_prefix("oauth_").to_sym
-          attributes[parsed_key] = values.first || "" if PARSE_KEYS.include?(parsed_key)
+          parsed_key = key.delete_prefix("oauth_")
+          attributes[parsed_key.to_sym] = values.first || "" if PARSE_KEYS.map(&:to_s).include?(parsed_key)
         end
       end
     end
