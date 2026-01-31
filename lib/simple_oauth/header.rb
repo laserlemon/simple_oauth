@@ -156,7 +156,7 @@ module SimpleOAuth
       @uri.fragment = nil
       @params = params
       @body = body
-      @options = oauth.is_a?(Hash) ? self.class.default_options(body).merge(oauth) : self.class.parse(oauth)
+      @options = oauth.is_a?(Hash) ? self.class.default_options(body).merge(oauth.transform_keys(&:to_sym)) : self.class.parse(oauth)
     end
 
     # Returns the normalized URL without query string or fragment

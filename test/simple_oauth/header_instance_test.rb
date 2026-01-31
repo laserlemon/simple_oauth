@@ -58,6 +58,24 @@ module SimpleOAuth
       assert header.options.key?(:timestamp)
     end
 
+    def test_initialize_converts_string_keys_to_symbols
+      options = {"consumer_key" => "key", "consumer_secret" => "secret"}
+
+      header = SimpleOAuth::Header.new(:get, "https://example.com", {}, options)
+
+      assert header.options.key?(:consumer_key)
+      assert header.options.key?(:consumer_secret)
+    end
+
+    def test_initialize_preserves_values_when_converting_string_keys
+      options = {"consumer_key" => "key", "consumer_secret" => "secret"}
+
+      header = SimpleOAuth::Header.new(:get, "https://example.com", {}, options)
+
+      assert_equal "key", header.options[:consumer_key]
+      assert_equal "secret", header.options[:consumer_secret]
+    end
+
     # #normalized_attributes tests
 
     def test_normalized_attributes_returns_sorted_quoted_comma_separated_list
