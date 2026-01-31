@@ -4,6 +4,7 @@ require "openssl"
 require "securerandom"
 require "uri"
 require_relative "encoding"
+require_relative "parser"
 require_relative "signature"
 
 # OAuth 1.0 header generation library
@@ -98,15 +99,12 @@ module SimpleOAuth
       # @api public
       # @param header [String, #to_s] the OAuth Authorization header string
       # @return [Hash] parsed OAuth attributes with symbol keys (only valid OAuth keys)
+      # @raise [SimpleOAuth::ParseError] if the header is malformed
       # @example
       #   SimpleOAuth::Header.parse('OAuth oauth_consumer_key="key", oauth_signature="sig"')
       #   # => {consumer_key: "key", signature: "sig"}
       def parse(header)
-        header.to_s.sub(/\AOAuth\s/, "").split(/,\s*/).each_with_object(Hash.new) do |pair, attributes| # rubocop:disable Style/EmptyLiteral
-          match = pair.match(/\A(\w+)="([^"]*)"\z/) or next
-          key = match[1].delete_prefix("oauth_")
-          attributes[key.to_sym] = unescape(match[2]) if PARSE_KEYS.map(&:to_s).include?(key)
-        end
+        Parser.new(header).parse(PARSE_KEYS)
       end
 
       # Parses OAuth parameters from a form-encoded POST body

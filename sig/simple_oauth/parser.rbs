@@ -1,0 +1,21 @@
+module SimpleOAuth
+  # Parses OAuth Authorization headers
+  class Parser
+    # Pattern to match OAuth key-value pairs
+    PARAM_PATTERN: Regexp
+
+    attr_reader scanner: StringScanner
+    attr_reader attributes: Hash[Symbol, String]
+
+    def initialize: (String | _ToS header) -> void
+    def parse: (Array[Symbol] valid_keys) -> Hash[Symbol, String]
+
+    private
+
+    def scan_oauth_prefix: () -> void
+    def scan_params: (Array[Symbol] valid_keys) -> void
+    def validate_comma_separator: (String key, String comma) -> void
+    def store_if_valid: (String key, String value, Array[Symbol] valid_keys) -> void
+    def verify_complete: () -> void
+  end
+end

@@ -1,0 +1,9 @@
+# Minimal StringScanner type declarations for simple_oauth
+class StringScanner
+  def initialize: (String string) -> void
+  def scan: (Regexp pattern) -> String?
+  def eos?: () -> bool
+  def rest: () -> String
+  def pos: () -> Integer
+  def []: (Integer index) -> String?
+end

@@ -1,10 +1,8 @@
 require "test_helper"
 
 module SimpleOAuth
-  class HeaderParseTest < Minitest::Test
+  class HeaderParseBasicTest < Minitest::Test
     cover "SimpleOAuth::Header*"
-
-    # .parse tests
 
     def test_parse_returns_a_hash
       header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
@@ -39,6 +37,32 @@ module SimpleOAuth
 
       refute_nil parsed_options[:signature]
     end
+
+    def test_parse_handles_empty_value
+      header_with_empty = 'OAuth oauth_callback=""'
+      parsed = SimpleOAuth::Header.parse(header_with_empty)
+
+      assert_equal "", parsed[:callback]
+    end
+
+    def test_parse_strips_oauth_prefix_from_keys
+      header = 'OAuth oauth_consumer_key="key123"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      assert parsed.key?(:consumer_key)
+      refute parsed.key?(:oauth_consumer_key)
+    end
+
+    def test_parse_silently_ignores_params_without_oauth_prefix
+      header = 'OAuth consumer_key="key123"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      assert_empty(parsed)
+    end
+  end
+
+  class HeaderParseWhitespaceTest < Minitest::Test
+    cover "SimpleOAuth::Header*"
 
     def test_parse_parses_header_with_spaces_after_commas
       header_with_spaces = 'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", ' \
@@ -76,47 +100,32 @@ module SimpleOAuth
       assert_equal 7, parsed.keys.size
     end
 
-    def test_parse_handles_empty_value
-      header_with_empty = 'OAuth oauth_callback=""'
-      parsed = SimpleOAuth::Header.parse(header_with_empty)
-
-      assert_equal "", parsed[:callback]
-    end
-
-    def test_parse_strips_oauth_prefix_from_keys
-      header = 'OAuth oauth_consumer_key="key123"'
+    def test_parse_handles_trailing_whitespace_after_comma
+      header = 'OAuth oauth_consumer_key="key123",   '
       parsed = SimpleOAuth::Header.parse(header)
 
-      assert parsed.key?(:consumer_key)
-      refute parsed.key?(:oauth_consumer_key)
-    end
-
-    def test_parse_skips_malformed_pairs
-      header_with_malformed = 'OAuth oauth_consumer_key="key123", malformed_without_quotes, oauth_token="token456"'
-      parsed = SimpleOAuth::Header.parse(header_with_malformed)
-
-      assert_equal 2, parsed.keys.size
       assert_equal "key123", parsed[:consumer_key]
-      assert_equal "token456", parsed[:token]
     end
 
-    def test_parse_skips_multiple_malformed_pairs
-      header_with_malformed = 'OAuth invalid1, oauth_consumer_key="key", invalid2, oauth_token="tok", invalid3'
-      parsed = SimpleOAuth::Header.parse(header_with_malformed)
+    def test_parse_handles_multiple_spaces_after_oauth
+      header = 'OAuth   oauth_consumer_key="key123"'
+      parsed = SimpleOAuth::Header.parse(header)
 
-      assert_equal 2, parsed.keys.size
-      assert_equal "key", parsed[:consumer_key]
-      assert_equal "tok", parsed[:token]
+      assert_equal "key123", parsed[:consumer_key]
     end
+  end
 
-    def test_parse_ignores_invalid_oauth_keys_count
+  class HeaderParseFilteringTest < Minitest::Test
+    cover "SimpleOAuth::Header*"
+
+    def test_parse_ignores_unrecognized_oauth_keys_count
       header = 'OAuth oauth_consumer_key="key123", oauth_invalid_key="bad", oauth_signature="sig"'
       parsed = SimpleOAuth::Header.parse(header)
 
       assert_equal 2, parsed.keys.size
     end
 
-    def test_parse_ignores_invalid_oauth_keys_values
+    def test_parse_ignores_unrecognized_oauth_keys_values
       header = 'OAuth oauth_consumer_key="key123", oauth_invalid_key="bad", oauth_signature="sig"'
       parsed = SimpleOAuth::Header.parse(header)
 
@@ -124,11 +133,138 @@ module SimpleOAuth
       assert_equal "sig", parsed[:signature]
     end
 
-    def test_parse_ignores_invalid_oauth_keys_exclusion
+    def test_parse_ignores_unrecognized_oauth_keys_exclusion
       header = 'OAuth oauth_consumer_key="key123", oauth_invalid_key="bad", oauth_signature="sig"'
       parsed = SimpleOAuth::Header.parse(header)
 
       refute parsed.key?(:invalid_key)
+    end
+
+    def test_parse_ignores_non_oauth_prefixed_keys_count
+      header = 'OAuth oauth_consumer_key="key123", custom_key="ignored", oauth_signature="sig"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      assert_equal 2, parsed.keys.size
+    end
+
+    def test_parse_ignores_non_oauth_prefixed_keys_values
+      header = 'OAuth oauth_consumer_key="key123", custom_key="ignored", oauth_signature="sig"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      assert_equal "key123", parsed[:consumer_key]
+      assert_equal "sig", parsed[:signature]
+    end
+
+    def test_parse_ignores_non_oauth_prefixed_keys_exclusion
+      header = 'OAuth oauth_consumer_key="key123", custom_key="ignored", oauth_signature="sig"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      refute parsed.key?(:custom_key)
+    end
+
+    def test_parse_handles_unescaped_comma_in_value
+      header = 'OAuth oauth_consumer_key="key,with,commas", oauth_signature="sig"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      assert_equal "key,with,commas", parsed[:consumer_key]
+      assert_equal "sig", parsed[:signature]
+    end
+  end
+
+  class HeaderParseErrorTest < Minitest::Test
+    cover "SimpleOAuth::Header*"
+
+    def test_parse_raises_on_malformed_pair_position
+      header_with_malformed = 'OAuth oauth_consumer_key="key123", malformed_without_quotes, oauth_token="token456"'
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header_with_malformed)
+      end
+      assert_match(/Could not parse parameter at position 35/, error.message)
+    end
+
+    def test_parse_raises_on_malformed_pair_content
+      header_with_malformed = 'OAuth oauth_consumer_key="key123", malformed_without_quotes, oauth_token="token456"'
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header_with_malformed)
+      end
+      assert_match(/malformed_without_quotes/, error.message)
+    end
+
+    def test_parse_raises_on_malformed_pair_inspect_format
+      header_with_malformed = 'OAuth oauth_consumer_key="key123", malformed_without_quotes, oauth_token="token456"'
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header_with_malformed)
+      end
+      # Verify .inspect is used (shows escaped quotes)
+      assert_match(/\\"token456\\"/, error.message)
+    end
+
+    def test_parse_raises_on_missing_opening_quote_position
+      header_with_malformed = "OAuth oauth_consumer_key=key123"
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header_with_malformed)
+      end
+      assert_match(/Could not parse parameter at position 6/, error.message)
+    end
+
+    def test_parse_raises_on_missing_opening_quote_inspect_format
+      header_with_malformed = "OAuth oauth_consumer_key=key123"
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header_with_malformed)
+      end
+      # Verify .inspect is used (shows surrounding quotes on the string)
+      assert_match(/"oauth_consumer_key=key123"/, error.message)
+    end
+
+    def test_parse_raises_on_missing_comma_position
+      header = 'OAuth oauth_consumer_key="key123" oauth_signature="sig"'
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header)
+      end
+      assert_match(/Expected comma after 'oauth_consumer_key' parameter at position 34/, error.message)
+    end
+
+    def test_parse_raises_on_missing_comma_content
+      header = 'OAuth oauth_consumer_key="key123" oauth_signature="sig"'
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header)
+      end
+      assert_match(/oauth_signature/, error.message)
+    end
+
+    def test_parse_raises_on_missing_comma_inspect_format
+      header = 'OAuth oauth_consumer_key="key123" oauth_signature="sig"'
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header)
+      end
+      # Verify .inspect is used (shows escaped quotes)
+      assert_match(/\\"sig\\"/, error.message)
+    end
+
+    def test_parse_raises_on_missing_oauth_header_prefix
+      header = 'oauth_consumer_key="key123"'
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header)
+      end
+      assert_match(/Authorization header must start with 'OAuth '/, error.message)
+    end
+
+    def test_parse_raises_on_completely_invalid_header
+      header = "Bearer token123"
+
+      error = assert_raises(SimpleOAuth::ParseError) do
+        SimpleOAuth::Header.parse(header)
+      end
+      assert_match(/Authorization header must start with 'OAuth '/, error.message)
     end
   end
 end

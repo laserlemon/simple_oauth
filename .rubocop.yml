@@ -15,6 +15,9 @@ Layout/ArgumentAlignment:
   Enabled: true
   EnforcedStyle: with_fixed_indentation
 
+Layout/LeadingCommentSpace:
+  AllowRBSInlineAnnotation: true
+
 Layout/ArrayAlignment:
   Enabled: true
   EnforcedStyle: with_fixed_indentation

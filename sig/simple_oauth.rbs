@@ -1,5 +1,8 @@
 # OAuth 1.0 header generation library
 module SimpleOAuth
+  # Error raised when parsing a malformed OAuth Authorization header
+  class ParseError < StandardError
+  end
   # OAuth percent-encoding utilities
   module Encoding
     # Percent-encodes a value according to OAuth specification
