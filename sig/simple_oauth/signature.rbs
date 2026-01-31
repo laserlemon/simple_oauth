@@ -41,5 +41,14 @@ module SimpleOAuth
 
     # Registers the built-in OAuth signature methods
     def self.register_builtin_methods: () -> void
+
+    # Registers an HMAC signature method
+    def self.register_hmac_method: (String name, String digest) -> void
+
+    # Registers the RSA-SHA1 signature method
+    def self.register_rsa_sha1_method: () -> void
+
+    # Registers the PLAINTEXT signature method
+    def self.register_plaintext_method: () -> void
   end
 end

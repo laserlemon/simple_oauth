@@ -130,26 +130,43 @@ module SimpleOAuth
       #
       # @api private
       # @return [void]
-      # rubocop:disable Metrics/MethodLength
       def register_builtin_methods
-        register("HMAC-SHA1") do |secret, signature_base|
-          Base64.encode64(OpenSSL::HMAC.digest("SHA1", secret, signature_base)).delete("\n")
-        end
+        register_hmac_method("HMAC-SHA1", "SHA1")
+        register_hmac_method("HMAC-SHA256", "SHA256")
+        register_rsa_sha1_method
+        register_plaintext_method
+      end
 
-        register("HMAC-SHA256") do |secret, signature_base|
-          Base64.encode64(OpenSSL::HMAC.digest("SHA256", secret, signature_base)).delete("\n")
+      # Registers an HMAC signature method
+      #
+      # @api private
+      # @param name [String] the signature method name
+      # @param digest [String] the digest algorithm
+      # @return [void]
+      def register_hmac_method(name, digest)
+        register(name) do |secret, signature_base|
+          Base64.encode64(OpenSSL::HMAC.digest(digest, secret, signature_base)).delete("\n")
         end
+      end
 
+      # Registers the RSA-SHA1 signature method
+      #
+      # @api private
+      # @return [void]
+      def register_rsa_sha1_method
         register("RSA-SHA1", rsa: true) do |private_key_pem, signature_base|
           private_key = OpenSSL::PKey::RSA.new(private_key_pem)
           Base64.encode64(private_key.sign("SHA1", signature_base)).delete("\n")
         end
-
-        register("PLAINTEXT") do |secret, _signature_base|
-          secret
-        end
       end
-      # rubocop:enable Metrics/MethodLength
+
+      # Registers the PLAINTEXT signature method
+      #
+      # @api private
+      # @return [void]
+      def register_plaintext_method
+        register("PLAINTEXT") { |secret, _signature_base| secret }
+      end
     end
 
     # Initialize built-in methods on load

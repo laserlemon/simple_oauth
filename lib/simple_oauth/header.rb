@@ -3,6 +3,7 @@ require "cgi"
 require "openssl"
 require "securerandom"
 require "uri"
+require_relative "encoding"
 require_relative "signature"
 
 # OAuth 1.0 header generation library
@@ -127,33 +128,10 @@ module SimpleOAuth
           attributes[parsed_key] = values.first || "" if PARSE_KEYS.include?(parsed_key)
         end
       end
-
-      # Percent-encodes a value according to OAuth specification
-      #
-      # @api public
-      # @param value [String, #to_s] the value to encode
-      # @return [String] the percent-encoded value
-      # @example
-      #   SimpleOAuth::Header.escape("hello world")
-      #   # => "hello%20world"
-      def escape(value)
-        URI::RFC2396_PARSER.escape(value.to_s, /[^a-z0-9\-._~]/i)
-      end
-      alias_method :encode, :escape
-
-      # Decodes a percent-encoded value
-      #
-      # @api public
-      # @param value [String, #to_s] the value to decode
-      # @return [String] the decoded value
-      # @example
-      #   SimpleOAuth::Header.unescape("hello%20world")
-      #   # => "hello world"
-      def unescape(value)
-        URI::RFC2396_PARSER.unescape(value.to_s)
-      end
-      alias_method :decode, :unescape
     end
+
+    # Add escape/unescape/encode/decode class methods from Encoding module
+    extend Encoding
 
     # Creates a new OAuth header
     #

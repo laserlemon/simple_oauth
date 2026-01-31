@@ -1,5 +1,26 @@
 # OAuth 1.0 header generation library
 module SimpleOAuth
+  # OAuth percent-encoding utilities
+  module Encoding
+    # Percent-encodes a value according to OAuth specification
+    def escape: (String | _ToS value) -> String
+
+    # Alias for escape
+    def encode: (String | _ToS value) -> String
+
+    # Decodes a percent-encoded value
+    def unescape: (String | _ToS value) -> String
+
+    # Alias for unescape
+    def decode: (String | _ToS value) -> String
+
+    # Module-level methods (via extend self)
+    def self.escape: (String | _ToS value) -> String
+    def self.encode: (String | _ToS value) -> String
+    def self.unescape: (String | _ToS value) -> String
+    def self.decode: (String | _ToS value) -> String
+  end
+
   # Generates OAuth 1.0 Authorization headers for HTTP requests
   class Header
     # Valid OAuth attribute keys that can be included in the header
@@ -7,6 +28,9 @@ module SimpleOAuth
 
     # Keys that are used internally but should not appear in attributes
     IGNORED_KEYS: Array[Symbol]
+
+    # Valid keys when parsing OAuth parameters (ATTRIBUTE_KEYS + signature)
+    PARSE_KEYS: Array[Symbol]
 
     # Type aliases for clarity
     type oauth_key = :body_hash | :callback | :consumer_key | :nonce | :signature_method | :timestamp | :token | :verifier | :version
@@ -36,6 +60,9 @@ module SimpleOAuth
 
     # Parses an OAuth Authorization header string into a hash
     def self.parse: (String | _ToS header) -> oauth_options
+
+    # Parses OAuth parameters from a form-encoded POST body
+    def self.parse_form_body: (String | _ToS body) -> oauth_options
 
     # Percent-encodes a value according to OAuth specification
     def self.escape: (String | _ToS value) -> String

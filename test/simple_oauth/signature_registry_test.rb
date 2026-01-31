@@ -1,18 +1,14 @@
 require "test_helper"
 
 module SimpleOAuth
-  # rubocop:disable Metrics/ClassLength
-  class SignatureRegistryTest < Minitest::Test
+  class SignatureRegisterTest < Minitest::Test
     include TestHelpers
 
     cover "SimpleOAuth::Signature*"
 
     def teardown
-      # Reset registry after each test to avoid test pollution
       Signature.reset!
     end
-
-    # .register tests
 
     def test_register_adds_custom_signature_method
       Signature.register("CUSTOM-METHOD") { |secret, base| "custom:#{secret}:#{base}" }
@@ -45,17 +41,26 @@ module SimpleOAuth
 
       refute Signature.rsa?("NON-RSA")
     end
+  end
 
-    # .registered? tests
+  class SignatureRegisteredTest < Minitest::Test
+    cover "SimpleOAuth::Signature*"
 
-    # rubocop:disable Minitest/MultipleAssertions
-    def test_registered_returns_true_for_builtin_methods
+    def test_registered_returns_true_for_hmac_sha1
       assert Signature.registered?("HMAC-SHA1")
+    end
+
+    def test_registered_returns_true_for_hmac_sha256
       assert Signature.registered?("HMAC-SHA256")
+    end
+
+    def test_registered_returns_true_for_rsa_sha1
       assert Signature.registered?("RSA-SHA1")
+    end
+
+    def test_registered_returns_true_for_plaintext
       assert Signature.registered?("PLAINTEXT")
     end
-    # rubocop:enable Minitest/MultipleAssertions
 
     def test_registered_returns_false_for_unknown_methods
       refute Signature.registered?("UNKNOWN-METHOD")
@@ -66,8 +71,14 @@ module SimpleOAuth
       assert Signature.registered?("Hmac-Sha1")
       assert Signature.registered?("HMAC-SHA1")
     end
+  end
 
-    # .methods tests
+  class SignatureMethodsTest < Minitest::Test
+    cover "SimpleOAuth::Signature*"
+
+    def teardown
+      Signature.reset!
+    end
 
     def test_methods_returns_array_of_strings
       methods = Signature.methods
@@ -76,33 +87,41 @@ module SimpleOAuth
       methods.each { |m| assert_kind_of String, m }
     end
 
-    # rubocop:disable Minitest/MultipleAssertions
-    def test_methods_returns_registered_method_names
-      methods = Signature.methods
-
-      assert_includes methods, "hmac_sha1"
-      assert_includes methods, "hmac_sha256"
-      assert_includes methods, "rsa_sha1"
-      assert_includes methods, "plaintext"
+    def test_methods_includes_hmac_sha1
+      assert_includes Signature.methods, "hmac_sha1"
     end
-    # rubocop:enable Minitest/MultipleAssertions
+
+    def test_methods_includes_hmac_sha256
+      assert_includes Signature.methods, "hmac_sha256"
+    end
+
+    def test_methods_includes_rsa_sha1
+      assert_includes Signature.methods, "rsa_sha1"
+    end
+
+    def test_methods_includes_plaintext
+      assert_includes Signature.methods, "plaintext"
+    end
 
     def test_methods_includes_custom_registered_methods
       Signature.register("CUSTOM") { |_s, _b| "sig" }
 
       assert_includes Signature.methods, "custom"
     end
+  end
 
-    # .rsa? tests
+  class SignatureRsaTest < Minitest::Test
+    cover "SimpleOAuth::Signature*"
 
     def test_rsa_returns_true_for_rsa_sha1
-      # rubocop:disable Minitest/AssertTruthy
-      assert_equal true, Signature.rsa?("RSA-SHA1")
-      # rubocop:enable Minitest/AssertTruthy
+      assert Signature.rsa?("RSA-SHA1")
     end
 
-    def test_rsa_returns_false_for_hmac_methods
+    def test_rsa_returns_false_for_hmac_sha1
       refute Signature.rsa?("HMAC-SHA1")
+    end
+
+    def test_rsa_returns_false_for_hmac_sha256
       refute Signature.rsa?("HMAC-SHA256")
     end
 
@@ -114,20 +133,30 @@ module SimpleOAuth
       refute Signature.rsa?("UNKNOWN")
     end
 
-    def test_rsa_returns_boolean_false_not_nil
-      # Verify we get actual false, not nil (for proper boolean semantics)
-      # rubocop:disable Minitest/RefuteFalse
-      assert_equal false, Signature.rsa?("HMAC-SHA1")
-      assert_equal false, Signature.rsa?("UNKNOWN")
-      # rubocop:enable Minitest/RefuteFalse
+    def test_rsa_returns_false_not_nil_for_hmac
+      result = Signature.rsa?("HMAC-SHA1")
+
+      assert_instance_of FalseClass, result
     end
 
-    # .sign tests
+    def test_rsa_returns_false_not_nil_for_unknown
+      result = Signature.rsa?("UNKNOWN")
+
+      assert_instance_of FalseClass, result
+    end
+  end
+
+  class SignatureSignTest < Minitest::Test
+    include TestHelpers
+
+    cover "SimpleOAuth::Signature*"
+
+    def teardown
+      Signature.reset!
+    end
 
     def test_sign_computes_hmac_sha1_signature
       signature = Signature.sign("HMAC-SHA1", "secret", "base")
-
-      # Verify the exact expected HMAC-SHA1 signature
       expected = Base64.encode64(OpenSSL::HMAC.digest("SHA1", "secret", "base")).delete("\n")
 
       assert_equal expected, signature
@@ -135,8 +164,6 @@ module SimpleOAuth
 
     def test_sign_computes_hmac_sha256_signature
       signature = Signature.sign("HMAC-SHA256", "secret", "base")
-
-      # Verify the exact expected HMAC-SHA256 signature
       expected = Base64.encode64(OpenSSL::HMAC.digest("SHA256", "secret", "base")).delete("\n")
 
       assert_equal expected, signature
@@ -144,8 +171,6 @@ module SimpleOAuth
 
     def test_sign_computes_rsa_sha1_signature
       signature = Signature.sign("RSA-SHA1", rsa_private_key, "base")
-
-      # Verify the exact expected RSA-SHA1 signature
       private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
       expected = Base64.encode64(private_key.sign("SHA1", "base")).delete("\n")
 
@@ -166,18 +191,23 @@ module SimpleOAuth
       assert_equal "custom:mysecret:mybase", signature
     end
 
-    # rubocop:disable Minitest/MultipleAssertions
     def test_sign_raises_for_unknown_method
-      error = assert_raises(ArgumentError) do
-        Signature.sign("UNKNOWN-METHOD", "secret", "base")
-      end
+      error = assert_raises(ArgumentError) { Signature.sign("UNKNOWN-METHOD", "secret", "base") }
 
       assert_includes error.message, "Unknown signature method: UNKNOWN-METHOD"
+    end
+
+    def test_sign_error_includes_registered_methods
+      error = assert_raises(ArgumentError) { Signature.sign("UNKNOWN-METHOD", "secret", "base") }
+
       assert_includes error.message, "Registered methods:"
-      # Verify comma-separated list format
+    end
+
+    def test_sign_error_shows_comma_separated_list
+      error = assert_raises(ArgumentError) { Signature.sign("UNKNOWN-METHOD", "secret", "base") }
+
       assert_includes error.message, "hmac_sha1, "
     end
-    # rubocop:enable Minitest/MultipleAssertions
 
     def test_sign_is_case_insensitive
       sig1 = Signature.sign("HMAC-SHA1", "secret", "base")
@@ -201,8 +231,14 @@ module SimpleOAuth
 
       assert_equal sig1, sig2
     end
+  end
 
-    # .unregister tests
+  class SignatureUnregisterTest < Minitest::Test
+    cover "SimpleOAuth::Signature*"
+
+    def teardown
+      Signature.reset!
+    end
 
     def test_unregister_removes_method
       Signature.register("TEMP") { |_s, _b| "sig" }
@@ -221,8 +257,14 @@ module SimpleOAuth
 
       refute Signature.registered?("TEMP-METHOD")
     end
+  end
 
-    # .reset! tests
+  class SignatureResetTest < Minitest::Test
+    cover "SimpleOAuth::Signature*"
+
+    def teardown
+      Signature.reset!
+    end
 
     def test_reset_restores_builtin_methods
       Signature.unregister("HMAC-SHA1")
@@ -243,8 +285,16 @@ module SimpleOAuth
 
       refute Signature.registered?("CUSTOM")
     end
+  end
 
-    # Integration with Header tests
+  class SignatureHeaderIntegrationTest < Minitest::Test
+    include TestHelpers
+
+    cover "SimpleOAuth::Signature*"
+
+    def teardown
+      Signature.reset!
+    end
 
     def test_header_uses_custom_signature_method
       Signature.register("HMAC-SHA512") do |secret, signature_base|
@@ -255,7 +305,6 @@ module SimpleOAuth
         consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA512",
         nonce: "nonce", timestamp: "12345")
 
-      # Should produce a valid base64 signature
       assert_match %r{\A[A-Za-z0-9+/]+=*\z}, header.signed_attributes[:oauth_signature]
     end
 
@@ -269,20 +318,15 @@ module SimpleOAuth
         consumer_key: "key", consumer_secret: rsa_private_key, signature_method: "RSA-SHA256",
         nonce: "nonce", timestamp: "12345")
 
-      # Should produce a valid base64 signature
       assert_match %r{\A[A-Za-z0-9+/]+=*\z}, header.signed_attributes[:oauth_signature]
     end
 
     def test_header_raises_for_unregistered_method
-      # rubocop:disable Minitest/AssertRaisesCompoundBody
-      assert_raises(ArgumentError) do
-        header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
-          consumer_key: "key", consumer_secret: "secret", signature_method: "UNKNOWN",
-          nonce: "nonce", timestamp: "12345")
-        header.to_s
-      end
-      # rubocop:enable Minitest/AssertRaisesCompoundBody
+      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
+        consumer_key: "key", consumer_secret: "secret", signature_method: "UNKNOWN",
+        nonce: "nonce", timestamp: "12345")
+
+      assert_raises(ArgumentError) { header.to_s }
     end
   end
-  # rubocop:enable Metrics/ClassLength
 end
