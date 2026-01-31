@@ -45,8 +45,8 @@ module SimpleOAuth
 
     def test_attributes_raises_for_extra_keys
       header = build_header_with_all_attribute_keys
-      error = assert_raises(RuntimeError) { header.send(:attributes) }
-      assert_equal "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [:other]", error.message
+      error = assert_raises(SimpleOAuth::InvalidOptionsError) { header.send(:attributes) }
+      assert_equal "Unknown option keys: :other", error.message
     end
 
     def test_attributes_does_not_raise_when_ignore_extra_keys_is_true
@@ -68,14 +68,14 @@ module SimpleOAuth
         other: "OTHER")
       header.options[:ignore_extra_keys] = false
 
-      assert_raises(RuntimeError) { header.send(:attributes) }
+      assert_raises(SimpleOAuth::InvalidOptionsError) { header.send(:attributes) }
     end
 
     def test_attributes_error_message_includes_comma_separator_for_multiple_extra_keys
       header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
         extra1: "EXTRA1", extra2: "EXTRA2")
 
-      error = assert_raises(RuntimeError) { header.send(:attributes) }
+      error = assert_raises(SimpleOAuth::InvalidOptionsError) { header.send(:attributes) }
       assert_includes error.message, ", "
     end
 

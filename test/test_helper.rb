@@ -21,12 +21,33 @@ module TestHelpers
     @rsa_private_key ||= File.read(PRIVATE_KEY_PATH)
   end
 
+  # Factory method to build a Header with common defaults
+  def build_header(method = :get, url = RFC5849::PHOTOS_URL, params = {}, **options)
+    defaults = {
+      consumer_key: RFC5849::CONSUMER_KEY,
+      consumer_secret: RFC5849::CONSUMER_SECRET
+    }
+    SimpleOAuth::Header.new(method, url, params, defaults.merge(options))
+  end
+
+  # Factory method to build a Header with fixed nonce/timestamp for deterministic tests
+  def build_header_with_fixed_credentials(method = :get, url = RFC5849::PHOTOS_URL, params = {}, **options)
+    defaults = {
+      consumer_key: RFC5849::CONSUMER_KEY,
+      consumer_secret: RFC5849::CONSUMER_SECRET,
+      nonce: "chapoH",
+      timestamp: "137131202"
+    }
+    SimpleOAuth::Header.new(method, url, params, defaults.merge(options))
+  end
+
   # RFC 5849 Example Constants
   # See https://www.rfc-editor.org/rfc/rfc5849 for complete examples
   module RFC5849
     # Section 1.2 - Printer/Photos example endpoints
     PHOTOS_HOST = "photos.example.net".freeze
     PHOTOS_BASE_URL = "https://#{PHOTOS_HOST}".freeze
+    PHOTOS_URL = "#{PHOTOS_BASE_URL}/photos".freeze
     PRINTER_HOST = "printer.example.com".freeze
     PRINTER_CALLBACK = "http://#{PRINTER_HOST}/ready".freeze
 
@@ -60,10 +81,31 @@ module TestHelpers
     # Section 3.5.1 - Authorization header example
     module HeaderExample
       CONSUMER_KEY = "0685bd9184jfhq22".freeze
+      CONSUMER_SECRET = "kd94hf93k423kf44".freeze
       TOKEN = "ad180jjd733klru7".freeze
+      TOKEN_SECRET = "pfkkdhi9sl3r4s00".freeze
       TIMESTAMP = "137131200".freeze
       NONCE = "4572616e48616d6d65724c61686176".freeze
+
+      # Complete options hash for tests
+      OPTIONS = {
+        consumer_key: CONSUMER_KEY,
+        consumer_secret: CONSUMER_SECRET,
+        token: TOKEN,
+        token_secret: TOKEN_SECRET,
+        nonce: NONCE,
+        timestamp: TIMESTAMP
+      }.freeze
     end
+
+    # Complete options hash for printer/photos example (Section 1.2)
+    PHOTOS_OPTIONS = {
+      consumer_key: CONSUMER_KEY,
+      consumer_secret: CONSUMER_SECRET,
+      nonce: "wIjqoS",
+      timestamp: "137131200",
+      callback: PRINTER_CALLBACK
+    }.freeze
 
     # Section 2.1 - PLAINTEXT example
     module PlaintextExample

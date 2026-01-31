@@ -7,7 +7,18 @@ module SimpleOAuth
   # These methods can be used as module functions or extended into a class.
   #
   # @api public
+  # @example Using as module functions
+  #   SimpleOAuth::Encoding.escape("hello world") # => "hello%20world"
+  #
+  # @example Extending into a class
+  #   class MyClass
+  #     extend SimpleOAuth::Encoding
+  #   end
+  #   MyClass.escape("hello world") # => "hello%20world"
   module Encoding
+    # Characters that don't need to be escaped per OAuth spec
+    UNRESERVED_CHARS = /[^a-z0-9\-._~]/i
+
     # Percent-encodes a value according to OAuth specification
     #
     # @api public
@@ -17,7 +28,7 @@ module SimpleOAuth
     #   SimpleOAuth::Encoding.escape("hello world")
     #   # => "hello%20world"
     def escape(value)
-      URI::RFC2396_PARSER.escape(value.to_s, /[^a-z0-9\-._~]/i)
+      URI::RFC2396_PARSER.escape(value.to_s, UNRESERVED_CHARS)
     end
     alias_method :encode, :escape
 
@@ -33,7 +44,5 @@ module SimpleOAuth
       URI::RFC2396_PARSER.unescape(value.to_s)
     end
     alias_method :decode, :unescape
-
-    # Allow calling as SimpleOAuth::Encoding.escape directly
   end
 end

@@ -11,20 +11,20 @@ module SimpleOAuth
 
     def test_body_hash_computes_sha1_hash_of_body
       body = '{"text": "Hello, World!"}'
-      expected = Base64.encode64(OpenSSL::Digest.digest("SHA1", body)).delete("\n")
+      expected = Base64.strict_encode64(OpenSSL::Digest.digest("SHA1", body))
 
       assert_equal expected, SimpleOAuth::Header.body_hash(body)
     end
 
     def test_body_hash_returns_hash_of_empty_string_for_nil
-      expected = Base64.encode64(OpenSSL::Digest.digest("SHA1", "")).delete("\n")
+      expected = Base64.strict_encode64(OpenSSL::Digest.digest("SHA1", ""))
 
       assert_equal expected, SimpleOAuth::Header.body_hash(nil)
     end
 
     def test_body_hash_supports_sha256_algorithm
       body = '{"text": "Hello, World!"}'
-      expected = Base64.encode64(OpenSSL::Digest.digest("SHA256", body)).delete("\n")
+      expected = Base64.strict_encode64(OpenSSL::Digest.digest("SHA256", body))
 
       assert_equal expected, SimpleOAuth::Header.body_hash(body, "SHA256")
     end

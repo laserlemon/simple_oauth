@@ -1,134 +1,66 @@
-require "base64"
 require "cgi"
-require "openssl"
-require "securerandom"
 require "uri"
 require_relative "encoding"
+require_relative "errors"
 require_relative "parser"
 require_relative "signature"
+require_relative "header/class_methods"
 
-# OAuth 1.0 header generation library
 module SimpleOAuth
   # Generates OAuth 1.0 Authorization headers for HTTP requests
   #
   # @api public
   class Header
+    # OAuth header scheme prefix
+    OAUTH_SCHEME = "OAuth".freeze
+
+    # Prefix for OAuth parameters
+    OAUTH_PREFIX = "oauth_".freeze
+
+    # Default signature method per RFC 5849
+    DEFAULT_SIGNATURE_METHOD = "HMAC-SHA1".freeze
+
+    # OAuth version
+    OAUTH_VERSION = "1.0".freeze
+
     # Valid OAuth attribute keys that can be included in the header
     ATTRIBUTE_KEYS = %i[body_hash callback consumer_key nonce signature_method timestamp token verifier version].freeze
 
     # Keys that are used internally but should not appear in attributes
-    IGNORED_KEYS = %i[consumer_secret token_secret signature realm].freeze
+    IGNORED_KEYS = %i[consumer_secret token_secret signature realm ignore_extra_keys].freeze
 
     # Valid keys when parsing OAuth parameters (ATTRIBUTE_KEYS + signature)
-    PARSE_KEYS = (ATTRIBUTE_KEYS + %i[signature]).freeze
+    PARSE_KEYS = [*ATTRIBUTE_KEYS, :signature].freeze
 
     # The HTTP method for the request
     #
     # @return [String] the HTTP method (GET, POST, etc.)
-    # @api public
     # @example
-    #   header.method
-    #   # => "GET"
+    #   header.method # => "GET"
     attr_reader :method
 
     # The request parameters to be signed
     #
     # @return [Hash] the request parameters
-    # @api public
     # @example
-    #   header.params
-    #   # => {status: "Hello"}
+    #   header.params # => {"status" => "Hello"}
     attr_reader :params
 
     # The raw request body for oauth_body_hash computation
     #
-    # @return [String, nil] the raw request body
-    # @api public
+    # @return [String, nil] the request body
     # @example
-    #   header.body
-    #   # => '{"text": "Hello"}'
+    #   header.body # => '{"text": "Hello"}'
     attr_reader :body
 
     # The OAuth options including credentials and signature
     #
     # @return [Hash] the OAuth options
-    # @api public
     # @example
-    #   header.options
-    #   # => {consumer_key: "key", nonce: "...", ...}
+    #   header.options # => {consumer_key: "key", nonce: "..."}
     attr_reader :options
 
-    class << self
-      # Returns default OAuth options with generated nonce and timestamp
-      #
-      # @api public
-      # @param body [String, nil] optional request body for computing oauth_body_hash
-      # @return [Hash] default options including nonce, signature_method, timestamp, and version
-      # @example
-      #   SimpleOAuth::Header.default_options
-      #   # => {nonce: "abc123...", signature_method: "HMAC-SHA1", timestamp: "1234567890", version: "1.0"}
-      # @example With body for oauth_body_hash
-      #   SimpleOAuth::Header.default_options('{"text": "Hello"}')
-      #   # => {nonce: "abc123...", signature_method: "HMAC-SHA1", timestamp: "1234567890", version: "1.0", body_hash: "..."}
-      def default_options(body = nil)
-        options = {
-          nonce: Random.random_bytes.unpack1("H*"),
-          signature_method: "HMAC-SHA1",
-          timestamp: Integer(Time.now).to_s,
-          version: "1.0"
-        }
-        options[:body_hash] = body_hash(body) if body
-        options
-      end
-
-      # Computes the oauth_body_hash for a request body
-      #
-      # @api public
-      # @param body [String] the raw request body
-      # @param hash_algorithm [String] the hash algorithm to use (default: "SHA1")
-      # @return [String] Base64-encoded hash of the body
-      # @example
-      #   SimpleOAuth::Header.body_hash('{"text": "Hello"}')
-      #   # => "aOjMoMwMP1RZ0hKa1HryYDlCKck="
-      def body_hash(body, hash_algorithm = "SHA1")
-        Base64.encode64(OpenSSL::Digest.digest(hash_algorithm, body || "")).delete("\n")
-      end
-
-      # Parses an OAuth Authorization header string into a hash
-      #
-      # @api public
-      # @param header [String, #to_s] the OAuth Authorization header string
-      # @return [Hash] parsed OAuth attributes with symbol keys (only valid OAuth keys)
-      # @raise [SimpleOAuth::ParseError] if the header is malformed
-      # @example
-      #   SimpleOAuth::Header.parse('OAuth oauth_consumer_key="key", oauth_signature="sig"')
-      #   # => {consumer_key: "key", signature: "sig"}
-      def parse(header)
-        Parser.new(header).parse(PARSE_KEYS)
-      end
-
-      # Parses OAuth parameters from a form-encoded POST body
-      #
-      # OAuth 1.0 allows credentials to be transmitted in the request body for
-      # POST requests with Content-Type: application/x-www-form-urlencoded
-      #
-      # @api public
-      # @param body [String, #to_s] the form-encoded request body
-      # @return [Hash] parsed OAuth attributes with symbol keys (only valid OAuth keys)
-      # @example
-      #   SimpleOAuth::Header.parse_form_body('oauth_consumer_key=key&oauth_signature=sig&status=hello')
-      #   # => {consumer_key: "key", signature: "sig"}
-      def parse_form_body(body)
-        CGI.parse(body.to_s).each_with_object(Hash.new) do |(key, values), attributes| # rubocop:disable Style/EmptyLiteral
-          next unless key.start_with?("oauth_")
-
-          parsed_key = key.delete_prefix("oauth_")
-          attributes[parsed_key.to_sym] = values.first || "" if PARSE_KEYS.map(&:to_s).include?(parsed_key)
-        end
-      end
-    end
-
-    # Add escape/unescape/encode/decode class methods from Encoding module
+    extend ClassMethods
     extend Encoding
 
     # Creates a new OAuth header
@@ -149,12 +81,10 @@ module SimpleOAuth
     #     {consumer_key: "key", consumer_secret: "secret"}, '{"text": "Hello"}')
     def initialize(method, url, params, oauth = {}, body = nil)
       @method = method.to_s.upcase
-      @uri = URI.parse(url.to_s)
-      @uri.normalize!
-      @uri.fragment = nil
+      @uri = normalize_uri(url)
       @params = params
       @body = body
-      @options = oauth.is_a?(Hash) ? self.class.default_options(body).merge(oauth.transform_keys(&:to_sym)) : self.class.parse(oauth)
+      @options = build_options(oauth, body)
     end
 
     # Returns the normalized URL without query string or fragment
@@ -166,9 +96,7 @@ module SimpleOAuth
     #   header.url
     #   # => "https://api.example.com/path"
     def url
-      uri = @uri.dup
-      uri.query = nil
-      uri.to_str
+      @uri.dup.tap { |uri| uri.query = nil }.to_str
     end
 
     # Returns the OAuth Authorization header string
@@ -181,7 +109,7 @@ module SimpleOAuth
     #   header.to_s
     #   # => "OAuth oauth_consumer_key=\"key\", oauth_nonce=\"...\", ..."
     def to_s
-      "OAuth #{normalized_attributes}"
+      "#{OAUTH_SCHEME} #{normalized_attributes}"
     end
 
     # Validates the signature in the header against the provided secrets
@@ -194,11 +122,11 @@ module SimpleOAuth
     #   parsed_header.valid?(consumer_secret: "secret", token_secret: "token_secret")
     #   # => true
     def valid?(secrets = {})
-      original_options = options.dup
+      original_options = options.dup #: Hash[Symbol, untyped]
       options.merge!(secrets)
-      valid = options.fetch(:signature).eql?(signature)
+      options.fetch(:signature).eql?(signature)
+    ensure
       options.replace(original_options)
-      valid
     end
 
     # Returns the OAuth attributes including the signature
@@ -214,25 +142,67 @@ module SimpleOAuth
 
     private
 
-    # Builds the normalized OAuth attributes string for the Authorization header
+    # Normalizes and parses a URL into a URI object
+    #
+    # @api private
+    # @param url [String, URI] the URL to normalize
+    # @return [URI::Generic] normalized URI without fragment
+    def normalize_uri(url)
+      URI.parse(url.to_s).tap do |uri|
+        uri.normalize!
+        uri.fragment = nil
+      end
+    end
+
+    # Builds OAuth options from input (hash or header string)
+    #
+    # @api private
+    # @param oauth [Hash, String] OAuth options hash or Authorization header
+    # @param body [String, nil] request body for body_hash computation
+    # @return [Hash] merged OAuth options with defaults
+    def build_options(oauth, body)
+      if oauth.is_a?(Hash)
+        self.class.default_options(body).merge(oauth.transform_keys(&:to_sym))
+      else
+        self.class.parse(oauth)
+      end
+    end
+
+    # Builds the normalized OAuth attributes string for the header
     #
     # @api private
     # @return [String] normalized OAuth attributes for the header
     def normalized_attributes
-      signed_attributes.sort_by { |k, _| k }.collect { |k, v| %(#{k}="#{self.class.escape(v)}") }.join(", ")
+      signed_attributes
+        .sort_by { |key, _| key }
+        .map { |key, value| "#{key}=\"#{Header.escape(value)}\"" }
+        .join(", ")
     end
 
-    # Extracts valid OAuth attributes from options (excludes realm per RFC 5849)
+    # Extracts valid OAuth attributes from options
     #
     # @api private
     # @return [Hash] OAuth attributes without signature or realm
     def attributes
-      extra_keys = options.keys - ATTRIBUTE_KEYS - IGNORED_KEYS
-      raise_extra_keys_error(extra_keys) unless options[:ignore_extra_keys] || extra_keys.empty?
-      options.slice(*ATTRIBUTE_KEYS).transform_keys { |key| :"oauth_#{key}" }
+      validate_option_keys!
+      options.slice(*ATTRIBUTE_KEYS).transform_keys { |key| :"#{OAUTH_PREFIX}#{key}" }
     end
 
-    # Returns OAuth attributes including realm for Authorization header output
+    # Validates that no unknown keys are present in options
+    #
+    # @api private
+    # @raise [InvalidOptionsError] if extra keys are found
+    # @return [void]
+    def validate_option_keys!
+      return if options[:ignore_extra_keys]
+
+      extra_keys = options.keys - ATTRIBUTE_KEYS - IGNORED_KEYS
+      return if extra_keys.empty?
+
+      raise InvalidOptionsError, "Unknown option keys: #{extra_keys.map(&:inspect).join(", ")}"
+    end
+
+    # Returns OAuth attributes with realm for the Authorization header
     #
     # Per RFC 5849 Section 3.5.1, realm is included in the Authorization header
     # but excluded from signature calculation (Section 3.4.1.3.1)
@@ -241,21 +211,21 @@ module SimpleOAuth
     # @return [Hash] OAuth attributes with realm if present
     def header_attributes
       attrs = attributes
-      realm = options[:realm]
-      attrs[:realm] = realm if realm
+      attrs[:realm] = options.fetch(:realm) if options[:realm]
       attrs
     end
 
-    # Raises an error for invalid extra keys in options
+    # Extracts query parameters from the request URL
     #
     # @api private
-    # @raise [RuntimeError] always raises with list of extra keys
-    # @return [void]
-    def raise_extra_keys_error(extra_keys)
-      raise "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [#{extra_keys.collect(&:inspect).join(", ")}]"
+    # @return [Array<Array>] URL query parameters as key-value pairs
+    def url_params
+      CGI.parse(@uri.query || "").flat_map do |key, values|
+        values.sort.map { |value| [key, value] }
+      end
     end
 
-    # Computes the OAuth signature using the configured signature method
+    # Computes the OAuth signature using the configured method
     #
     # @api private
     # @return [String] the computed signature based on signature_method
@@ -270,7 +240,7 @@ module SimpleOAuth
     # @api private
     # @return [String] the secret string for signing
     def secret
-      options.values_at(:consumer_secret, :token_secret).collect { |v| self.class.escape(v) }.join("&")
+      options.values_at(:consumer_secret, :token_secret).map { |v| Header.escape(v) }.join("&")
     end
 
     # Builds the signature base string from method, URL, and params
@@ -278,7 +248,7 @@ module SimpleOAuth
     # @api private
     # @return [String] the signature base string
     def signature_base
-      [method, url, normalized_params].collect { |v| self.class.escape(v) }.join("&")
+      [method, url, normalized_params].map { |v| Header.escape(v) }.join("&")
     end
 
     # Normalizes and sorts all request parameters for signing
@@ -286,23 +256,19 @@ module SimpleOAuth
     # @api private
     # @return [String] normalized request parameters
     def normalized_params
-      signature_params.collect { |p| p.collect { |v| self.class.escape(v) } }.sort.collect { |p| p.join("=") }.join("&")
+      signature_params
+        .map { |key, value| [Header.escape(key), Header.escape(value)] }
+        .sort
+        .map { |pair| pair.join("=") }
+        .join("&")
     end
 
     # Collects all parameters to include in signature
     #
     # @api private
-    # @return [Array] all parameters for signature
+    # @return [Array<Array>] all parameters for signature as key-value pairs
     def signature_params
       attributes.to_a + params.to_a + url_params
-    end
-
-    # Extracts query parameters from the request URL
-    #
-    # @api private
-    # @return [Array] URL query parameters as key-value pairs
-    def url_params
-      CGI.parse(@uri.query || "").inject([]) { |p, (k, vs)| p + vs.sort.collect { |v| [k, v] } }
     end
   end
 end

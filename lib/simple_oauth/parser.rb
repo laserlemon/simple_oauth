@@ -1,12 +1,16 @@
 require "strscan"
+require_relative "errors"
 
 module SimpleOAuth
   # Parses OAuth Authorization headers
   #
   # @api private
   class Parser
-    # Pattern to match OAuth key-value pairs: key="value", or key="value"
+    # Pattern to match OAuth key-value pairs: key="value"
     PARAM_PATTERN = /(\w+)="([^"]*)"\s*(,?)\s*/
+
+    # OAuth scheme prefix
+    OAUTH_PREFIX = /OAuth\s+/
 
     # The StringScanner instance for parsing the header
     #
@@ -24,7 +28,7 @@ module SimpleOAuth
     # @return [Parser] a new parser instance
     def initialize(header)
       @scanner = StringScanner.new(header.to_s)
-      @attributes = {} # : Hash[Symbol, String]
+      @attributes = {}
     end
 
     # Parses the OAuth Authorization header
@@ -46,7 +50,9 @@ module SimpleOAuth
     # @return [void]
     # @raise [SimpleOAuth::ParseError] if the header doesn't start with "OAuth "
     def scan_oauth_prefix
-      scanner.scan(/OAuth\s+/) or raise ParseError, "Authorization header must start with 'OAuth '"
+      return if scanner.scan(OAUTH_PREFIX)
+
+      raise ParseError, "Authorization header must start with 'OAuth '"
     end
 
     # Scans all key-value parameters from the header
@@ -78,12 +84,12 @@ module SimpleOAuth
 
     # Stores the parameter if it's a valid OAuth key
     #
-    # @param key [String] the raw parameter key
+    # @param key [String] the raw parameter key (e.g., "oauth_consumer_key")
     # @param value [String] the parameter value
     # @param valid_keys [Array<Symbol>] the valid OAuth parameter keys
     # @return [void]
     def store_if_valid(key, value, valid_keys)
-      parsed_key = valid_keys.detect { |k| "oauth_#{k}".eql?(key) }
+      parsed_key = valid_keys.find { |k| "oauth_#{k}".eql?(key) }
       attributes[parsed_key] = Header.unescape(value) if parsed_key
     end
 

@@ -32,9 +32,6 @@ Layout/HashAlignment:
   EnforcedColonStyle: key
   EnforcedLastArgumentHashStyle: always_inspect
 
-Layout/LineLength:
-  Max: 140
-
 Layout/ParameterAlignment:
   Enabled: true
   EnforcedStyle: with_fixed_indentation

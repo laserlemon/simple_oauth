@@ -222,7 +222,8 @@ module SimpleOAuth
       form_body = build_form_body(original_header.signed_attributes.merge(request_params))
 
       parsed_oauth = SimpleOAuth::Header.parse_form_body(form_body)
-      reconstructed_header = SimpleOAuth::Header.new(:post, "https://api.example.com/update", request_params, parsed_oauth)
+      url = "https://api.example.com/update"
+      reconstructed_header = SimpleOAuth::Header.new(:post, url, request_params, parsed_oauth)
 
       assert reconstructed_header.valid?(secrets)
     end

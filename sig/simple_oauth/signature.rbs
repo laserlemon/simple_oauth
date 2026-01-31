@@ -14,25 +14,28 @@ module SimpleOAuth
     self.@registry: Hash[String, registry_entry]
 
     # Registers a custom signature method
-    def self.register: (String name, ?rsa: bool) { (String, String) -> String } -> void
+    def self.register: (String | Symbol name, ?rsa: bool) { (String, String) -> String } -> void
 
     # Checks if a signature method is registered
-    def self.registered?: (String name) -> bool
+    def self.registered?: (String | Symbol name) -> bool
 
     # Returns list of registered signature method names
     def self.methods: () -> Array[String]
 
     # Checks if a signature method uses RSA
-    def self.rsa?: (String name) -> bool
+    def self.rsa?: (String | Symbol name) -> bool
 
     # Computes a signature using the specified method
-    def self.sign: (String name, String secret, String signature_base) -> String
+    def self.sign: (String | Symbol name, String? secret, String signature_base) -> String
 
     # Unregisters a signature method
-    def self.unregister: (String name) -> void
+    def self.unregister: (String | Symbol name) -> void
 
     # Resets the registry to only built-in methods
     def self.reset!: () -> void
+
+    # Encodes binary data as Base64 without newlines
+    def self.encode_base64: (String data) -> String
 
     private
 
@@ -42,11 +45,11 @@ module SimpleOAuth
     # Registers the built-in OAuth signature methods
     def self.register_builtin_methods: () -> void
 
-    # Registers an HMAC signature method
-    def self.register_hmac_method: (String name, String digest) -> void
+    # Registers HMAC-based signature methods
+    def self.register_hmac_methods: () -> void
 
-    # Registers an RSA signature method
-    def self.register_rsa_method: (String name, String digest) -> void
+    # Registers RSA-based signature methods
+    def self.register_rsa_methods: () -> void
 
     # Registers the PLAINTEXT signature method
     def self.register_plaintext_method: () -> void

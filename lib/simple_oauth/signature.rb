@@ -11,7 +11,9 @@ module SimpleOAuth
   # @api public
   # @example Register a custom signature method
   #   SimpleOAuth::Signature.register("HMAC-SHA512") do |secret, signature_base|
-  #     Base64.encode64(OpenSSL::HMAC.digest("SHA512", secret, signature_base)).delete("\n")
+  #     SimpleOAuth::Signature.encode_base64(
+  #       OpenSSL::HMAC.digest("SHA512", secret, signature_base)
+  #     )
   #   end
   #
   # @example Check if a signature method is registered
@@ -34,11 +36,12 @@ module SimpleOAuth
       # @return [void]
       # @example
       #   SimpleOAuth::Signature.register("HMAC-SHA512") do |secret, base|
-      #     Base64.encode64(OpenSSL::HMAC.digest("SHA512", secret, base)).delete("\n")
+      #     SimpleOAuth::Signature.encode_base64(
+      #       OpenSSL::HMAC.digest("SHA512", secret, base)
+      #     )
       #   end
       def register(name, rsa: false, &block)
-        normalized = normalize_name(name)
-        @registry[normalized] = {implementation: block, rsa: rsa}
+        @registry[normalize_name(name)] = {implementation: block, rsa: rsa}
       end
 
       # Checks if a signature method is registered
@@ -71,8 +74,7 @@ module SimpleOAuth
       #   SimpleOAuth::Signature.rsa?("RSA-SHA1")  # => true
       #   SimpleOAuth::Signature.rsa?("HMAC-SHA1") # => false
       def rsa?(name)
-        entry = @registry[normalize_name(name)]
-        entry&.fetch(:rsa) || false
+        @registry.dig(normalize_name(name), :rsa) || false
       end
 
       # Computes a signature using the specified method
@@ -88,7 +90,8 @@ module SimpleOAuth
       def sign(name, secret, signature_base)
         normalized = normalize_name(name)
         entry = @registry.fetch(normalized) do
-          raise ArgumentError, "Unknown signature method: #{name}. Registered methods: #{@registry.keys.join(", ")}"
+          raise ArgumentError, "Unknown signature method: #{name}. " \
+                               "Registered methods: #{@registry.keys.join(", ")}"
         end
         entry.fetch(:implementation).call(secret, signature_base)
       end
@@ -115,6 +118,18 @@ module SimpleOAuth
         register_builtin_methods
       end
 
+      # Encodes binary data as Base64 without newlines
+      #
+      # @api public
+      # @param data [String] binary data to encode
+      # @return [String] Base64-encoded string without newlines
+      # @example
+      #   SimpleOAuth::Signature.encode_base64("\x01\x02\x03")
+      #   # => "AQID"
+      def encode_base64(data)
+        Base64.strict_encode64(data)
+      end
+
       private
 
       # Normalizes signature method name for registry lookup
@@ -131,37 +146,33 @@ module SimpleOAuth
       # @api private
       # @return [void]
       def register_builtin_methods
-        register_hmac_method("HMAC-SHA1", "SHA1")
-        register_hmac_method("HMAC-SHA256", "SHA256")
-        register_rsa_method("RSA-SHA1", "SHA1")
-        register_rsa_method("RSA-SHA256", "SHA256")
+        register_hmac_methods
+        register_rsa_methods
         register_plaintext_method
       end
 
-      # Registers an HMAC signature method
+      # Registers HMAC-based signature methods
       #
       # @api private
-      # @param name [String] the signature method name
-      # @param digest [String] the digest algorithm
       # @return [void]
-      def register_hmac_method(name, digest)
-        register(name) do |secret, signature_base|
-          Base64.encode64(OpenSSL::HMAC.digest(digest, secret, signature_base)).delete("\n")
+      def register_hmac_methods
+        %w[SHA1 SHA256].each do |digest|
+          register("HMAC-#{digest}") do |secret, signature_base|
+            encode_base64(OpenSSL::HMAC.digest(digest, secret, signature_base))
+          end
         end
       end
 
-      # Registers an RSA signature method
+      # Registers RSA-based signature methods
       #
       # @api private
-      # @param name [String] the signature method name
-      # @param digest [String] the digest algorithm
       # @return [void]
-      def register_rsa_method(name, digest)
-        raise ArgumentError, "digest is required" if digest.nil?
-
-        register(name, rsa: true) do |private_key_pem, signature_base|
-          private_key = OpenSSL::PKey::RSA.new(private_key_pem)
-          Base64.encode64(private_key.sign(digest, signature_base)).delete("\n")
+      def register_rsa_methods
+        %w[SHA1 SHA256].each do |digest|
+          register("RSA-#{digest}", rsa: true) do |private_key_pem, signature_base|
+            private_key = OpenSSL::PKey::RSA.new(private_key_pem)
+            encode_base64(private_key.sign(digest, signature_base))
+          end
         end
       end
 
@@ -170,7 +181,7 @@ module SimpleOAuth
       # @api private
       # @return [void]
       def register_plaintext_method
-        register("PLAINTEXT") { |secret, _signature_base| secret }
+        register("PLAINTEXT") { |secret, _| secret }
       end
     end
 

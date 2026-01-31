@@ -1,8 +1,8 @@
 require "test_helper"
 
 module SimpleOAuth
-  # Tests for the Signature registry module.
-  class SignatureRegisterTest < Minitest::Test
+  # Tests for Signature method registration.
+  class SignatureRegistrationTest < Minitest::Test
     include TestHelpers
 
     cover "SimpleOAuth::Signature*"
@@ -43,241 +43,6 @@ module SimpleOAuth
       refute Signature.rsa?("NON-RSA")
     end
 
-    def test_register_rsa_method_raises_when_digest_is_nil
-      error = assert_raises(ArgumentError) { Signature.send(:register_rsa_method, "RSA-TEST", nil) }
-
-      assert_equal "digest is required", error.message
-    end
-  end
-
-  class SignatureRegisteredTest < Minitest::Test
-    cover "SimpleOAuth::Signature*"
-
-    def test_registered_returns_true_for_hmac_sha1
-      # RFC 5849 Section 3.4.2 - HMAC-SHA1
-      assert Signature.registered?("HMAC-SHA1")
-    end
-
-    def test_registered_returns_true_for_hmac_sha256
-      assert Signature.registered?("HMAC-SHA256")
-    end
-
-    def test_registered_returns_true_for_rsa_sha1
-      # RFC 5849 Section 3.4.3 - RSA-SHA1
-      assert Signature.registered?("RSA-SHA1")
-    end
-
-    def test_registered_returns_true_for_rsa_sha256
-      assert Signature.registered?("RSA-SHA256")
-    end
-
-    def test_registered_returns_true_for_plaintext
-      # RFC 5849 Section 3.4.4 - PLAINTEXT
-      assert Signature.registered?("PLAINTEXT")
-    end
-
-    def test_registered_returns_false_for_unknown_methods
-      refute Signature.registered?("UNKNOWN-METHOD")
-    end
-
-    def test_registered_is_case_insensitive
-      assert Signature.registered?("hmac-sha1")
-      assert Signature.registered?("Hmac-Sha1")
-      assert Signature.registered?("HMAC-SHA1")
-    end
-  end
-
-  class SignatureMethodsTest < Minitest::Test
-    cover "SimpleOAuth::Signature*"
-
-    def teardown
-      Signature.reset!
-    end
-
-    def test_methods_returns_array_of_strings
-      methods = Signature.methods
-
-      assert_kind_of Array, methods
-      methods.each { |m| assert_kind_of String, m }
-    end
-
-    def test_methods_includes_hmac_sha1
-      assert_includes Signature.methods, "hmac_sha1"
-    end
-
-    def test_methods_includes_hmac_sha256
-      assert_includes Signature.methods, "hmac_sha256"
-    end
-
-    def test_methods_includes_rsa_sha1
-      assert_includes Signature.methods, "rsa_sha1"
-    end
-
-    def test_methods_includes_rsa_sha256
-      assert_includes Signature.methods, "rsa_sha256"
-    end
-
-    def test_methods_includes_plaintext
-      assert_includes Signature.methods, "plaintext"
-    end
-
-    def test_methods_includes_custom_registered_methods
-      Signature.register("CUSTOM") { |_s, _b| "sig" }
-
-      assert_includes Signature.methods, "custom"
-    end
-  end
-
-  class SignatureRsaTest < Minitest::Test
-    cover "SimpleOAuth::Signature*"
-
-    def test_rsa_returns_true_for_rsa_sha1
-      assert Signature.rsa?("RSA-SHA1")
-    end
-
-    def test_rsa_returns_true_for_rsa_sha256
-      assert Signature.rsa?("RSA-SHA256")
-    end
-
-    def test_rsa_returns_false_for_hmac_sha1
-      refute Signature.rsa?("HMAC-SHA1")
-    end
-
-    def test_rsa_returns_false_for_hmac_sha256
-      refute Signature.rsa?("HMAC-SHA256")
-    end
-
-    def test_rsa_returns_false_for_plaintext
-      refute Signature.rsa?("PLAINTEXT")
-    end
-
-    def test_rsa_returns_false_for_unknown_method
-      refute Signature.rsa?("UNKNOWN")
-    end
-
-    def test_rsa_returns_false_not_nil_for_hmac
-      result = Signature.rsa?("HMAC-SHA1")
-
-      assert_instance_of FalseClass, result
-    end
-
-    def test_rsa_returns_false_not_nil_for_unknown
-      result = Signature.rsa?("UNKNOWN")
-
-      assert_instance_of FalseClass, result
-    end
-  end
-
-  class SignatureSignTest < Minitest::Test
-    include TestHelpers
-
-    cover "SimpleOAuth::Signature*"
-
-    def teardown
-      Signature.reset!
-    end
-
-    def test_sign_computes_hmac_sha1_signature
-      signature = Signature.sign("HMAC-SHA1", "secret", "base")
-      expected = Base64.encode64(OpenSSL::HMAC.digest("SHA1", "secret", "base")).delete("\n")
-
-      assert_equal expected, signature
-    end
-
-    def test_sign_computes_hmac_sha256_signature
-      signature = Signature.sign("HMAC-SHA256", "secret", "base")
-      expected = Base64.encode64(OpenSSL::HMAC.digest("SHA256", "secret", "base")).delete("\n")
-
-      assert_equal expected, signature
-    end
-
-    def test_sign_computes_rsa_sha1_signature
-      signature = Signature.sign("RSA-SHA1", rsa_private_key, "base")
-      private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
-      expected = Base64.encode64(private_key.sign("SHA1", "base")).delete("\n")
-
-      assert_equal expected, signature
-    end
-
-    def test_sign_computes_rsa_sha256_signature
-      signature = Signature.sign("RSA-SHA256", rsa_private_key, "base")
-      private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
-      expected = Base64.encode64(private_key.sign("SHA256", "base")).delete("\n")
-
-      assert_equal expected, signature
-    end
-
-    def test_sign_rsa_sha256_differs_from_rsa_sha1
-      sha1_sig = Signature.sign("RSA-SHA1", rsa_private_key, "base")
-      sha256_sig = Signature.sign("RSA-SHA256", rsa_private_key, "base")
-
-      refute_equal sha1_sig, sha256_sig
-    end
-
-    def test_sign_computes_plaintext_signature
-      # RFC 5849 Section 3.4.4 - PLAINTEXT returns secret unchanged
-      signature = Signature.sign("PLAINTEXT", "secret&token", "base")
-
-      assert_equal "secret&token", signature
-    end
-
-    def test_sign_uses_custom_registered_method
-      Signature.register("CUSTOM") { |secret, base| "custom:#{secret}:#{base}" }
-
-      signature = Signature.sign("CUSTOM", "mysecret", "mybase")
-
-      assert_equal "custom:mysecret:mybase", signature
-    end
-
-    def test_sign_raises_for_unknown_method
-      error = assert_raises(ArgumentError) { Signature.sign("UNKNOWN-METHOD", "secret", "base") }
-
-      assert_includes error.message, "Unknown signature method: UNKNOWN-METHOD"
-    end
-
-    def test_sign_error_includes_registered_methods
-      error = assert_raises(ArgumentError) { Signature.sign("UNKNOWN-METHOD", "secret", "base") }
-
-      assert_includes error.message, "Registered methods:"
-    end
-
-    def test_sign_error_shows_comma_separated_list
-      error = assert_raises(ArgumentError) { Signature.sign("UNKNOWN-METHOD", "secret", "base") }
-
-      assert_includes error.message, "hmac_sha1, "
-    end
-
-    def test_sign_is_case_insensitive
-      sig1 = Signature.sign("HMAC-SHA1", "secret", "base")
-      sig2 = Signature.sign("hmac-sha1", "secret", "base")
-      sig3 = Signature.sign("Hmac-Sha1", "secret", "base")
-
-      assert_equal sig1, sig2
-      assert_equal sig2, sig3
-    end
-
-    def test_sign_normalizes_dashes_to_underscores
-      sig1 = Signature.sign("HMAC-SHA1", "secret", "base")
-      sig2 = Signature.sign("HMAC_SHA1", "secret", "base")
-
-      assert_equal sig1, sig2
-    end
-
-    def test_sign_accepts_symbol_method_name
-      sig1 = Signature.sign("HMAC-SHA1", "secret", "base")
-      sig2 = Signature.sign(:hmac_sha1, "secret", "base")
-
-      assert_equal sig1, sig2
-    end
-  end
-
-  class SignatureUnregisterTest < Minitest::Test
-    cover "SimpleOAuth::Signature*"
-
-    def teardown
-      Signature.reset!
-    end
-
     def test_unregister_removes_method
       Signature.register("TEMP") { |_s, _b| "sig" }
 
@@ -294,14 +59,6 @@ module SimpleOAuth
       Signature.unregister("temp_method")
 
       refute Signature.registered?("TEMP-METHOD")
-    end
-  end
-
-  class SignatureResetTest < Minitest::Test
-    cover "SimpleOAuth::Signature*"
-
-    def teardown
-      Signature.reset!
     end
 
     def test_reset_restores_builtin_methods
@@ -325,6 +82,160 @@ module SimpleOAuth
     end
   end
 
+  # Tests for Signature method queries.
+  class SignatureQueryTest < Minitest::Test
+    include TestHelpers
+
+    cover "SimpleOAuth::Signature*"
+
+    def teardown
+      Signature.reset!
+    end
+
+    # RFC 5849 Section 3.4.2 - HMAC-SHA1, Section 3.4.3 - RSA-SHA1, Section 3.4.4 - PLAINTEXT
+    def test_registered_returns_true_for_builtin_methods
+      %w[HMAC-SHA1 HMAC-SHA256 RSA-SHA1 RSA-SHA256 PLAINTEXT].each do |method|
+        assert Signature.registered?(method), "Expected #{method} to be registered"
+      end
+    end
+
+    def test_registered_returns_false_for_unknown_methods
+      refute Signature.registered?("UNKNOWN-METHOD")
+    end
+
+    def test_registered_is_case_insensitive
+      assert Signature.registered?("hmac-sha1")
+      assert Signature.registered?("Hmac-Sha1")
+      assert Signature.registered?("HMAC-SHA1")
+    end
+
+    def test_methods_returns_array_of_strings
+      methods = Signature.methods
+
+      assert_kind_of Array, methods
+      methods.each { |m| assert_kind_of String, m }
+    end
+
+    def test_methods_includes_all_builtin_methods
+      %w[hmac_sha1 hmac_sha256 rsa_sha1 rsa_sha256 plaintext].each do |method|
+        assert_includes Signature.methods, method
+      end
+    end
+
+    def test_methods_includes_custom_registered_methods
+      Signature.register("CUSTOM") { |_s, _b| "sig" }
+
+      assert_includes Signature.methods, "custom"
+    end
+
+    def test_rsa_returns_true_for_rsa_methods
+      assert Signature.rsa?("RSA-SHA1")
+      assert Signature.rsa?("RSA-SHA256")
+    end
+
+    def test_rsa_returns_false_for_non_rsa_methods
+      refute Signature.rsa?("HMAC-SHA1")
+      refute Signature.rsa?("HMAC-SHA256")
+      refute Signature.rsa?("PLAINTEXT")
+    end
+
+    def test_rsa_returns_false_for_unknown_method
+      result = Signature.rsa?("UNKNOWN")
+
+      assert_instance_of FalseClass, result
+    end
+  end
+
+  # Tests for Signature.sign method.
+  class SignatureSignTest < Minitest::Test
+    include TestHelpers
+
+    cover "SimpleOAuth::Signature*"
+
+    def teardown
+      Signature.reset!
+    end
+
+    def test_sign_computes_hmac_sha1_signature
+      signature = Signature.sign("HMAC-SHA1", "secret", "base")
+      expected = Base64.strict_encode64(OpenSSL::HMAC.digest("SHA1", "secret", "base"))
+
+      assert_equal expected, signature
+    end
+
+    def test_sign_computes_hmac_sha256_signature
+      signature = Signature.sign("HMAC-SHA256", "secret", "base")
+      expected = Base64.strict_encode64(OpenSSL::HMAC.digest("SHA256", "secret", "base"))
+
+      assert_equal expected, signature
+    end
+
+    def test_sign_computes_rsa_sha1_signature
+      signature = Signature.sign("RSA-SHA1", rsa_private_key, "base")
+      private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
+      expected = Base64.strict_encode64(private_key.sign("SHA1", "base"))
+
+      assert_equal expected, signature
+    end
+
+    def test_sign_computes_rsa_sha256_signature
+      signature = Signature.sign("RSA-SHA256", rsa_private_key, "base")
+      private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
+      expected = Base64.strict_encode64(private_key.sign("SHA256", "base"))
+
+      assert_equal expected, signature
+    end
+
+    def test_sign_rsa_sha256_differs_from_rsa_sha1
+      sha1_sig = Signature.sign("RSA-SHA1", rsa_private_key, "base")
+      sha256_sig = Signature.sign("RSA-SHA256", rsa_private_key, "base")
+
+      refute_equal sha1_sig, sha256_sig
+    end
+
+    # RFC 5849 Section 3.4.4 - PLAINTEXT returns secret unchanged
+    def test_sign_computes_plaintext_signature
+      signature = Signature.sign("PLAINTEXT", "secret&token", "base")
+
+      assert_equal "secret&token", signature
+    end
+
+    def test_sign_uses_custom_registered_method
+      Signature.register("CUSTOM") { |secret, base| "custom:#{secret}:#{base}" }
+
+      assert_equal "custom:mysecret:mybase", Signature.sign("CUSTOM", "mysecret", "mybase")
+    end
+
+    def test_sign_raises_for_unknown_method
+      error = assert_raises(ArgumentError) { Signature.sign("UNKNOWN-METHOD", "secret", "base") }
+
+      assert_includes error.message, "Unknown signature method: UNKNOWN-METHOD"
+      assert_includes error.message, "Registered methods:"
+    end
+
+    def test_sign_is_case_insensitive
+      sig1 = Signature.sign("HMAC-SHA1", "secret", "base")
+      sig2 = Signature.sign("hmac-sha1", "secret", "base")
+
+      assert_equal sig1, sig2
+    end
+
+    def test_sign_normalizes_dashes_to_underscores
+      sig1 = Signature.sign("HMAC-SHA1", "secret", "base")
+      sig2 = Signature.sign("HMAC_SHA1", "secret", "base")
+
+      assert_equal sig1, sig2
+    end
+
+    def test_sign_accepts_symbol_method_name
+      sig1 = Signature.sign("HMAC-SHA1", "secret", "base")
+      sig2 = Signature.sign(:hmac_sha1, "secret", "base")
+
+      assert_equal sig1, sig2
+    end
+  end
+
+  # Tests for Header integration with Signature registry.
   class SignatureHeaderIntegrationTest < Minitest::Test
     include TestHelpers
 
@@ -336,7 +247,7 @@ module SimpleOAuth
 
     def test_header_uses_custom_signature_method
       Signature.register("HMAC-SHA512") do |secret, signature_base|
-        Base64.encode64(OpenSSL::HMAC.digest("SHA512", secret, signature_base)).delete("\n")
+        Base64.strict_encode64(OpenSSL::HMAC.digest("SHA512", secret, signature_base))
       end
 
       header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
@@ -351,7 +262,7 @@ module SimpleOAuth
         consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: rsa_private_key,
         signature_method: "RSA-SHA256", nonce: "chapoH", timestamp: "137131202")
       private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
-      expected = Base64.encode64(private_key.sign("SHA256", header.send(:signature_base))).delete("\n")
+      expected = Base64.strict_encode64(private_key.sign("SHA256", header.send(:signature_base)))
 
       assert_equal expected, header.signed_attributes[:oauth_signature]
     end

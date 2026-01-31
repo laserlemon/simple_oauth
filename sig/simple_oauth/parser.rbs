@@ -4,6 +4,9 @@ module SimpleOAuth
     # Pattern to match OAuth key-value pairs
     PARAM_PATTERN: Regexp
 
+    # OAuth scheme prefix pattern
+    OAUTH_PREFIX: Regexp
+
     attr_reader scanner: StringScanner
     attr_reader attributes: Hash[Symbol, String]
 

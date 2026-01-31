@@ -1,0 +1,26 @@
+module SimpleOAuth
+  class Header
+    # Class methods for Header - parsing, defaults, and body hashing
+    module ClassMethods
+      # Returns default OAuth options with generated nonce and timestamp
+      def default_options: (?String? body) -> Header::oauth_options
+
+      # Computes the oauth_body_hash for a request body
+      def body_hash: (String? body, ?String algorithm) -> String
+
+      # Parses an OAuth Authorization header string into a hash
+      def parse: (String | _ToS header) -> Header::oauth_options
+
+      # Parses OAuth parameters from a form-encoded POST body
+      def parse_form_body: (String | _ToS body) -> Header::oauth_options
+
+      private
+
+      # Generates a random nonce for OAuth requests
+      def generate_nonce: () -> String
+
+      # Encodes binary data as Base64 without newlines
+      def encode_base64: (String data) -> String
+    end
+  end
+end
