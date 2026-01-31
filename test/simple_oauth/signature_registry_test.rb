@@ -41,6 +41,12 @@ module SimpleOAuth
 
       refute Signature.rsa?("NON-RSA")
     end
+
+    def test_register_rsa_method_raises_when_digest_is_nil
+      error = assert_raises(ArgumentError) { Signature.send(:register_rsa_method, "RSA-TEST", nil) }
+
+      assert_equal "digest is required", error.message
+    end
   end
 
   class SignatureRegisteredTest < Minitest::Test
@@ -56,6 +62,10 @@ module SimpleOAuth
 
     def test_registered_returns_true_for_rsa_sha1
       assert Signature.registered?("RSA-SHA1")
+    end
+
+    def test_registered_returns_true_for_rsa_sha256
+      assert Signature.registered?("RSA-SHA256")
     end
 
     def test_registered_returns_true_for_plaintext
@@ -99,6 +109,10 @@ module SimpleOAuth
       assert_includes Signature.methods, "rsa_sha1"
     end
 
+    def test_methods_includes_rsa_sha256
+      assert_includes Signature.methods, "rsa_sha256"
+    end
+
     def test_methods_includes_plaintext
       assert_includes Signature.methods, "plaintext"
     end
@@ -115,6 +129,10 @@ module SimpleOAuth
 
     def test_rsa_returns_true_for_rsa_sha1
       assert Signature.rsa?("RSA-SHA1")
+    end
+
+    def test_rsa_returns_true_for_rsa_sha256
+      assert Signature.rsa?("RSA-SHA256")
     end
 
     def test_rsa_returns_false_for_hmac_sha1
@@ -175,6 +193,21 @@ module SimpleOAuth
       expected = Base64.encode64(private_key.sign("SHA1", "base")).delete("\n")
 
       assert_equal expected, signature
+    end
+
+    def test_sign_computes_rsa_sha256_signature
+      signature = Signature.sign("RSA-SHA256", rsa_private_key, "base")
+      private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
+      expected = Base64.encode64(private_key.sign("SHA256", "base")).delete("\n")
+
+      assert_equal expected, signature
+    end
+
+    def test_sign_rsa_sha256_differs_from_rsa_sha1
+      sha1_sig = Signature.sign("RSA-SHA1", rsa_private_key, "base")
+      sha256_sig = Signature.sign("RSA-SHA256", rsa_private_key, "base")
+
+      refute_equal sha1_sig, sha256_sig
     end
 
     def test_sign_computes_plaintext_signature
@@ -308,17 +341,14 @@ module SimpleOAuth
       assert_match %r{\A[A-Za-z0-9+/]+=*\z}, header.signed_attributes[:oauth_signature]
     end
 
-    def test_header_uses_custom_rsa_method
-      Signature.register("RSA-SHA256", rsa: true) do |private_key_pem, signature_base|
-        private_key = OpenSSL::PKey::RSA.new(private_key_pem)
-        Base64.encode64(private_key.sign("SHA256", signature_base)).delete("\n")
-      end
-
+    def test_header_uses_builtin_rsa_sha256_method
       header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
         consumer_key: "key", consumer_secret: rsa_private_key, signature_method: "RSA-SHA256",
         nonce: "nonce", timestamp: "12345")
+      private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
+      expected = Base64.encode64(private_key.sign("SHA256", header.send(:signature_base))).delete("\n")
 
-      assert_match %r{\A[A-Za-z0-9+/]+=*\z}, header.signed_attributes[:oauth_signature]
+      assert_equal expected, header.signed_attributes[:oauth_signature]
     end
 
     def test_header_raises_for_unregistered_method

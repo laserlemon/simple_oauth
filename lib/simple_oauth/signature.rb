@@ -6,7 +6,7 @@ module SimpleOAuth
   #
   # This module provides a registry of signature methods that can be extended
   # with custom implementations. Built-in methods include HMAC-SHA1, HMAC-SHA256,
-  # RSA-SHA1, and PLAINTEXT.
+  # RSA-SHA1, RSA-SHA256, and PLAINTEXT.
   #
   # @api public
   # @example Register a custom signature method
@@ -133,7 +133,8 @@ module SimpleOAuth
       def register_builtin_methods
         register_hmac_method("HMAC-SHA1", "SHA1")
         register_hmac_method("HMAC-SHA256", "SHA256")
-        register_rsa_sha1_method
+        register_rsa_method("RSA-SHA1", "SHA1")
+        register_rsa_method("RSA-SHA256", "SHA256")
         register_plaintext_method
       end
 
@@ -149,14 +150,18 @@ module SimpleOAuth
         end
       end
 
-      # Registers the RSA-SHA1 signature method
+      # Registers an RSA signature method
       #
       # @api private
+      # @param name [String] the signature method name
+      # @param digest [String] the digest algorithm
       # @return [void]
-      def register_rsa_sha1_method
-        register("RSA-SHA1", rsa: true) do |private_key_pem, signature_base|
+      def register_rsa_method(name, digest)
+        raise ArgumentError, "digest is required" if digest.nil?
+
+        register(name, rsa: true) do |private_key_pem, signature_base|
           private_key = OpenSSL::PKey::RSA.new(private_key_pem)
-          Base64.encode64(private_key.sign("SHA1", signature_base)).delete("\n")
+          Base64.encode64(private_key.sign(digest, signature_base)).delete("\n")
         end
       end
 
