@@ -119,6 +119,9 @@ module SimpleOAuth
 
     # Extracts query parameters from the request URL
     def url_params: () -> Array[untyped]
+
+    # Raises an error for invalid extra keys in options
+    def raise_extra_keys_error: (Array[Symbol] extra_keys) -> void
   end
 end
 

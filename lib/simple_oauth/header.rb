@@ -16,7 +16,7 @@ module SimpleOAuth
     ATTRIBUTE_KEYS = %i[body_hash callback consumer_key nonce signature_method timestamp token verifier version].freeze
 
     # Keys that are used internally but should not appear in attributes
-    IGNORED_KEYS = %i[consumer_secret token_secret signature].freeze
+    IGNORED_KEYS = %i[consumer_secret token_secret signature realm].freeze
 
     # Valid keys when parsing OAuth parameters (ATTRIBUTE_KEYS + signature)
     PARSE_KEYS = (ATTRIBUTE_KEYS + %i[signature]).freeze
@@ -229,13 +229,21 @@ module SimpleOAuth
     # @api private
     # @return [Hash] OAuth attributes without signature
     def attributes
-      matching_keys, extra_keys = options.keys.partition { |key| ATTRIBUTE_KEYS.include?(key) }
-      extra_keys -= IGNORED_KEYS
-      unless options[:ignore_extra_keys] || extra_keys.empty?
-        raise "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [#{extra_keys.collect(&:inspect).join(", ")}]"
-      end
+      extra_keys = options.keys - ATTRIBUTE_KEYS - IGNORED_KEYS
+      raise_extra_keys_error(extra_keys) unless options[:ignore_extra_keys] || extra_keys.empty?
+      attrs = options.slice(*ATTRIBUTE_KEYS).transform_keys { |key| :"oauth_#{key}" }
+      realm = options[:realm]
+      attrs[:realm] = realm if realm
+      attrs
+    end
 
-      options.slice(*matching_keys).transform_keys { |key| :"oauth_#{key}" }
+    # Raises an error for invalid extra keys in options
+    #
+    # @api private
+    # @raise [RuntimeError] always raises with list of extra keys
+    # @return [void]
+    def raise_extra_keys_error(extra_keys)
+      raise "SimpleOAuth: Found extra option keys not matching ATTRIBUTE_KEYS:\n  [#{extra_keys.collect(&:inspect).join(", ")}]"
     end
 
     # Computes the OAuth signature using the configured signature method
