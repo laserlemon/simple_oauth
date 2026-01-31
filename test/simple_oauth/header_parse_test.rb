@@ -108,5 +108,16 @@ module SimpleOAuth
       assert_equal "key", parsed[:consumer_key]
       assert_equal "tok", parsed[:token]
     end
+
+    def test_parse_ignores_invalid_oauth_keys
+      # Only valid OAuth keys (PARSE_KEYS) should be extracted
+      header = 'OAuth oauth_consumer_key="key123", oauth_invalid_key="bad", oauth_signature="sig"'
+      parsed = SimpleOAuth::Header.parse(header)
+
+      assert_equal 2, parsed.keys.size
+      assert_equal "key123", parsed[:consumer_key]
+      assert_equal "sig", parsed[:signature]
+      refute parsed.key?(:invalid_key)
+    end
   end
 end

@@ -17,6 +17,9 @@ module SimpleOAuth
     # Keys that are used internally but should not appear in attributes
     IGNORED_KEYS = %i[consumer_secret token_secret signature].freeze
 
+    # Valid keys when parsing OAuth parameters (ATTRIBUTE_KEYS + signature)
+    PARSE_KEYS = (ATTRIBUTE_KEYS + %i[signature]).freeze
+
     # The HTTP method for the request
     #
     # @return [String] the HTTP method (GET, POST, etc.)
@@ -93,14 +96,35 @@ module SimpleOAuth
       #
       # @api public
       # @param header [String, #to_s] the OAuth Authorization header string
-      # @return [Hash] parsed OAuth attributes with symbol keys
+      # @return [Hash] parsed OAuth attributes with symbol keys (only valid OAuth keys)
       # @example
       #   SimpleOAuth::Header.parse('OAuth oauth_consumer_key="key", oauth_signature="sig"')
       #   # => {consumer_key: "key", signature: "sig"}
       def parse(header)
         header.to_s.sub(/\AOAuth\s/, "").split(/,\s*/).each_with_object(Hash.new) do |pair, attributes| # rubocop:disable Style/EmptyLiteral
           match = pair.match(/\A(\w+)="([^"]*)"\z/) or next
-          attributes[match[1].delete_prefix("oauth_").to_sym] = unescape(match[2])
+          key = match[1].delete_prefix("oauth_").to_sym
+          attributes[key] = unescape(match[2]) if PARSE_KEYS.include?(key)
+        end
+      end
+
+      # Parses OAuth parameters from a form-encoded POST body
+      #
+      # OAuth 1.0 allows credentials to be transmitted in the request body for
+      # POST requests with Content-Type: application/x-www-form-urlencoded
+      #
+      # @api public
+      # @param body [String, #to_s] the form-encoded request body
+      # @return [Hash] parsed OAuth attributes with symbol keys (only valid OAuth keys)
+      # @example
+      #   SimpleOAuth::Header.parse_form_body('oauth_consumer_key=key&oauth_signature=sig&status=hello')
+      #   # => {consumer_key: "key", signature: "sig"}
+      def parse_form_body(body)
+        CGI.parse(body.to_s).each_with_object(Hash.new) do |(key, values), attributes| # rubocop:disable Style/EmptyLiteral
+          next unless key.start_with?("oauth_")
+
+          parsed_key = key.delete_prefix("oauth_").to_sym
+          attributes[parsed_key] = values.first || "" if PARSE_KEYS.include?(parsed_key)
         end
       end
 
