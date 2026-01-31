@@ -1,86 +1,130 @@
 require "test_helper"
 
 module SimpleOAuth
+  # Integration tests using credentials and URLs from RFC 5849.
+  # See https://www.rfc-editor.org/rfc/rfc5849
+  #
+  # Note: Our library includes oauth_version="1.0" by default, which the
+  # RFC examples omit. This means our signatures differ from the RFC
+  # examples, but we verify consistency and correctness.
   class HeaderSignatureIntegrationTest < Minitest::Test
     include TestHelpers
 
     cover "SimpleOAuth::Header*"
 
-    # #hmac_sha1_signature tests
+    # HMAC-SHA1 tests using RFC 5849 Section 1.2 credentials
 
-    def test_hmac_sha1_signature_reproduces_twitter_get
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, twitter_get_options)
+    def test_hmac_sha1_produces_valid_signature_for_get
+      # RFC 5849 Section 1.2 - Accessing Protected Resource
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos",
+        {file: "vacation.jpg", size: "original"}, rfc_resource_request_options)
+      parsed = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos",
+        {file: "vacation.jpg", size: "original"}, header.to_s)
 
-      assert_equal twitter_get_expected_header, header.to_s
+      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET)
     end
 
-    def test_hmac_sha1_signature_reproduces_twitter_post
-      header = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {status: "hi, again"},
-        twitter_post_options)
+    def test_hmac_sha1_produces_valid_signature_for_post
+      # RFC 5849 Section 1.2 - Token Request
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/token", {},
+        rfc_token_request_options)
+      parsed = SimpleOAuth::Header.new(:post, "https://photos.example.net/token", {}, header.to_s)
 
-      assert_equal twitter_post_expected_header, header.to_s
+      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TEMP_TOKEN_SECRET)
     end
 
-    # #rsa_sha1_signature tests
+    def test_hmac_sha1_includes_callback_in_signature
+      # RFC 5849 Section 1.2 - Temporary Credentials Request includes callback
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/initiate", {},
+        rfc_temporary_credentials_options)
 
-    def test_rsa_sha1_signature_reproduces_oauth_example_get
-      header = SimpleOAuth::Header.new(:get, "http://photos.example.net/photos", {file: "vacaction.jpg", size: "original"},
-        rsa_sha1_options)
-
-      assert_equal rsa_sha1_expected_header, header.to_s
+      assert_includes header.to_s, 'oauth_callback="http%3A%2F%2Fprinter.example.com%2Fready"'
     end
 
-    # #plaintext_signature tests
+    def test_hmac_sha1_includes_verifier_in_signature
+      # RFC 5849 Section 1.2 - Token Request includes verifier
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/token", {},
+        rfc_token_request_options)
 
-    def test_plaintext_signature_reproduces_oauth_example_get
-      header = SimpleOAuth::Header.new(:get, "http://host.net/resource?name=value", {name: "value"}, plaintext_options)
+      assert_includes header.to_s, "oauth_verifier=\"#{RFC5849::VERIFIER}\""
+    end
 
-      assert_equal plaintext_expected_header, header.to_s
+    # RSA-SHA1 tests using RFC 5849 Section 1.2 credentials
+
+    def test_rsa_sha1_produces_valid_signature
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos",
+        {file: "vacation.jpg", size: "original"}, rsa_sha1_options)
+      parsed = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos",
+        {file: "vacation.jpg", size: "original"}, header.to_s)
+
+      assert parsed.valid?(consumer_secret: rsa_private_key)
+    end
+
+    # PLAINTEXT tests using RFC 5849 Section 2.1 credentials
+
+    def test_plaintext_produces_valid_signature
+      # RFC 5849 Section 2.1 - PLAINTEXT Temporary Credentials Request
+      header = SimpleOAuth::Header.new(:post, "http://server.example.com/request_temp_credentials", {},
+        rfc_plaintext_options)
+      parsed = SimpleOAuth::Header.new(:post, "http://server.example.com/request_temp_credentials", {},
+        header.to_s)
+
+      assert parsed.valid?(consumer_secret: RFC5849::PlaintextExample::CONSUMER_SECRET)
+    end
+
+    def test_plaintext_signature_is_escaped_secret
+      header = SimpleOAuth::Header.new(:post, "http://server.example.com/request_temp_credentials", {},
+        rfc_plaintext_options)
+
+      # PLAINTEXT signature is consumer_secret&token_secret (no token_secret here)
+      assert_equal "#{RFC5849::PlaintextExample::CONSUMER_SECRET}&", header.signed_attributes[:oauth_signature]
     end
 
     private
 
-    def twitter_get_options
+    # RFC 5849 Section 1.2 - Temporary Credentials Request
+    def rfc_temporary_credentials_options
       {
-        consumer_key: "8karQBlMg6gFOwcf8kcoYw",
-        consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
-        nonce: "547fed103e122eecf84c080843eedfe6",
+        consumer_key: RFC5849::CONSUMER_KEY,
+        consumer_secret: RFC5849::CONSUMER_SECRET,
         signature_method: "HMAC-SHA1",
-        timestamp: "1286830180",
-        token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
-        token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
+        timestamp: "137131200",
+        nonce: "wIjqoS",
+        callback: RFC5849::PRINTER_CALLBACK
       }
     end
 
-    def twitter_get_expected_header
-      'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
-        'oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="iS%2FG2M9JKTQlSCFFS6jS96jrZxU%3D", ' \
-        'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830180", ' \
-        'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
-    end
-
-    def twitter_post_options
+    # RFC 5849 Section 1.2 - Token Request
+    def rfc_token_request_options
       {
-        consumer_key: "8karQBlMg6gFOwcf8kcoYw",
-        consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
-        nonce: "b40a3e0f18590ecdcc0e273f7d7c82f8",
+        consumer_key: RFC5849::CONSUMER_KEY,
+        consumer_secret: RFC5849::CONSUMER_SECRET,
+        token: RFC5849::TEMP_TOKEN,
+        token_secret: RFC5849::TEMP_TOKEN_SECRET,
         signature_method: "HMAC-SHA1",
-        timestamp: "1286830181",
-        token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
-        token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
+        timestamp: "137131201",
+        nonce: "walatlh",
+        verifier: RFC5849::VERIFIER
       }
     end
 
-    def twitter_post_expected_header
-      'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
-        'oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="w2RknTsct4rfnKTtnzPOumDYeaI%3D", ' \
-        'oauth_signature_method="HMAC-SHA1", oauth_timestamp="1286830181", ' \
-        'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
+    # RFC 5849 Section 1.2 - Accessing Protected Resource
+    def rfc_resource_request_options
+      {
+        consumer_key: RFC5849::CONSUMER_KEY,
+        consumer_secret: RFC5849::CONSUMER_SECRET,
+        token: RFC5849::TOKEN,
+        token_secret: RFC5849::TOKEN_SECRET,
+        signature_method: "HMAC-SHA1",
+        timestamp: "137131202",
+        nonce: "chapoH"
+      }
     end
 
+    # RSA-SHA1 using RFC 5849 credentials
     def rsa_sha1_options
       {
-        consumer_key: "dpf43f3p2l4k3l03",
+        consumer_key: RFC5849::CONSUMER_KEY,
         consumer_secret: rsa_private_key,
         nonce: "13917289812797014437",
         signature_method: "RSA-SHA1",
@@ -88,28 +132,16 @@ module SimpleOAuth
       }
     end
 
-    def rsa_sha1_expected_header
-      'OAuth oauth_consumer_key="dpf43f3p2l4k3l03", oauth_nonce="13917289812797014437", ' \
-        'oauth_signature="jvTp%2FwX1TYtByB1m%2BPbyo0lnCOLIsyGCH7wke8AUs3BpnwZJtAuEJkvQL2%2F9n4s5wUmUl4aCI4BwpraNx4RtEXMe' \
-        '5qg5T1LVTGliMRpKasKsW%2F%2Fe%2BRinhejgCuzoH26dyF8iY2ZZ%2F5D1ilgeijhV%2FvBka5twt399mXwaYdCwFYE%3D", ' \
-        'oauth_signature_method="RSA-SHA1", oauth_timestamp="1196666512", oauth_version="1.0"'
-    end
-
-    def plaintext_options
+    # RFC 5849 Section 2.1 - PLAINTEXT example
+    def rfc_plaintext_options
       {
-        consumer_key: "abcd",
-        consumer_secret: "efgh",
-        nonce: "oLKtec51GQy",
+        consumer_key: RFC5849::PlaintextExample::CONSUMER_KEY,
+        consumer_secret: RFC5849::PlaintextExample::CONSUMER_SECRET,
         signature_method: "PLAINTEXT",
-        timestamp: "1286977095",
-        token: "ijkl",
-        token_secret: "mnop"
+        timestamp: "137131200",
+        nonce: "7d8f3e4a",
+        callback: RFC5849::PlaintextExample::CALLBACK
       }
-    end
-
-    def plaintext_expected_header
-      'OAuth oauth_consumer_key="abcd", oauth_nonce="oLKtec51GQy", oauth_signature="efgh%26mnop", ' \
-        'oauth_signature_method="PLAINTEXT", oauth_timestamp="1286977095", oauth_token="ijkl", oauth_version="1.0"'
     end
   end
 end

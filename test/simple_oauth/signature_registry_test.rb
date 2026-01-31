@@ -1,6 +1,7 @@
 require "test_helper"
 
 module SimpleOAuth
+  # Tests for the Signature registry module.
   class SignatureRegisterTest < Minitest::Test
     include TestHelpers
 
@@ -53,6 +54,7 @@ module SimpleOAuth
     cover "SimpleOAuth::Signature*"
 
     def test_registered_returns_true_for_hmac_sha1
+      # RFC 5849 Section 3.4.2 - HMAC-SHA1
       assert Signature.registered?("HMAC-SHA1")
     end
 
@@ -61,6 +63,7 @@ module SimpleOAuth
     end
 
     def test_registered_returns_true_for_rsa_sha1
+      # RFC 5849 Section 3.4.3 - RSA-SHA1
       assert Signature.registered?("RSA-SHA1")
     end
 
@@ -69,6 +72,7 @@ module SimpleOAuth
     end
 
     def test_registered_returns_true_for_plaintext
+      # RFC 5849 Section 3.4.4 - PLAINTEXT
       assert Signature.registered?("PLAINTEXT")
     end
 
@@ -211,6 +215,7 @@ module SimpleOAuth
     end
 
     def test_sign_computes_plaintext_signature
+      # RFC 5849 Section 3.4.4 - PLAINTEXT returns secret unchanged
       signature = Signature.sign("PLAINTEXT", "secret&token", "base")
 
       assert_equal "secret&token", signature
@@ -334,17 +339,17 @@ module SimpleOAuth
         Base64.encode64(OpenSSL::HMAC.digest("SHA512", secret, signature_base)).delete("\n")
       end
 
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
-        consumer_key: "key", consumer_secret: "secret", signature_method: "HMAC-SHA512",
-        nonce: "nonce", timestamp: "12345")
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
+        consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: RFC5849::CONSUMER_SECRET,
+        signature_method: "HMAC-SHA512", nonce: "chapoH", timestamp: "137131202")
 
       assert_match %r{\A[A-Za-z0-9+/]+=*\z}, header.signed_attributes[:oauth_signature]
     end
 
     def test_header_uses_builtin_rsa_sha256_method
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
-        consumer_key: "key", consumer_secret: rsa_private_key, signature_method: "RSA-SHA256",
-        nonce: "nonce", timestamp: "12345")
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
+        consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: rsa_private_key,
+        signature_method: "RSA-SHA256", nonce: "chapoH", timestamp: "137131202")
       private_key = OpenSSL::PKey::RSA.new(rsa_private_key)
       expected = Base64.encode64(private_key.sign("SHA256", header.send(:signature_base))).delete("\n")
 
@@ -352,9 +357,9 @@ module SimpleOAuth
     end
 
     def test_header_raises_for_unregistered_method
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
-        consumer_key: "key", consumer_secret: "secret", signature_method: "UNKNOWN",
-        nonce: "nonce", timestamp: "12345")
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
+        consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: RFC5849::CONSUMER_SECRET,
+        signature_method: "UNKNOWN", nonce: "chapoH", timestamp: "137131202")
 
       assert_raises(ArgumentError) { header.to_s }
     end

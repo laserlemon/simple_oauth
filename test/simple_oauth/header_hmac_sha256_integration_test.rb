@@ -1,60 +1,57 @@
 require "test_helper"
 
 module SimpleOAuth
+  # HMAC-SHA256 integration tests using RFC 5849 credentials.
+  # Note: HMAC-SHA256 is not defined in RFC 5849, but is a common extension.
   class HeaderHmacSha256IntegrationTest < Minitest::Test
+    include TestHelpers
+
     cover "SimpleOAuth::Header*"
 
     def test_hmac_sha256_signature_produces_valid_signature_for_get
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {}, twitter_get_options)
+      # Using RFC 5849 Section 1.2 credentials with HMAC-SHA256
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos",
+        {file: "vacation.jpg", size: "original"}, hmac_sha256_get_options)
+      parsed = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos",
+        {file: "vacation.jpg", size: "original"}, header.to_s)
 
-      assert_equal twitter_get_expected_header, header.to_s
+      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET)
     end
 
     def test_hmac_sha256_signature_produces_valid_signature_for_post
-      header = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {status: "hi, again"},
-        twitter_post_options)
+      # Using RFC 5849 Section 1.2 credentials with HMAC-SHA256
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/token", {},
+        hmac_sha256_post_options)
+      parsed = SimpleOAuth::Header.new(:post, "https://photos.example.net/token", {}, header.to_s)
 
-      assert_equal twitter_post_expected_header, header.to_s
+      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TEMP_TOKEN_SECRET)
     end
 
     private
 
-    def twitter_get_options
+    def hmac_sha256_get_options
       {
-        consumer_key: "8karQBlMg6gFOwcf8kcoYw",
-        consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
-        nonce: "547fed103e122eecf84c080843eedfe6",
+        consumer_key: RFC5849::CONSUMER_KEY,
+        consumer_secret: RFC5849::CONSUMER_SECRET,
+        token: RFC5849::TOKEN,
+        token_secret: RFC5849::TOKEN_SECRET,
         signature_method: "HMAC-SHA256",
-        timestamp: "1286830180",
-        token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
-        token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
+        timestamp: "137131202",
+        nonce: "chapoH"
       }
     end
 
-    def twitter_get_expected_header
-      'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
-        'oauth_nonce="547fed103e122eecf84c080843eedfe6", oauth_signature="7DcyYJMg20RivCsJ2gYUm2RtSOAKANPiTK%2FwRVn%2Ft5k%3D", ' \
-        'oauth_signature_method="HMAC-SHA256", oauth_timestamp="1286830180", ' \
-        'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
-    end
-
-    def twitter_post_options
+    def hmac_sha256_post_options
       {
-        consumer_key: "8karQBlMg6gFOwcf8kcoYw",
-        consumer_secret: "3d0vcHyUiiqADpWxolW8nlDIpSWMlyK7YNgc5Qna2M",
-        nonce: "b40a3e0f18590ecdcc0e273f7d7c82f8",
+        consumer_key: RFC5849::CONSUMER_KEY,
+        consumer_secret: RFC5849::CONSUMER_SECRET,
+        token: RFC5849::TEMP_TOKEN,
+        token_secret: RFC5849::TEMP_TOKEN_SECRET,
         signature_method: "HMAC-SHA256",
-        timestamp: "1286830181",
-        token: "201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh",
-        token_secret: "T5qa1tF57tfDzKmpM89DHsNuhgOY4NT6DlNLsTFcuQ"
+        timestamp: "137131201",
+        nonce: "walatlh",
+        verifier: RFC5849::VERIFIER
       }
-    end
-
-    def twitter_post_expected_header
-      'OAuth oauth_consumer_key="8karQBlMg6gFOwcf8kcoYw", ' \
-        'oauth_nonce="b40a3e0f18590ecdcc0e273f7d7c82f8", oauth_signature="jE1YPvwm2vXxQjMhVeVYju7utVih2B4AU6NH8DRAs%2FI%3D", ' \
-        'oauth_signature_method="HMAC-SHA256", oauth_timestamp="1286830181", ' \
-        'oauth_token="201425800-Sv4sTcgoffmHGkTCue0JnURT8vrm4DiFAkeFNDkh", oauth_version="1.0"'
     end
   end
 end

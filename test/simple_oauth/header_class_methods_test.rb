@@ -1,7 +1,10 @@
 require "test_helper"
 
 module SimpleOAuth
+  # Tests for Header class methods.
   class HeaderClassMethodsTest < Minitest::Test
+    include TestHelpers
+
     cover "SimpleOAuth::Header*"
 
     # .default_options tests
@@ -14,7 +17,7 @@ module SimpleOAuth
     end
 
     def test_default_options_is_used_for_new_headers
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {})
 
       assert_includes header.options.keys, :nonce
       assert_includes header.options.keys, :signature_method
@@ -22,7 +25,7 @@ module SimpleOAuth
     end
 
     def test_default_options_includes_version_key
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friendships/show.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {})
 
       assert_includes header.options.keys, :version
     end
@@ -36,12 +39,14 @@ module SimpleOAuth
     end
 
     def test_default_options_nonce_is_32_hex_characters
+      # RFC 5849 Section 3.3 - nonce is a random string
       nonce = SimpleOAuth::Header.default_options[:nonce]
 
       assert_match(/\A[0-9a-f]{32}\z/, nonce)
     end
 
     def test_default_options_timestamp_is_integer_string
+      # RFC 5849 Section 3.3 - timestamp is seconds since epoch
       timestamp = SimpleOAuth::Header.default_options[:timestamp]
 
       assert_match(/\A\d+\z/, timestamp)

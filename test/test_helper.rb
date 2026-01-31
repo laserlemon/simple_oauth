@@ -20,4 +20,61 @@ module TestHelpers
   def rsa_private_key
     @rsa_private_key ||= File.read(PRIVATE_KEY_PATH)
   end
+
+  # RFC 5849 Example Constants
+  # See https://www.rfc-editor.org/rfc/rfc5849 for complete examples
+  module RFC5849
+    # Section 1.2 - Printer/Photos example endpoints
+    PHOTOS_HOST = "photos.example.net".freeze
+    PHOTOS_BASE_URL = "https://#{PHOTOS_HOST}".freeze
+    PRINTER_HOST = "printer.example.com".freeze
+    PRINTER_CALLBACK = "http://#{PRINTER_HOST}/ready".freeze
+
+    # Section 1.2 - Client credentials (printer application)
+    CONSUMER_KEY = "dpf43f3p2l4k3l03".freeze
+    CONSUMER_SECRET = "kd94hf93k423kf44".freeze
+
+    # Section 1.2 - Temporary credentials
+    TEMP_TOKEN = "hh5s93j4hdidpola".freeze
+    TEMP_TOKEN_SECRET = "hdhd0244k9j7ao03".freeze
+
+    # Section 1.2 - Token credentials
+    TOKEN = "nnch734d00sl2jdk".freeze
+    TOKEN_SECRET = "pfkkdhi9sl3r4s00".freeze
+
+    # Section 1.2 - Verifier
+    VERIFIER = "hfdp7dh39dks9884".freeze
+
+    # Section 3.1 / 3.4.1 - Signature example
+    module SignatureExample
+      HOST = "example.com".freeze
+      BASE_URL = "http://#{HOST}".freeze
+      CONSUMER_KEY = "9djdj82h48djs9d2".freeze
+      CONSUMER_SECRET = "j49sk3j29djd".freeze
+      TOKEN = "kkk9d7dh3k39sjv7".freeze
+      TOKEN_SECRET = "dh893hdasih9".freeze
+      TIMESTAMP = "137131201".freeze
+      NONCE = "7d8f3e4a".freeze
+    end
+
+    # Section 3.5.1 - Authorization header example
+    module HeaderExample
+      CONSUMER_KEY = "0685bd9184jfhq22".freeze
+      TOKEN = "ad180jjd733klru7".freeze
+      TIMESTAMP = "137131200".freeze
+      NONCE = "4572616e48616d6d65724c61686176".freeze
+    end
+
+    # Section 2.1 - PLAINTEXT example
+    module PlaintextExample
+      HOST = "server.example.com".freeze
+      BASE_URL = "http://#{HOST}".freeze
+      CONSUMER_KEY = "jd83jd92dhsh93js".freeze
+      CONSUMER_SECRET = "ja893SD9".freeze
+      CALLBACK = "http://client.example.net/cb?x=1".freeze
+      TOKEN = "hdk48Djdsa".freeze
+      TOKEN_SECRET = "xyz4992k83j47x0b".freeze
+      VERIFIER = "473f82d3".freeze
+    end
+  end
 end

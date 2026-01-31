@@ -1,7 +1,10 @@
 require "test_helper"
 
 module SimpleOAuth
+  # Tests for oauth_body_hash extension (OAuth Body Hash, draft-eaton-oauth-bodyhash).
   class HeaderBodyHashTest < Minitest::Test
+    include TestHelpers
+
     cover "SimpleOAuth::Header*"
 
     # .body_hash class method tests
@@ -59,26 +62,26 @@ module SimpleOAuth
 
     def test_initialize_stores_body
       body = '{"text": "Hello"}'
-      header = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {}, {}, body)
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/upload", {}, {}, body)
 
       assert_equal body, header.body
     end
 
     def test_initialize_without_body_has_nil_body
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {})
 
       assert_nil header.body
     end
 
     def test_initialize_with_body_includes_body_hash_in_options
       body = '{"text": "Hello"}'
-      header = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {}, {}, body)
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/upload", {}, {}, body)
 
       assert_includes header.options.keys, :body_hash
     end
 
     def test_initialize_without_body_excludes_body_hash_from_options
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {})
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {})
 
       refute_includes header.options.keys, :body_hash
     end
@@ -87,27 +90,29 @@ module SimpleOAuth
 
     def test_to_s_includes_oauth_body_hash_when_body_provided
       body = '{"text": "Hello"}'
-      header = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {},
-        {consumer_key: "key", consumer_secret: "secret"}, body)
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/upload", {},
+        {consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: RFC5849::CONSUMER_SECRET}, body)
 
       assert_includes header.to_s, "oauth_body_hash="
     end
 
     def test_to_s_excludes_oauth_body_hash_when_no_body
-      header = SimpleOAuth::Header.new(:get, "https://api.x.com/1.1/friends/list.json", {},
-        consumer_key: "key", consumer_secret: "secret")
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
+        consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: RFC5849::CONSUMER_SECRET)
 
       refute_includes header.to_s, "oauth_body_hash="
     end
 
     def test_body_hash_is_included_in_signature_computation
       body = '{"text": "Hello"}'
-      header1 = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {},
-        {consumer_key: "key", consumer_secret: "secret", nonce: "nonce", timestamp: "12345"}, body)
+      header1 = SimpleOAuth::Header.new(:post, "https://photos.example.net/upload", {},
+        {consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: RFC5849::CONSUMER_SECRET,
+         nonce: "chapoH", timestamp: "137131202"}, body)
 
       different_body = '{"text": "Different"}'
-      header2 = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {},
-        {consumer_key: "key", consumer_secret: "secret", nonce: "nonce", timestamp: "12345"}, different_body)
+      header2 = SimpleOAuth::Header.new(:post, "https://photos.example.net/upload", {},
+        {consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: RFC5849::CONSUMER_SECRET,
+         nonce: "chapoH", timestamp: "137131202"}, different_body)
 
       # Different bodies should produce different signatures
       refute_equal header1.to_s, header2.to_s
@@ -118,8 +123,9 @@ module SimpleOAuth
     def test_user_provided_body_hash_overrides_computed_hash
       body = '{"text": "Hello"}'
       custom_hash = "custom_hash_value"
-      header = SimpleOAuth::Header.new(:post, "https://api.x.com/2/tweets", {},
-        {consumer_key: "key", consumer_secret: "secret", body_hash: custom_hash}, body)
+      header = SimpleOAuth::Header.new(:post, "https://photos.example.net/upload", {},
+        {consumer_key: RFC5849::CONSUMER_KEY, consumer_secret: RFC5849::CONSUMER_SECRET,
+         body_hash: custom_hash}, body)
 
       assert_includes header.to_s, custom_hash
     end
