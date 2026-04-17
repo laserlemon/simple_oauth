@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+* Remove `URI::RFC2396_PARSER` stub from RBS signatures to avoid duplicate declaration error with RBS 4.0.2, which now ships the constant in its stdlib `uri` signatures
+
 ## [0.4.0] - 2026-02-01
 
 ### Added

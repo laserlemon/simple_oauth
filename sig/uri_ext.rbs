@@ -1,8 +1,5 @@
-# Stubs for URI module
+# Extensions to the URI module
 module URI
-  # The RFC2396 parser instance constant
-  RFC2396_PARSER: RFC2396_Parser
-
   class Generic
     # Returns the URI as a String (implicit conversion)
     def to_str: () -> String
