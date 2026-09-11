@@ -138,6 +138,23 @@ header.valid?(consumer_secret: "secret", token_secret: "token_secret")
 # => true
 ```
 
+RSA signatures verify with the client's public key, which is all a server has:
+
+```ruby
+header.valid?(consumer_secret: File.read("client_public_key.pem"))
+```
+
+Custom signature methods that cannot be verified by recomputing the signature register a `verify` block:
+
+```ruby
+SimpleOAuth::Signature.register("RSA-SHA512", rsa: true,
+  verify: ->(key, signature_base, signature) {
+    OpenSSL::PKey::RSA.new(key).verify("SHA512", SimpleOAuth::Signature.decode_base64(signature), signature_base)
+  }) do |private_key_pem, signature_base|
+  SimpleOAuth::Signature.encode_base64(OpenSSL::PKey::RSA.new(private_key_pem).sign("SHA512", signature_base))
+end
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/laserlemon/simple_oauth.

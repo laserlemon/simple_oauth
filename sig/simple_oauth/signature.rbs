@@ -5,16 +5,19 @@
 module SimpleOAuth
   module Signature
     # Type for signature implementation block
-    type signature_block = ^(String secret, String signature_base) -> String
+    type signature_block = ^(untyped secret, String signature_base) -> String
+
+    # Type for a block that verifies a signature with a key
+    type verifier_block = ^(untyped key, String signature_base, String signature) -> bool
 
     # Type for registry entry
-    type registry_entry = { implementation: signature_block, rsa: bool }
+    type registry_entry = { implementation: signature_block, rsa: bool, verifier: verifier_block? }
 
     # Registry of signature method implementations (class-level instance variable)
     self.@registry: Hash[String, registry_entry]
 
     # Registers a custom signature method
-    def self.register: (String | Symbol name, ?rsa: bool) { (String, String) -> String } -> void
+    def self.register: (String | Symbol name, ?rsa: bool, ?verify: verifier_block?) { (untyped, String) -> String } -> void
 
     # Checks if a signature method is registered
     def self.registered?: (String | Symbol name) -> bool
@@ -28,6 +31,9 @@ module SimpleOAuth
     # Computes a signature using the specified method
     def self.sign: (String | Symbol name, String? secret, String signature_base) -> String
 
+    # Verifies a signature against a key and a signature base string
+    def self.verify: (String | Symbol name, String? key, String signature_base, String signature) -> bool
+
     # Unregisters a signature method
     def self.unregister: (String | Symbol name) -> void
 
@@ -37,7 +43,13 @@ module SimpleOAuth
     # Encodes binary data as Base64 without newlines
     def self.encode_base64: (String data) -> String
 
+    # Decodes Base64-encoded data
+    def self.decode_base64: (String data) -> String
+
     private
+
+    # Looks up a registered signature method
+    def self.fetch: (String | Symbol name) -> registry_entry
 
     # Normalizes signature method name for registry lookup
     def self.normalize_name: (String | Symbol name) -> String

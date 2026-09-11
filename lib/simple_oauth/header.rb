@@ -125,7 +125,7 @@ module SimpleOAuth
     def valid?(secrets = {})
       original_options = options.dup #: Hash[Symbol, untyped]
       options.merge!(secrets)
-      options.fetch(:signature).eql?(signature)
+      Signature.verify(options.fetch(:signature_method), signing_key, signature_base, options.fetch(:signature))
     ensure
       options.replace(original_options)
     end
@@ -231,9 +231,15 @@ module SimpleOAuth
     # @api private
     # @return [String] the computed signature based on signature_method
     def signature
-      sig_method = options.fetch(:signature_method)
-      sig_secret = Signature.rsa?(sig_method) ? options[:consumer_secret] : secret
-      Signature.sign(sig_method, sig_secret, signature_base)
+      Signature.sign(options.fetch(:signature_method), signing_key, signature_base)
+    end
+
+    # The key for signing and verifying: an RSA key, or the escaped secrets
+    #
+    # @api private
+    # @return [String, nil] the key
+    def signing_key
+      Signature.rsa?(options.fetch(:signature_method)) ? options[:consumer_secret] : secret
     end
 
     # Builds the secret string from consumer and token secrets

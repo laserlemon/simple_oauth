@@ -29,6 +29,8 @@ module SimpleOAuth
       # @api public
       # @param name [String] the signature method name (e.g., "HMAC-SHA512")
       # @param rsa [Boolean] whether this method uses RSA (raw consumer_secret as key)
+      # @param verify [Proc, nil] a block that verifies a signature with a key, for methods whose
+      #   signature cannot be recomputed from the verifying key, such as RSA with a public key
       # @yield [secret, signature_base] block that computes the signature
       # @yieldparam secret [String] the signing secret (or PEM key for RSA methods)
       # @yieldparam signature_base [String] the signature base string
@@ -40,8 +42,8 @@ module SimpleOAuth
       #       OpenSSL::HMAC.digest("SHA512", secret, base)
       #     )
       #   end
-      def register(name, rsa: false, &block)
-        @registry[normalize_name(name)] = {implementation: block, rsa: rsa}
+      def register(name, rsa: false, verify: nil, &block)
+        @registry[normalize_name(name)] = {implementation: block, rsa: rsa, verifier: verify}
       end
 
       # Checks if a signature method is registered
@@ -88,12 +90,25 @@ module SimpleOAuth
       # @example
       #   SimpleOAuth::Signature.sign("HMAC-SHA1", "secret&token", "GET&url&params")
       def sign(name, secret, signature_base)
-        normalized = normalize_name(name)
-        entry = @registry.fetch(normalized) do
-          raise ArgumentError, "Unknown signature method: #{name}. " \
-                               "Registered methods: #{@registry.keys.join(", ")}"
-        end
-        entry.fetch(:implementation).call(secret, signature_base)
+        fetch(name).fetch(:implementation).call(secret, signature_base)
+      end
+
+      # Verifies a signature against a key and a signature base string
+      #
+      # @api public
+      # @param name [String] the signature method name
+      # @param key [String] the verifying key: a public or private RSA key, or the signing secret
+      # @param signature_base [String] the signature base string
+      # @param signature [String] the signature to verify
+      # @return [Boolean] true if the signature is valid
+      # @raise [ArgumentError] if the signature method is not registered
+      # @example
+      #   SimpleOAuth::Signature.verify("RSA-SHA1", public_key_pem, "GET&url&params", signature)
+      def verify(name, key, signature_base, signature)
+        verifier = fetch(name).fetch(:verifier)
+        return sign(name, key, signature_base).eql?(signature) if verifier.nil?
+
+        verifier.call(key, signature_base, signature)
       end
 
       # Unregisters a signature method (useful for testing)
@@ -118,6 +133,18 @@ module SimpleOAuth
         register_builtin_methods
       end
 
+      # Decodes Base64-encoded data
+      #
+      # @api public
+      # @param data [String] Base64-encoded data
+      # @return [String] the decoded binary data
+      # @example
+      #   SimpleOAuth::Signature.decode_base64("AQID")
+      #   # => "\x01\x02\x03"
+      def decode_base64(data)
+        Base64.decode64(data)
+      end
+
       # Encodes binary data as Base64 without newlines
       #
       # @api public
@@ -131,6 +158,19 @@ module SimpleOAuth
       end
 
       private
+
+      # Looks up a registered signature method
+      #
+      # @api private
+      # @param name [String] the signature method name
+      # @return [Hash] the registry entry
+      # @raise [ArgumentError] if the signature method is not registered
+      def fetch(name)
+        @registry.fetch(normalize_name(name)) do
+          raise ArgumentError, "Unknown signature method: #{name}. " \
+                               "Registered methods: #{@registry.keys.join(", ")}"
+        end
+      end
 
       # Normalizes signature method name for registry lookup
       #
@@ -169,7 +209,10 @@ module SimpleOAuth
       # @return [void]
       def register_rsa_methods
         %w[SHA1 SHA256].each do |digest|
-          register("RSA-#{digest}", rsa: true) do |private_key_pem, signature_base|
+          verifier = lambda { |key_pem, signature_base, signature|
+            OpenSSL::PKey::RSA.new(key_pem).verify(digest, decode_base64(signature), signature_base)
+          }
+          register("RSA-#{digest}", rsa: true, verify: verifier) do |private_key_pem, signature_base|
             private_key = OpenSSL::PKey::RSA.new(private_key_pem)
             encode_base64(private_key.sign(digest, signature_base))
           end
