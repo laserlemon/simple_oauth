@@ -3,7 +3,7 @@ module SimpleOAuth
     # Class methods for Header - parsing, defaults, and body hashing
     module ClassMethods
       # Returns default OAuth options with generated nonce and timestamp
-      def default_options: (?String? body) -> Header::oauth_options
+      def default_options: (?String? body, ?String signature_method) -> Header::oauth_options
 
       # Computes the oauth_body_hash for a request body
       def body_hash: (String? body, ?String algorithm) -> String

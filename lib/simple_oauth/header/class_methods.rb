@@ -13,17 +13,18 @@ module SimpleOAuth
       #
       # @api public
       # @param body [String, nil] optional request body for computing oauth_body_hash
+      # @param signature_method [String] the signature method, whose hash algorithm oauth_body_hash uses
       # @return [Hash] default options including nonce, signature_method, timestamp, and version
       # @example
       #   SimpleOAuth::Header.default_options
       #   # => {nonce: "abc123...", signature_method: "HMAC-SHA1", timestamp: "1234567890", version: "1.0"}
-      def default_options(body = nil)
+      def default_options(body = nil, signature_method = DEFAULT_SIGNATURE_METHOD)
         {
           nonce: generate_nonce,
-          signature_method: DEFAULT_SIGNATURE_METHOD,
+          signature_method: signature_method,
           timestamp: Integer(Time.now).to_s,
           version: OAUTH_VERSION
-        }.tap { |opts| opts[:body_hash] = body_hash(body) if body }
+        }.tap { |opts| opts[:body_hash] = body_hash(body, Signature.digest(signature_method)) if body }
       end
 
       # Computes the oauth_body_hash for a request body

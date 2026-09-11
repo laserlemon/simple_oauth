@@ -11,13 +11,16 @@ module SimpleOAuth
     type verifier_block = ^(untyped key, String signature_base, String signature) -> bool
 
     # Type for registry entry
-    type registry_entry = { implementation: signature_block, rsa: bool, verifier: verifier_block? }
+    type registry_entry = { implementation: signature_block, rsa: bool, verifier: verifier_block?, digest: String }
+
+    # The hash algorithm of the signature methods RFC 5849 defines
+    DEFAULT_DIGEST: String
 
     # Registry of signature method implementations (class-level instance variable)
     self.@registry: Hash[String, registry_entry]
 
     # Registers a custom signature method
-    def self.register: (String | Symbol name, ?rsa: bool, ?verify: verifier_block?) { (untyped, String) -> String } -> void
+    def self.register: (String | Symbol name, ?rsa: bool, ?verify: verifier_block?, ?digest: String) { (untyped, String) -> String } -> void
 
     # Checks if a signature method is registered
     def self.registered?: (String | Symbol name) -> bool
@@ -27,6 +30,9 @@ module SimpleOAuth
 
     # Checks if a signature method uses RSA
     def self.rsa?: (String | Symbol name) -> bool
+
+    # Returns the hash algorithm a signature method signs with
+    def self.digest: (String | Symbol name) -> String
 
     # Computes a signature using the specified method
     def self.sign: (String | Symbol name, String? secret, String signature_base) -> String

@@ -165,11 +165,10 @@ module SimpleOAuth
     # @param body [String, nil] request body for body_hash computation
     # @return [Hash] merged OAuth options with defaults
     def build_options(oauth, body)
-      if oauth.is_a?(Hash)
-        self.class.default_options(body).merge(oauth.transform_keys(&:to_sym))
-      else
-        self.class.parse(oauth)
-      end
+      return self.class.parse(oauth) unless oauth.is_a?(Hash)
+
+      overrides = oauth.transform_keys(&:to_sym)
+      self.class.default_options(body, overrides.fetch(:signature_method, DEFAULT_SIGNATURE_METHOD)).merge(overrides)
     end
 
     # Builds the normalized OAuth attributes string for the header

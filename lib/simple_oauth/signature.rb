@@ -20,6 +20,9 @@ module SimpleOAuth
   #   SimpleOAuth::Signature.registered?("HMAC-SHA1") # => true
   #   SimpleOAuth::Signature.registered?("CUSTOM")    # => false
   module Signature
+    # The hash algorithm of the signature methods RFC 5849 defines
+    DEFAULT_DIGEST = "SHA1".freeze
+
     # Registry of signature method implementations
     @registry = {}
 
@@ -31,6 +34,7 @@ module SimpleOAuth
       # @param rsa [Boolean] whether this method uses RSA (raw consumer_secret as key)
       # @param verify [Proc, nil] a block that verifies a signature with a key, for methods whose
       #   signature cannot be recomputed from the verifying key, such as RSA with a public key
+      # @param digest [String] the hash algorithm this method signs with, which oauth_body_hash also uses
       # @yield [secret, signature_base] block that computes the signature
       # @yieldparam secret [String] the signing secret (or PEM key for RSA methods)
       # @yieldparam signature_base [String] the signature base string
@@ -42,8 +46,8 @@ module SimpleOAuth
       #       OpenSSL::HMAC.digest("SHA512", secret, base)
       #     )
       #   end
-      def register(name, rsa: false, verify: nil, &block)
-        @registry[normalize_name(name)] = {implementation: block, rsa: rsa, verifier: verify}
+      def register(name, rsa: false, verify: nil, digest: DEFAULT_DIGEST, &block)
+        @registry[normalize_name(name)] = {implementation: block, rsa: rsa, verifier: verify, digest: digest}
       end
 
       # Checks if a signature method is registered
@@ -77,6 +81,18 @@ module SimpleOAuth
       #   SimpleOAuth::Signature.rsa?("HMAC-SHA1") # => false
       def rsa?(name)
         @registry.dig(normalize_name(name), :rsa) || false
+      end
+
+      # Returns the hash algorithm a signature method signs with
+      #
+      # @api public
+      # @param name [String] the signature method name
+      # @return [String] the hash algorithm, such as SHA1 or SHA256
+      # @raise [ArgumentError] if the signature method is not registered
+      # @example
+      #   SimpleOAuth::Signature.digest("HMAC-SHA256") # => "SHA256"
+      def digest(name)
+        fetch(name).fetch(:digest)
       end
 
       # Computes a signature using the specified method
@@ -197,7 +213,7 @@ module SimpleOAuth
       # @return [void]
       def register_hmac_methods
         %w[SHA1 SHA256].each do |digest|
-          register("HMAC-#{digest}") do |secret, signature_base|
+          register("HMAC-#{digest}", digest: digest) do |secret, signature_base|
             encode_base64(OpenSSL::HMAC.digest(digest, secret, signature_base))
           end
         end
@@ -212,7 +228,7 @@ module SimpleOAuth
           verifier = lambda { |key_pem, signature_base, signature|
             OpenSSL::PKey::RSA.new(key_pem).verify(digest, decode_base64(signature), signature_base)
           }
-          register("RSA-#{digest}", rsa: true, verify: verifier) do |private_key_pem, signature_base|
+          register("RSA-#{digest}", rsa: true, verify: verifier, digest: digest) do |private_key_pem, signature_base|
             private_key = OpenSSL::PKey::RSA.new(private_key_pem)
             encode_base64(private_key.sign(digest, signature_base))
           end
