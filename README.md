@@ -143,6 +143,8 @@ header.valid?(consumer_secret: "secret", token_secret: "token_secret")
 # => true
 ```
 
+Verifying compares signatures in constant time and leaves the header's own options untouched, so the secrets stay with the caller.
+
 RSA signatures verify with the client's public key, which is all a server has:
 
 ```ruby
