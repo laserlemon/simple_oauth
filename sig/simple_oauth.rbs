@@ -40,6 +40,9 @@ module SimpleOAuth
     # Prefix for OAuth parameters
     OAUTH_PREFIX: String
 
+    # The content type whose body parameters are signed
+    FORM_CONTENT_TYPE: String
+
     # Default signature method per RFC 5849
     DEFAULT_SIGNATURE_METHOD: String
 
@@ -54,6 +57,14 @@ module SimpleOAuth
 
     # Valid keys when parsing OAuth parameters (ATTRIBUTE_KEYS + signature)
     PARSE_KEYS: Array[Symbol]
+
+    # What from_request needs from a request object, such as a Net::HTTPRequest
+    interface _Request
+      def method: () -> String
+      def uri: () -> URI::Generic?
+      def body: () -> String?
+      def []: (String name) -> String?
+    end
 
     # Type aliases for clarity
     type oauth_key = :body_hash | :callback | :consumer_key | :nonce | :signature_method | :timestamp | :token | :verifier | :version
