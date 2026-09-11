@@ -42,9 +42,14 @@ header.to_s
 
 ### Repeated Parameters
 
-Pass parameters as an Array of key-value pairs when a key repeats:
+Pass an Array of values, or an Array of key-value pairs, when a key repeats:
 
 ```ruby
+header = SimpleOAuth::Header.new(:post, url, {"ids" => %w[1 2]},
+  consumer_key: "key",
+  consumer_secret: "secret"
+)
+
 header = SimpleOAuth::Header.new(:post, url, [["ids", "1"], ["ids", "2"]],
   consumer_key: "key",
   consumer_secret: "secret"

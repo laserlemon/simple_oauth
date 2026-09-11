@@ -17,6 +17,7 @@
 
 ### Fixed
 
+* Sign a parameter whose value is an Array as one parameter per value, as a repeated parameter; the Array was previously signed as its Ruby representation
 * Verify RSA signatures with the signer's public key, which is all a verifier has; `Header#valid?` previously recomputed the signature and so needed the private key
 
 ## [0.4.1] - 2026-04-20
