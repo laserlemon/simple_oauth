@@ -40,6 +40,17 @@ header.to_s
 # => "OAuth oauth_consumer_key=\"consumer_key\", oauth_nonce=\"...\", ..."
 ```
 
+### Repeated Parameters
+
+Pass parameters as an Array of key-value pairs when a key repeats:
+
+```ruby
+header = SimpleOAuth::Header.new(:post, url, [["ids", "1"], ["ids", "2"]],
+  consumer_key: "key",
+  consumer_secret: "secret"
+)
+```
+
 ### Signature Methods
 
 Built-in signature methods: `HMAC-SHA1` (default), `HMAC-SHA256`, `RSA-SHA1`, `RSA-SHA256`, and `PLAINTEXT`.

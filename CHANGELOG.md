@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Added
+
+* Document passing `Header` parameters as an Array of key-value pairs when a key repeats
+
+### Fixed
+
+* Accept an Array of key-value pairs as `Header` parameters in the RBS signatures, which already worked at runtime
+
 ## [0.4.1] - 2026-04-20
 
 ### Fixed

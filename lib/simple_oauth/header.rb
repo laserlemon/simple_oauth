@@ -41,7 +41,7 @@ module SimpleOAuth
 
     # The request parameters to be signed
     #
-    # @return [Hash] the request parameters
+    # @return [Hash, Array<Array(String, Object)>] the request parameters
     # @example
     #   header.params # => {"status" => "Hello"}
     attr_reader :params
@@ -68,7 +68,8 @@ module SimpleOAuth
     # @api public
     # @param method [String, Symbol] the HTTP method
     # @param url [String, URI] the request URL
-    # @param params [Hash] the request parameters (for form-encoded bodies)
+    # @param params [Hash, Array<Array(String, Object)>] the request parameters (for form-encoded bodies),
+    #   as a Hash or as an Array of key-value pairs when a key repeats
     # @param oauth [Hash, String] OAuth options hash or an existing Authorization header to parse
     # @param body [String, nil] raw request body for oauth_body_hash (for non-form-encoded bodies)
     # @example Create a header with OAuth options

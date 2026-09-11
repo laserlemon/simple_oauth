@@ -47,6 +47,14 @@ module SimpleOAuth
       assert_equal expected, header.send(:signature_params)
     end
 
+    def test_params_accept_repeated_keys_as_pairs
+      pairs = build_header_with_fixed_credentials(:post, RFC5849::PHOTOS_URL, [%w[ids 1], %w[ids 2]])
+      query = build_header_with_fixed_credentials(:post, "#{RFC5849::PHOTOS_URL}?ids=1&ids=2", {})
+
+      assert_includes pairs.send(:normalized_params), "ids=1&ids=2"
+      assert_equal query.to_s, pairs.to_s
+    end
+
     # #url_params tests
 
     def test_url_params_returns_empty_array_when_no_query_parameters
