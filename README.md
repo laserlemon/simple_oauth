@@ -92,7 +92,7 @@ SimpleOAuth::Signature.methods # => ["hmac_sha1", "hmac_sha256", "rsa_sha1", "rs
 
 ### OAuth Request Body Hash
 
-For non-form-encoded request bodies (e.g., JSON), pass the body as the fifth parameter to compute `oauth_body_hash`:
+For non-form-encoded request bodies (e.g., JSON), pass the body as the fifth parameter to compute `oauth_body_hash`, which is hashed with the signature method's algorithm. Form-encoded bodies are signed by passing their parameters as `params` instead.
 
 ```ruby
 json_body = '{"text": "Hello, World!"}'
