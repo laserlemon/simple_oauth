@@ -120,3 +120,32 @@ module TestHelpers
     end
   end
 end
+
+# RFC 6749, RFC 7636, and RFC 7009 example values for the OAuth 2.0 builders
+module OAuth2Examples
+  CLIENT_ID = "s6BhdRkqt3".freeze
+  CLIENT_SECRET = "gX1fBat3bV".freeze
+  BASIC_AUTHORIZATION = "Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW".freeze
+  AUTHORIZATION_ENDPOINT = "https://server.example.com/authorize".freeze
+  TOKEN_ENDPOINT = "https://server.example.com/token".freeze
+  REVOCATION_ENDPOINT = "https://server.example.com/revoke".freeze
+  REDIRECT_URI = "https://client.example.com/cb".freeze
+  CODE = "SplxlOBeZQQYbYS6WxSbIA".freeze
+  ACCESS_TOKEN = "2YotnFZFEjr1zCsicMWpAA".freeze
+  REFRESH_TOKEN = "tGzv3JOkF0XG5Qx2TlKWIA".freeze
+  VERIFIER = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk".freeze
+  CHALLENGE = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM".freeze
+  TOKEN_RESPONSE = '{"access_token":"2YotnFZFEjr1zCsicMWpAA","token_type":"example","expires_in":3600,' \
+                   '"refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA","example_parameter":"example_value"}'.freeze
+
+  def confidential_client(**)
+    SimpleOAuth::OAuth2::Client.new(client_id: CLIENT_ID, client_secret: CLIENT_SECRET,
+      authorization_endpoint: AUTHORIZATION_ENDPOINT, token_endpoint: TOKEN_ENDPOINT,
+      revocation_endpoint: REVOCATION_ENDPOINT, **)
+  end
+
+  def public_client
+    SimpleOAuth::OAuth2::Client.new(client_id: CLIENT_ID, authorization_endpoint: AUTHORIZATION_ENDPOINT,
+      token_endpoint: TOKEN_ENDPOINT, revocation_endpoint: REVOCATION_ENDPOINT)
+  end
+end

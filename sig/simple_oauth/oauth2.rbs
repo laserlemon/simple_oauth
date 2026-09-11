@@ -1,0 +1,100 @@
+module SimpleOAuth
+  # OAuth 2.0 request builders and response parsers
+  module OAuth2
+    # Parses the JSON bodies returned by OAuth 2.0 endpoints
+    module ResponseBody
+      def self.parse: (String? body) -> Hash[String, untyped]
+    end
+
+    # Error returned by an OAuth 2.0 endpoint
+    class Error < StandardError
+      attr_reader code: String?
+      attr_reader description: String?
+      attr_reader uri: String?
+      attr_reader status: Integer?
+
+      def self.from_response: (status: Integer | String, body: String?) -> Error
+      def initialize: (code: String?, ?description: String?, ?uri: String?, ?status: Integer?) -> void
+    end
+
+    # A Proof Key for Code Exchange verifier and challenge
+    class PKCE
+      S256: String
+      PLAIN: String
+      VERIFIER_PATTERN: Regexp
+      INVALID_VERIFIER: String
+      VERIFIER_BYTES: Integer
+
+      attr_reader verifier: String
+      attr_reader challenge_method: String
+      attr_reader challenge: String
+
+      def self.generate: (?challenge_method: String) -> PKCE
+      def initialize: (verifier: String, ?challenge_method: String) -> void
+
+      private
+
+      def compute_challenge: () -> String
+    end
+
+    # An HTTP request to an OAuth 2.0 endpoint, built but not sent
+    class Request
+      attr_reader method: String
+      attr_reader url: String
+      attr_reader headers: Hash[String, String]
+      attr_reader body: String
+
+      def initialize: (method: String, url: String, headers: Hash[String, String], body: String) -> void
+    end
+
+    # An access token from a successful token response
+    class Token
+      attr_reader access_token: String
+      attr_reader token_type: String?
+      attr_reader expires_in: Integer?
+      attr_reader refresh_token: String?
+      attr_reader scope: String?
+      attr_reader expires_at: Time?
+      attr_reader params: Hash[String, untyped]
+
+      def self.from_response: (status: Integer | String, body: String?, ?issued_at: Time) -> Token
+      def initialize: (Hash[String | Symbol, untyped] params, ?issued_at: Time) -> void
+      def scopes: () -> Array[String]
+      def expired?: (?leeway: Numeric, ?now: Time) -> bool
+    end
+
+    # An OAuth 2.0 client that builds authorization URLs and endpoint requests
+    class Client
+      type auth_method = :client_secret_basic | :client_secret_post
+      type scope = String | Array[String] | nil
+      type form_params = Hash[Symbol, String?]
+
+      AUTH_METHODS: Array[Symbol]
+      FORM_CONTENT_TYPE: String
+
+      attr_reader client_id: String
+      attr_reader client_secret: String?
+      attr_reader authorization_endpoint: String?
+      attr_reader token_endpoint: String?
+      attr_reader revocation_endpoint: String?
+      attr_reader auth_method: auth_method
+
+      def initialize: (client_id: String, ?client_secret: String?, ?authorization_endpoint: String?, ?token_endpoint: String?,
+                       ?revocation_endpoint: String?, ?auth_method: auth_method) -> void
+      def public?: () -> bool
+      def authorization_url: (redirect_uri: String, state: String, ?scope: scope, ?pkce: PKCE?, ?params: Hash[Symbol | String, String?]) -> String
+      def authorization_code_request: (code: String, redirect_uri: String, ?code_verifier: String?) -> Request
+      def refresh_token_request: (refresh_token: String, ?scope: scope) -> Request
+      def client_credentials_request: (?scope: scope) -> Request
+      def revocation_request: (token: String, ?token_type_hint: String?) -> Request
+
+      private
+
+      def token_request: (form_params params) -> Request
+      def form_request: (String url, form_params params) -> Request
+      def basic_authorization: (String secret) -> String
+      def scope_value: (scope scope) -> String?
+      def endpoint: (String? url, Symbol name) -> String
+    end
+  end
+end
