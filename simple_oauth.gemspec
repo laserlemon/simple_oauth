@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["Steve Richert", "Erik Berlin"]
   spec.email = ["steve.richert@gmail.com", "sferik@gmail.com"]
 
-  spec.summary = "Simply builds and verifies OAuth headers"
+  spec.summary = "Simply builds and verifies OAuth 1.0 headers and builds OAuth 2.0 requests"
   spec.description = spec.summary
   spec.homepage = "https://github.com/laserlemon/simple_oauth"
   spec.license = "MIT"

@@ -1,10 +1,12 @@
 require_relative "simple_oauth/header"
+require_relative "simple_oauth/oauth2"
 require_relative "simple_oauth/version"
 
-# OAuth 1.0 header generation and parsing library
+# OAuth 1.0 header and OAuth 2.0 request building library
 #
 # SimpleOAuth provides a simple interface for building and verifying
-# OAuth 1.0 Authorization headers per RFC 5849.
+# OAuth 1.0 Authorization headers per RFC 5849, and for building
+# OAuth 2.0 requests and parsing their responses (see {SimpleOAuth::OAuth2}).
 #
 # @example Building an OAuth header
 #   header = SimpleOAuth::Header.new(

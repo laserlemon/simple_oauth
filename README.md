@@ -7,7 +7,9 @@
 [![Typecheck](https://github.com/laserlemon/simple_oauth/actions/workflows/typecheck.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/typecheck.yml)
 [![Yardstick](https://github.com/laserlemon/simple_oauth/actions/workflows/yardstick.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/yardstick.yml)
 
-Simply builds and verifies OAuth headers per [RFC 5849](https://tools.ietf.org/html/rfc5849)
+Simply builds and verifies OAuth 1.0 headers per [RFC 5849](https://tools.ietf.org/html/rfc5849), and builds OAuth 2.0 requests per [RFC 6749](https://www.rfc-editor.org/rfc/rfc6749), [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636), and [RFC 7009](https://www.rfc-editor.org/rfc/rfc7009).
+
+Neither makes HTTP requests: you send what it builds with the HTTP client of your choice.
 
 ## Installation
 
@@ -177,6 +179,64 @@ SimpleOAuth::Signature.register("RSA-SHA512", rsa: true,
   SimpleOAuth::Signature.encode_base64(OpenSSL::PKey::RSA.new(private_key_pem).sign("SHA512", signature_base))
 end
 ```
+
+## OAuth 2.0
+
+`SimpleOAuth::OAuth2::Client` builds authorization URLs and the requests for its token and revocation endpoints. Each request is a `SimpleOAuth::OAuth2::Request` with a `method`, `url`, `headers`, and form-encoded `body`, ready to send with any HTTP client.
+
+A client with a secret is confidential and authenticates with HTTP Basic, or in the request body with `auth_method: :client_secret_post`. A client without a secret is public and sends only its `client_id`.
+
+### Authorization Code Flow with PKCE
+
+```ruby
+require "net/http"
+require "simple_oauth"
+
+client = SimpleOAuth::OAuth2::Client.new(
+  client_id: "client_id",
+  client_secret: "client_secret", # omit for a public client
+  authorization_endpoint: "https://x.com/i/oauth2/authorize",
+  token_endpoint: "https://api.x.com/2/oauth2/token",
+  revocation_endpoint: "https://api.x.com/2/oauth2/revoke"
+)
+
+# 1. Send the user to authorize the client
+pkce = SimpleOAuth::OAuth2::PKCE.generate
+state = SecureRandom.hex
+redirect_to client.authorization_url(
+  redirect_uri: "https://app.example/callback",
+  state: state,
+  scope: %w[tweet.read users.read offline.access],
+  pkce: pkce
+)
+
+# 2. Exchange the code the user returns with for a token
+request = client.authorization_code_request(
+  code: params[:code],
+  redirect_uri: "https://app.example/callback",
+  code_verifier: pkce.verifier
+)
+response = Net::HTTP.post(URI(request.url), request.body, request.headers)
+token = SimpleOAuth::OAuth2::Token.from_response(status: response.code, body: response.body)
+
+token.access_token  # => "..."
+token.refresh_token # => "..."
+token.expires_at    # => 2026-09-11 14:00:00 +0000
+```
+
+`Token.from_response` raises `SimpleOAuth::OAuth2::Error` for an error response, with the endpoint's `code`, `description`, `uri`, and HTTP `status`.
+
+### Refreshing, Client Credentials, and Revocation
+
+```ruby
+client.refresh_token_request(refresh_token: token.refresh_token)
+client.client_credentials_request(scope: "read") # confidential clients only
+client.revocation_request(token: token.refresh_token, token_type_hint: "refresh_token")
+
+token.expired?(leeway: 30) # => true within 30 seconds of expiring
+```
+
+A revocation endpoint answers 200 when the token is revoked. For any other response, `SimpleOAuth::OAuth2::Error.from_response(status:, body:)` describes the failure.
 
 ## Contributing
 

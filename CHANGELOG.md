@@ -1,3 +1,15 @@
+## [Unreleased]
+
+### Added
+
+* OAuth 2.0 request builders and response parsers in `SimpleOAuth::OAuth2`, which make no HTTP requests:
+  * `Client#authorization_url` for the authorization code flow, with optional PKCE
+  * `Client#authorization_code_request`, `#refresh_token_request`, and `#client_credentials_request` for the token endpoint
+  * `Client#revocation_request` for the revocation endpoint (RFC 7009)
+  * `client_secret_basic` and `client_secret_post` authentication for confidential clients, and public clients without a secret
+  * `PKCE` verifiers with `S256` and `plain` challenges (RFC 7636)
+  * `Token.from_response` and `Error.from_response` for token and error responses
+
 ## [0.5.0] - 2026-09-12
 
 ### Added
