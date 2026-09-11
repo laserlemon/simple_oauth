@@ -8,6 +8,17 @@
 
 * Accept an Array of key-value pairs as `Header` parameters in the RBS signatures, which already worked at runtime
 
+## [Unreleased]
+
+### Added
+
+* `Signature.verify` and a `verify:` option on `Signature.register`, for signature methods that cannot be verified by recomputing the signature
+* `Signature.decode_base64`
+
+### Fixed
+
+* Verify RSA signatures with the signer's public key, which is all a verifier has; `Header#valid?` previously recomputed the signature and so needed the private key
+
 ## [0.4.1] - 2026-04-20
 
 ### Fixed

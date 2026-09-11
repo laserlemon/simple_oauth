@@ -136,6 +136,9 @@ module SimpleOAuth
     # Extracts query parameters from the request URL
     def url_params: () -> Array[untyped]
 
+    # The key for signing and verifying
+    def signing_key: () -> String?
+
     # Computes the OAuth signature using the configured signature method
     def signature: () -> String
 
