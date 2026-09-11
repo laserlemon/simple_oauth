@@ -1,0 +1,29 @@
+module SimpleOAuth
+  class Header
+    # What the Params module needs from the header that includes it
+    interface _Signable
+      def options: () -> Header::oauth_options
+      def params: () -> Header::request_params
+    end
+
+    # Normalization of the parameters that are signed
+    module Params : _Signable
+      @uri: URI::Generic
+
+      private
+
+      # Extracts query parameters from the request URL
+      def url_params: () -> Array[untyped]
+      # Normalizes and sorts all request parameters for signing
+      def normalized_params: () -> String
+      # Collects all parameters to include in signature
+      def signature_params: () -> Array[untyped]
+      # Expands parameters into one pair per value, for parameters with several values
+      def expanded_params: () -> Array[untyped]
+      # Extracts valid OAuth attributes from options (excludes realm per RFC 5849)
+      def attributes: () -> signed_attributes_hash
+      # Validates that no unknown keys are present in options
+      def validate_option_keys!: () -> void
+    end
+  end
+end
