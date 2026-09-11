@@ -126,11 +126,8 @@ module SimpleOAuth
     #   parsed_header.valid?(consumer_secret: "secret", token_secret: "token_secret")
     #   # => true
     def valid?(secrets = {})
-      original_options = options.dup #: Hash[Symbol, untyped]
-      options.merge!(secrets)
-      Signature.verify(options.fetch(:signature_method), signing_key, signature_base, options.fetch(:signature))
-    ensure
-      options.replace(original_options)
+      Signature.verify(options.fetch(:signature_method), signing_key(options.merge(secrets)), signature_base,
+        options.fetch(:signature))
     end
 
     # Returns the OAuth attributes including the signature
@@ -200,22 +197,24 @@ module SimpleOAuth
     # @api private
     # @return [String] the computed signature based on signature_method
     def signature
-      Signature.sign(options.fetch(:signature_method), signing_key, signature_base)
+      Signature.sign(options.fetch(:signature_method), signing_key(options), signature_base)
     end
 
     # The key for signing and verifying: an RSA key, or the escaped secrets
     #
     # @api private
+    # @param options [Hash] the options holding the credentials
     # @return [String, nil] the key
-    def signing_key
-      Signature.rsa?(options.fetch(:signature_method)) ? options[:consumer_secret] : secret
+    def signing_key(options)
+      Signature.rsa?(options.fetch(:signature_method)) ? options[:consumer_secret] : secret(options)
     end
 
     # Builds the secret string from consumer and token secrets
     #
     # @api private
+    # @param options [Hash] the options holding the secrets
     # @return [String] the secret string for signing
-    def secret
+    def secret(options)
       options.values_at(:consumer_secret, :token_secret).map { |v| Header.escape(v) }.join("&")
     end
 

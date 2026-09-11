@@ -126,7 +126,7 @@ module SimpleOAuth
       header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
         consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET)
 
-      assert_equal "#{RFC5849::CONSUMER_SECRET}&#{RFC5849::TOKEN_SECRET}", header.send(:secret)
+      assert_equal "#{RFC5849::CONSUMER_SECRET}&#{RFC5849::TOKEN_SECRET}", header.send(:secret, header.options)
     end
 
     def test_secret_uri_encodes_each_value_before_combination
@@ -134,7 +134,7 @@ module SimpleOAuth
       header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos", {},
         consumer_secret: "CONSUM#R_SECRET", token_secret: "TOKEN_S#CRET")
 
-      assert_equal "CONSUM%23R_SECRET&TOKEN_S%23CRET", header.send(:secret)
+      assert_equal "CONSUM%23R_SECRET&TOKEN_S%23CRET", header.send(:secret, header.options)
     end
 
     # #signature_base tests

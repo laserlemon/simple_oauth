@@ -118,11 +118,12 @@ module SimpleOAuth
       # @param signature [String] the signature to verify
       # @return [Boolean] true if the signature is valid
       # @raise [ArgumentError] if the signature method is not registered
+      # @note Signatures are compared in constant time, so verifying leaks no timing information
       # @example
       #   SimpleOAuth::Signature.verify("RSA-SHA1", public_key_pem, "GET&url&params", signature)
       def verify(name, key, signature_base, signature)
         verifier = fetch(name).fetch(:verifier)
-        return sign(name, key, signature_base).eql?(signature) if verifier.nil?
+        return OpenSSL.secure_compare(sign(name, key, signature_base), signature) if verifier.nil?
 
         verifier.call(key, signature_base, signature)
       end

@@ -21,7 +21,7 @@ module SimpleOAuth
       # Expands parameters into one pair per value, for parameters with several values
       def expanded_params: () -> Array[untyped]
       # Extracts valid OAuth attributes from options (excludes realm per RFC 5849)
-      def attributes: () -> signed_attributes_hash
+      def attributes: () -> Header::signed_attributes_hash
       # Validates that no unknown keys are present in options
       def validate_option_keys!: () -> void
     end

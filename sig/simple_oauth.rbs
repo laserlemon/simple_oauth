@@ -131,13 +131,13 @@ module SimpleOAuth
     def header_attributes: () -> signed_attributes_hash
 
     # The key for signing and verifying
-    def signing_key: () -> String?
+    def signing_key: (oauth_options options) -> String?
 
     # Computes the OAuth signature using the configured signature method
     def signature: () -> String
 
     # Builds the secret string from consumer and token secrets
-    def secret: () -> String
+    def secret: (oauth_options options) -> String
 
     # Builds the signature base string from method, URL, and params
     def signature_base: () -> String

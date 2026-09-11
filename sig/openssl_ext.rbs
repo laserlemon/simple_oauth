@@ -1,5 +1,8 @@
 # Extensions to OpenSSL types
 module OpenSSL
+  # Compare two strings in constant time
+  def self.secure_compare: (String a, String b) -> bool
+
   module PKey
     class PKey
       # Sign with digest name as String (in addition to Digest object)

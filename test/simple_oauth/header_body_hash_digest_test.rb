@@ -10,6 +10,10 @@ module SimpleOAuth
 
     BODY = '{"status":"testing"}'.freeze
 
+    def setup
+      Signature.reset!
+    end
+
     def teardown
       Signature.reset!
     end
