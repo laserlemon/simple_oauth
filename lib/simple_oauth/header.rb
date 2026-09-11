@@ -18,6 +18,8 @@ module SimpleOAuth
     # Prefix for OAuth parameters
     OAUTH_PREFIX = "oauth_".freeze
 
+    # The content type whose body parameters are signed, per RFC 5849 Section 3.4.1.3.1
+    FORM_CONTENT_TYPE = "application/x-www-form-urlencoded".freeze
     # Default signature method per RFC 5849
     DEFAULT_SIGNATURE_METHOD = "HMAC-SHA1".freeze
 

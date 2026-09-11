@@ -1,7 +1,13 @@
 module SimpleOAuth
   class Header
     # Class methods for Header - parsing, defaults, and body hashing
-    module ClassMethods
+    # What the ClassMethods module needs from the class that extends it
+    interface _HeaderFactory
+      def new: (String | Symbol method, String | URI::Generic url, Header::request_params params,
+                ?Header::oauth_options | String oauth, ?String? body) -> Header
+    end
+
+    module ClassMethods : _HeaderFactory
       # Returns default OAuth options with generated nonce and timestamp
       def default_options: (?String? body, ?String signature_method) -> Header::oauth_options
 
@@ -12,9 +18,19 @@ module SimpleOAuth
       def parse: (String | _ToS header) -> Header::oauth_options
 
       # Parses OAuth parameters from a form-encoded POST body
+      # Builds a header for an HTTP request
+      def from_request: (Header::_Request request, ?Header::oauth_options | String oauth) -> Header
+
+      # Parses OAuth parameters from a query string
+      def parse_query: (String | _ToS body) -> Hash[Symbol, String]
+
       def parse_form_body: (String | _ToS body) -> Header::oauth_options
 
       private
+
+      # Checks whether a request carries a form-encoded body
+      def form_encoded?: (Header::_Request request) -> bool
+
 
       # Generates a random nonce for OAuth requests
       def generate_nonce: () -> String

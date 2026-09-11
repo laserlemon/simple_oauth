@@ -53,6 +53,30 @@ module SimpleOAuth
         Parser.new(header).parse(PARSE_KEYS)
       end
 
+      # Builds a header for an HTTP request, signing the parameters it carries
+      #
+      # The request's query parameters are always signed. A form-encoded body is signed as
+      # parameters, and any other body is hashed into oauth_body_hash.
+      #
+      # @api public
+      # @param request [#method, #uri, #body] the request to sign, such as a Net::HTTPRequest
+      # @param oauth [Hash, String] OAuth options hash or an existing Authorization header to parse
+      # @return [Header] the header for the request
+      # @raise [ArgumentError] if the request has no URI
+      # @example
+      #   request = Net::HTTP::Post.new(URI("https://api.example.com/statuses"))
+      #   request.set_form_data(status: "Hello")
+      #   request["Authorization"] = SimpleOAuth::Header.from_request(request,
+      #     consumer_key: "key", consumer_secret: "secret").to_s
+      def from_request(request, oauth = {})
+        uri = request.uri || raise(ArgumentError, "The request has no URI")
+        body = request.body
+        return new(request.method, uri, CGI.parse(body.to_s), oauth) if form_encoded?(request)
+
+        no_params = {} #: Header::request_params
+        new(request.method, uri, no_params, oauth, body)
+      end
+
       # Parses OAuth parameters from a form-encoded POST body
       #
       # OAuth 1.0 allows credentials to be transmitted in the request body for
@@ -64,6 +88,9 @@ module SimpleOAuth
       # @example
       #   SimpleOAuth::Header.parse_form_body('oauth_consumer_key=key&oauth_signature=sig&status=hello')
       #   # => {consumer_key: "key", signature: "sig"}
+      # @example Parse the credentials from a query string
+      #   SimpleOAuth::Header.parse_query('oauth_consumer_key=key&status=hello')
+      #   # => {consumer_key: "key"}
       def parse_form_body(body)
         valid_keys = PARSE_KEYS.map(&:to_s)
 
@@ -77,7 +104,27 @@ module SimpleOAuth
         result
       end
 
+      # @!method parse_query(query)
+      #   Parses OAuth parameters from a query string, which RFC 5849 Section 3.5.3 also allows
+      #
+      #   @api public
+      #   @param query [String, #to_s] the query string
+      #   @return [Hash] parsed OAuth attributes with symbol keys (only valid OAuth keys)
+      #   @example
+      #     SimpleOAuth::Header.parse_query("oauth_consumer_key=key&status=hello")
+      #     # => {consumer_key: "key"}
+      alias_method :parse_query, :parse_form_body
+
       private
+
+      # Checks whether a request carries a form-encoded body
+      #
+      # @api private
+      # @param request [#[]] the request
+      # @return [Boolean] true if the body is form-encoded
+      def form_encoded?(request)
+        request["Content-Type"].to_s.start_with?(FORM_CONTENT_TYPE)
+      end
 
       # Generates a random nonce for OAuth requests
       #

@@ -40,6 +40,19 @@ header.to_s
 # => "OAuth oauth_consumer_key=\"consumer_key\", oauth_nonce=\"...\", ..."
 ```
 
+### Signing a Request
+
+`Header.from_request` takes the method, URL, and parameters from a request object, such as a `Net::HTTPRequest`. Query parameters are always signed, a form-encoded body is signed as parameters, and any other body is hashed into `oauth_body_hash`:
+
+```ruby
+request = Net::HTTP::Post.new(URI("https://api.example.com/statuses"))
+request.set_form_data(status: "Hello")
+request["Authorization"] = SimpleOAuth::Header.from_request(request,
+  consumer_key: "key",
+  consumer_secret: "secret"
+).to_s
+```
+
 ### Repeated Parameters
 
 Pass an Array of values, or an Array of key-value pairs, when a key repeats:
@@ -125,11 +138,14 @@ parsed = SimpleOAuth::Header.parse('OAuth oauth_consumer_key="key", oauth_signat
 # => {consumer_key: "key", signature: "sig"}
 ```
 
-Parse OAuth credentials from a form-encoded POST body:
+Parse OAuth credentials from a form-encoded POST body, or from a query string:
 
 ```ruby
 parsed = SimpleOAuth::Header.parse_form_body('oauth_consumer_key=key&oauth_signature=sig&status=hello')
 # => {consumer_key: "key", signature: "sig"}
+
+parsed = SimpleOAuth::Header.parse_query("oauth_consumer_key=key&status=hello")
+# => {consumer_key: "key"}
 ```
 
 ### Verifying Signatures

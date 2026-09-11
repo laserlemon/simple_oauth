@@ -12,6 +12,8 @@
 
 ### Added
 
+* `Header.from_request`, which builds a header for a request object such as a `Net::HTTPRequest`, signing its query parameters, its form-encoded body, or hashing any other body
+* `Header.parse_query`, for OAuth credentials sent in a query string
 * `Signature.digest`, and a `digest:` option on `Signature.register`, which gives the hash algorithm a signature method signs with
 * `Signature.verify` and a `verify:` option on `Signature.register`, for signature methods that cannot be verified by recomputing the signature
 * `Signature.decode_base64`
