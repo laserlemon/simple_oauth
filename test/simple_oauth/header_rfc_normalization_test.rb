@@ -46,7 +46,15 @@ module SimpleOAuth
     end
 
     def test_a_valueless_body_parameter_parses_to_an_empty_string
-      assert_equal [["c2", ""], ["a3", "2"]], Header.send(:form_params, "c2&a3=2")
+      assert_equal [["c2", ""], ["a3", "2"]], Header.form_pairs("c2&a3=2")
+    end
+
+    def test_a_parameter_with_an_empty_name_is_kept
+      assert_equal [["", "1"]], Header.form_pairs("=1")
+    end
+
+    def test_an_empty_segment_is_no_parameter
+      assert_empty Header.form_pairs("&")
     end
 
     def test_a_valueless_query_parameter_is_signed_with_an_empty_value

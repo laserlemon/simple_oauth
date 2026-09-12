@@ -1,4 +1,4 @@
-require "cgi"
+require "uri"
 require "openssl"
 require "securerandom"
 
@@ -70,7 +70,7 @@ module SimpleOAuth
       def from_request(request, oauth = {})
         uri = request.uri || raise(ArgumentError, "The request has no URI")
         body = request.body
-        return new(request.method, uri, form_params(body), oauth) if form_encoded?(request)
+        return new(request.method, uri, form_pairs(body), oauth) if form_encoded?(request)
 
         no_params = {} #: Header::request_params
         new(request.method, uri, no_params, oauth, body)
@@ -94,11 +94,12 @@ module SimpleOAuth
         valid_keys = PARSE_KEYS.map(&:to_s)
 
         result = {} #: Hash[Symbol, String]
-        CGI.parse(body.to_s).each do |key, values|
+        form_pairs(body).each do |key, value|
           next unless key.start_with?(OAUTH_PREFIX)
 
           parsed_key = key.delete_prefix(OAUTH_PREFIX)
-          result[parsed_key.to_sym] = values.first || "" if valid_keys.include?(parsed_key)
+          # ||= so that the first value wins when a parameter repeats
+          result[parsed_key.to_sym] ||= value if valid_keys.include?(parsed_key)
         end
         result
       end
@@ -114,21 +115,24 @@ module SimpleOAuth
       #     # => {consumer_key: "key"}
       alias_method :parse_query, :parse_form_body
 
-      private
-
-      # Parses a form-encoded body into the parameter pairs to sign
+      # Parses a form-encoded query string or body into parameter pairs
       #
       # A parameter with no value, such as the "c2" of the RFC 5849 Section 3.4.1.3.1
-      # example, is signed with an empty value rather than dropped.
+      # example, carries an empty value rather than being dropped. An empty segment, as in
+      # the "&&" of "a=1&&b=2", is no parameter at all. Only "&" separates parameters: a
+      # ";" is part of the value, as every current server reads it.
       #
       # @api private
-      # @param body [String, nil] the form-encoded body
+      # @param form [String, #to_s, nil] the form-encoded query string or body
       # @return [Array<Array(String, String)>] the parameter pairs
-      def form_params(body)
-        CGI.parse(body.to_s).flat_map do |key, values|
-          values.empty? ? [[key, ""]] : values.map { |value| [key, value] }
-        end
+      # @example
+      #   SimpleOAuth::Header.form_pairs("c2&a3=2+q")
+      #   # => [["c2", ""], ["a3", "2 q"]]
+      def form_pairs(form)
+        URI.decode_www_form(form.to_s).reject { |key, value| key.empty? && value.empty? }
       end
+
+      private
 
       # Checks whether a request carries a form-encoded body
       #

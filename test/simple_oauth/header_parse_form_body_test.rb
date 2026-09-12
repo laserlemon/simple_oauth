@@ -53,6 +53,11 @@ module SimpleOAuth
       assert_equal "key123", parsed[:consumer_key]
     end
 
+    def test_parse_form_body_ignores_a_key_without_the_oauth_prefix
+      # "token" is an OAuth attribute name, but only "oauth_token" carries it in a request
+      assert_equal({token: "signed"}, SimpleOAuth::Header.parse_form_body("token=bare&oauth_token=signed"))
+    end
+
     def test_parse_form_body_uses_first_value_for_duplicate_keys
       body = "oauth_consumer_key=first&oauth_consumer_key=second"
       parsed = SimpleOAuth::Header.parse_form_body(body)

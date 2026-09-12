@@ -1,4 +1,3 @@
-require "cgi"
 require "uri"
 require_relative "encoding"
 require_relative "errors"

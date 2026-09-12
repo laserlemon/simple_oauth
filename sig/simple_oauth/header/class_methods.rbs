@@ -26,10 +26,10 @@ module SimpleOAuth
 
       def parse_form_body: (String | _ToS body) -> Header::oauth_options
 
-      private
+      # Parses a form-encoded query string or body into parameter pairs
+      def form_pairs: (String | _ToS | nil form) -> Array[[String, String]]
 
-      # Parses a form-encoded body into the parameter pairs to sign
-      def form_params: (String? body) -> Array[[String, String]]
+      private
 
       # Checks whether a request carries a form-encoded body
       def form_encoded?: (Header::_Request request) -> bool

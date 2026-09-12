@@ -21,11 +21,30 @@ module SimpleOAuth
       assert_equal [%w[file vacation.jpg]], header.send(:url_params)
     end
 
-    def test_url_params_sorts_values_for_repeated_keys
-      # RFC 5849 Section 3.4.1.3.2 - values for same key sorted
+    def test_url_params_keeps_the_order_of_the_query_string
       header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos?size=3&size=1&size=2", {})
 
-      assert_equal [%w[size 1], %w[size 2], %w[size 3]], header.send(:url_params)
+      assert_equal [%w[size 3], %w[size 1], %w[size 2]], header.send(:url_params)
+    end
+
+    def test_normalized_params_sorts_values_for_repeated_keys
+      # RFC 5849 Section 3.4.1.3.2 - parameters sharing a name are sorted by value
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos?size=3&size=1&size=2", {})
+
+      assert_includes header.send(:normalized_params), "size=1&size=2&size=3"
+    end
+
+    def test_url_params_ignores_an_empty_segment
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos?a=1&&b=2", {})
+
+      assert_equal [%w[a 1], %w[b 2]], header.send(:url_params)
+    end
+
+    def test_url_params_treat_a_semicolon_as_part_of_the_value
+      # Only "&" separates parameters; a ";" is data, as every current server reads it
+      header = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos?a=1;b=2", {})
+
+      assert_equal [["a", "1;b=2"]], header.send(:url_params)
     end
 
     def test_url_params_handles_empty_query_string

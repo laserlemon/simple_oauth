@@ -2,6 +2,7 @@
 
 ### Changed
 
+* Drop the `cgi` runtime dependency: query strings and form bodies are read with `URI.decode_www_form`, which Ruby ships in every supported version
 * **Breaking**: rename `Signature.methods` to `Signature.registered_methods`, so that `Signature.methods` is the module's own method list again
 * **Breaking**: define `VERSION` in `SimpleOAuth`, the module the rest of the library uses, rather than in a second `SimpleOauth` module; `SimpleOauth::VERSION` is gone and `SimpleOAuth::VERSION` now resolves
 * **Breaking**: `Signature.rsa?` raises `ArgumentError` for a signature method that is not registered, as `Signature.digest`, `sign`, and `verify` already do, rather than answering false
@@ -9,6 +10,7 @@
 
 ### Fixed
 
+* Treat only `&` as a parameter separator when reading a query string or form body; a `;` is part of the value, as every current server reads it, so `?a=1;b=2` no longer signs two parameters where the server sees one
 * Sign a parameter that carries no value, such as a bare `?flag` in the query string or the `c2` of the RFC 5849 Section 3.4.1.3.1 example, as `name=` rather than dropping it from the signature base string; a request carrying one signed differently than the server computes, so it was rejected
 
 ### Added

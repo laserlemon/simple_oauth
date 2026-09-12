@@ -8,7 +8,6 @@ target :lib do
   library "base64"
   library "openssl"
   library "uri"
-  library "cgi"
   library "securerandom"
   library "json"
 

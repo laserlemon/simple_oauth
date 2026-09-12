@@ -1,4 +1,4 @@
-require "cgi"
+require "uri"
 
 module SimpleOAuth
   class Header
@@ -33,15 +33,14 @@ module SimpleOAuth
 
       # Extracts query parameters from the request URL
       #
-      # A parameter with no value, such as the "c2" of the RFC 5849 Section 3.4.1.3.1
-      # example, is signed with an empty value rather than dropped.
+      # The pairs are left in the order the query string gave them, because
+      # {#normalized_params} sorts every parameter once they are all encoded, which is the
+      # order RFC 5849 Section 3.4.1.3.2 asks for.
       #
       # @api private
       # @return [Array<Array>] URL query parameters as key-value pairs
       def url_params
-        CGI.parse(@uri.query || "").flat_map do |key, values|
-          values.empty? ? [[key, ""]] : values.sort.map { |value| [key, value] }
-        end
+        Header.form_pairs(@uri.query)
       end
 
       # Normalizes and sorts all request parameters for signing
