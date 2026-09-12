@@ -160,7 +160,7 @@ module SimpleOAuth
 end
 
 # Version module
-module SimpleOauth
+module SimpleOAuth
   # The current version of the SimpleOAuth gem
   VERSION: String
 end

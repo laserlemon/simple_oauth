@@ -2,7 +2,7 @@ require_relative "lib/simple_oauth/version"
 
 Gem::Specification.new do |spec|
   spec.name = "simple_oauth"
-  spec.version = SimpleOauth::VERSION
+  spec.version = SimpleOAuth::VERSION
   spec.authors = ["Steve Richert", "Erik Berlin"]
   spec.email = ["steve.richert@gmail.com", "sferik@gmail.com"]
 
