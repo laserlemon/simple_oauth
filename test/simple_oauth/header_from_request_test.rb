@@ -44,6 +44,34 @@ module SimpleOAuth
       assert_equal expected.to_s, SimpleOAuth::Header.from_request(request, OPTIONS).to_s
     end
 
+    def test_accepts_a_content_type_in_uppercase
+      request = Net::HTTP::Post.new(URI(RFC5849::PHOTOS_URL))
+      request.body = "status=Hello"
+      request["Content-Type"] = "Application/X-WWW-Form-UrlEncoded"
+      expected = SimpleOAuth::Header.new(:post, RFC5849::PHOTOS_URL, {"status" => "Hello"}, OPTIONS)
+
+      assert_equal expected.to_s, SimpleOAuth::Header.from_request(request, OPTIONS).to_s
+    end
+
+    def test_accepts_a_content_type_padded_with_spaces
+      request = Net::HTTP::Post.new(URI(RFC5849::PHOTOS_URL))
+      request.body = "status=Hello"
+      request["Content-Type"] = " application/x-www-form-urlencoded ; charset=utf-8"
+      expected = SimpleOAuth::Header.new(:post, RFC5849::PHOTOS_URL, {"status" => "Hello"}, OPTIONS)
+
+      assert_equal expected.to_s, SimpleOAuth::Header.from_request(request, OPTIONS).to_s
+    end
+
+    def test_hashes_a_body_whose_media_type_only_begins_with_the_form_media_type
+      request = Net::HTTP::Post.new(URI(RFC5849::PHOTOS_URL))
+      request.body = '{"status":"Hello"}'
+      request["Content-Type"] = "application/x-www-form-urlencoded-json"
+      header = SimpleOAuth::Header.from_request(request, OPTIONS)
+
+      assert_equal SimpleOAuth::Header.body_hash('{"status":"Hello"}'), header.signed_attributes[:oauth_body_hash]
+      assert_empty header.params
+    end
+
     def test_hashes_a_body_that_is_not_form_encoded
       request = Net::HTTP::Post.new(URI(RFC5849::PHOTOS_URL), "Content-Type" => "application/json")
       request.body = '{"status":"Hello"}'

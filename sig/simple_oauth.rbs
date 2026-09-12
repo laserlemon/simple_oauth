@@ -144,6 +144,9 @@ module SimpleOAuth
     # The key for signing and verifying
     def signing_key: (oauth_options options) -> String?
 
+    # Checks the body against the oauth_body_hash the header carries
+    def body_hash_valid?: () -> bool
+
     # Computes the OAuth signature using the configured signature method
     def signature: () -> String
 

@@ -123,7 +123,19 @@ module SimpleOAuth
       # @param request [#[]] the request
       # @return [Boolean] true if the body is form-encoded
       def form_encoded?(request)
-        request["Content-Type"].to_s.start_with?(FORM_CONTENT_TYPE)
+        media_type(request).eql?(FORM_CONTENT_TYPE)
+      end
+
+      # Extracts the media type from a request, without its parameters
+      #
+      # Per RFC 9110 Section 8.3 the media type is case-insensitive and may carry parameters,
+      # such as a charset, that play no part in identifying it.
+      #
+      # @api private
+      # @param request [#[]] the request
+      # @return [String] the lowercase media type, or an empty String when the request declares none
+      def media_type(request)
+        request["Content-Type"].to_s.split(";").first.to_s.strip.downcase
       end
 
       # Generates a random nonce for OAuth requests

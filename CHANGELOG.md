@@ -20,6 +20,7 @@
 
 ### Fixed
 
+* Check `oauth_body_hash` against the body a header was built with when verifying, so a body changed after signing no longer verifies against the hash its signature covers
 * Verify signatures without merging the given secrets into the header's own options, where anything else reading the header could see them
 * Compare signatures in constant time when verifying
 * Compute `oauth_body_hash` with the hash algorithm of the signature method, such as SHA-256 for HMAC-SHA256; it was always SHA-1

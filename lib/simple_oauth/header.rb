@@ -123,13 +123,15 @@ module SimpleOAuth
     # @api public
     # @param secrets [Hash] the consumer_secret and token_secret for validation
     # @return [Boolean] true if the signature is valid, false otherwise
+    # @note When the header was built with a body, the signed oauth_body_hash must match that body,
+    #   so a tampered body fails verification even though its signature covers the claimed hash
     # @example
     #   parsed_header = SimpleOAuth::Header.new(:get, url, {}, authorization_header)
     #   parsed_header.valid?(consumer_secret: "secret", token_secret: "token_secret")
     #   # => true
     def valid?(secrets = {})
-      Signature.verify(options.fetch(:signature_method), signing_key(options.merge(secrets)), signature_base,
-        options.fetch(:signature))
+      body_hash_valid? && Signature.verify(options.fetch(:signature_method), signing_key(options.merge(secrets)),
+        signature_base, options.fetch(:signature))
     end
 
     # Returns the OAuth attributes including the signature
@@ -209,6 +211,22 @@ module SimpleOAuth
     # @return [String, nil] the key
     def signing_key(options)
       Signature.rsa?(options.fetch(:signature_method)) ? options[:consumer_secret] : secret(options)
+    end
+
+    # Checks the body against the oauth_body_hash the header carries
+    #
+    # A header parsed from a request claims a body hash that its signature covers, so the claim must be
+    # checked against the body actually received. A signer that omits oauth_body_hash leaves the body
+    # unprotected, which its signature already attests to, so there is nothing to check.
+    #
+    # @api private
+    # @return [Boolean] true unless the body contradicts the signed oauth_body_hash
+    def body_hash_valid?
+      claimed_body_hash = options[:body_hash]
+      return true if body.nil? || claimed_body_hash.nil?
+
+      digest = Signature.digest(options.fetch(:signature_method))
+      OpenSSL.secure_compare(self.class.body_hash(body, digest), claimed_body_hash)
     end
 
     # Builds the secret string from consumer and token secrets
