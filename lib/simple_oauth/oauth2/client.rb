@@ -76,7 +76,8 @@ module SimpleOAuth
       #
       # @api public
       # @param client_id [String] the client identifier
-      # @param client_secret [String, nil] the client secret, or nil for a public client
+      # @param client_secret [String, nil] the client secret, or nil for a public client; an empty
+      #   secret is no secret, so a client given one is public
       # @param authorization_endpoint [String, nil] the authorization endpoint URL
       # @param token_endpoint [String, nil] the token endpoint URL
       # @param revocation_endpoint [String, nil] the revocation endpoint URL
@@ -100,12 +101,15 @@ module SimpleOAuth
 
       # Check whether the client is public, meaning it has no secret
       #
+      # A secret that is empty is no secret, so a client holding one cannot authenticate
+      # with it and identifies itself with its client_id alone.
+      #
       # @api public
       # @return [Boolean] true if the client has no secret
       # @example
       #   client.public? # => false
       def public?
-        client_secret.nil?
+        client_secret.to_s.empty?
       end
 
       # Build the URL where the user authorizes the client (RFC 6749 Section 4.1.1)
@@ -205,11 +209,13 @@ module SimpleOAuth
       # @return [Request] the request
       def form_request(url, params)
         headers = {"Content-Type" => FORM_CONTENT_TYPE, "Accept" => "application/json"}
-        secret = client_secret
-        if secret && auth_method.eql?(:client_secret_basic)
-          headers["Authorization"] = basic_authorization(secret)
-        else
+        secret = client_secret unless public?
+        if secret.nil?
+          params = params.merge(client_id:)
+        elsif auth_method.eql?(:client_secret_post)
           params = params.merge(client_id:, client_secret: secret)
+        else
+          headers["Authorization"] = basic_authorization(secret)
         end
         Request.new(method: "POST", url:, headers:, body: URI.encode_www_form(params.compact))
       end

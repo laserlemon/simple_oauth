@@ -41,6 +41,19 @@ module SimpleOAuth
         refute_predicate confidential_client, :public?
       end
 
+      def test_public_with_an_empty_secret
+        assert_predicate SimpleOAuth::OAuth2::Client.new(client_id: CLIENT_ID, client_secret: ""), :public?
+      end
+
+      def test_an_empty_secret_authenticates_as_a_public_client
+        client = SimpleOAuth::OAuth2::Client.new(client_id: CLIENT_ID, client_secret: "",
+          token_endpoint: TOKEN_ENDPOINT)
+        request = client.refresh_token_request(refresh_token: REFRESH_TOKEN)
+
+        refute_includes request.headers, "Authorization"
+        assert_equal "grant_type=refresh_token&refresh_token=#{REFRESH_TOKEN}&client_id=#{CLIENT_ID}", request.body
+      end
+
       def test_client_secret_post
         assert_equal :client_secret_post, confidential_client(auth_method: :client_secret_post).auth_method
       end
