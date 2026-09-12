@@ -8,11 +8,14 @@ module SimpleOAuth
 
     # Error returned by an OAuth 2.0 endpoint
     class Error < StandardError
+      INVALID_STATUS: String
+
       attr_reader code: String?
       attr_reader description: String?
       attr_reader uri: String?
       attr_reader status: Integer?
 
+      def self.http_status: (Integer | String value) -> Integer
       def self.from_response: (status: Integer | String, body: String?) -> Error
       def initialize: (code: String?, ?description: String?, ?uri: String?, ?status: Integer?) -> void
     end

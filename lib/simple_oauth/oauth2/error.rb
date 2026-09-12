@@ -8,6 +8,9 @@ module SimpleOAuth
     # @example Raise the error described by a failed response
     #   raise SimpleOAuth::OAuth2::Error.from_response(status: 400, body: '{"error":"invalid_grant"}')
     class Error < StandardError
+      # The error message for a status that is not an HTTP status
+      INVALID_STATUS = "The status must be an Integer or a String of digits".freeze
+
       # The error code, such as invalid_grant, if the response included one
       #
       # @api public
@@ -40,18 +43,31 @@ module SimpleOAuth
       #   error.status # => 400
       attr_reader :status
 
+      # The HTTP status of a response, as an Integer
+      #
+      # @api private
+      # @param value [Integer, String] the status of the response
+      # @return [Integer] the status
+      # @raise [ArgumentError] if the value is not an HTTP status
+      # @example
+      #   SimpleOAuth::OAuth2::Error.http_status("400") # => 400
+      def self.http_status(value)
+        Integer(value, exception: false) || raise(ArgumentError, "#{INVALID_STATUS}: #{value.inspect}")
+      end
+
       # Build the error described by an OAuth 2.0 error response
       #
       # @api public
       # @param status [Integer, String] the HTTP status of the response
       # @param body [String, nil] the response body
       # @return [Error] the error
+      # @raise [ArgumentError] if the status is not an HTTP status
       # @example
       #   SimpleOAuth::OAuth2::Error.from_response(status: 400, body: '{"error":"invalid_grant"}')
       def self.from_response(status:, body:)
         params = ResponseBody.parse(body)
         new(code: params["error"], description: params["error_description"], uri: params["error_uri"],
-          status: Integer(status))
+          status: http_status(status))
       end
 
       # Initialize a new error

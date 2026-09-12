@@ -118,10 +118,11 @@ module SimpleOAuth
       # @param issued_at [Time] when the token was issued, used to compute its expiration
       # @return [Token] the token
       # @raise [Error] if the response is not successful, or carries no usable token
+      # @raise [ArgumentError] if the status is not an HTTP status
       # @example
       #   SimpleOAuth::OAuth2::Token.from_response(status: 200, body: '{"access_token":"abc","token_type":"bearer"}')
       def self.from_response(status:, body:, issued_at: Time.now)
-        code = Integer(status)
+        code = Error.http_status(status)
         raise Error.from_response(status:, body:) unless (200..299).cover?(code)
 
         params = ResponseBody.parse(body)
