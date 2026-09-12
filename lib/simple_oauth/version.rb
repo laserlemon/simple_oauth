@@ -1,5 +1,5 @@
 # OAuth 1.0 header generation library
 module SimpleOauth
   # The current version of the SimpleOAuth gem
-  VERSION = "0.5.0".freeze
+  VERSION = "0.5.1".freeze
 end
