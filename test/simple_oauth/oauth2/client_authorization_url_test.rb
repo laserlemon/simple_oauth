@@ -22,6 +22,12 @@ module SimpleOAuth
         assert_includes url, "&scope=tweet.read+users.read&state=xyz"
       end
 
+      def test_empty_scope_is_omitted
+        url = public_client.authorization_url(redirect_uri: REDIRECT_URI, state: "xyz", scope: [])
+
+        refute_includes url, "scope"
+      end
+
       def test_scope_string_is_sent_as_is
         url = public_client.authorization_url(redirect_uri: REDIRECT_URI, state: "xyz", scope: "offline.access")
 

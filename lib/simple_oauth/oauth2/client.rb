@@ -226,12 +226,16 @@ module SimpleOAuth
 
       # Join a list of scopes with spaces
       #
+      # RFC 6749 Appendix A.4 defines a scope as one or more characters, so an empty
+      # scope is omitted rather than sent as an empty parameter.
+      #
       # @api private
       # @param scope [String, Array<String>, nil] the scope
-      # @return [String, nil] the space-delimited scope
+      # @return [String, nil] the space-delimited scope, or nil if there is none
       def scope_value(scope)
-        # Array#join flattens, so a String and an Array of Strings both join correctly
-        scope && [scope].join(" ")
+        # Array#join flattens, so a String and an Array of Strings both join correctly, and nil joins to ""
+        value = [scope].join(" ")
+        value unless value.empty?
       end
 
       # An endpoint URL, which must be configured

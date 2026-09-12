@@ -70,6 +70,20 @@ module SimpleOAuth
           confidential_client.client_credentials_request(scope: "a b").body
       end
 
+      def test_request_without_a_scope_omits_it
+        assert_equal "grant_type=client_credentials", confidential_client.client_credentials_request.body
+      end
+
+      def test_request_with_an_empty_scope_omits_it
+        assert_equal "grant_type=client_credentials",
+          confidential_client.client_credentials_request(scope: "").body
+      end
+
+      def test_request_with_an_empty_scope_list_omits_it
+        assert_equal "grant_type=client_credentials",
+          confidential_client.client_credentials_request(scope: []).body
+      end
+
       def test_client_credentials_request_with_a_scope_list
         assert_equal "grant_type=client_credentials&scope=a+b",
           confidential_client.client_credentials_request(scope: %w[a b]).body
