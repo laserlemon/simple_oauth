@@ -7,6 +7,10 @@
 * **Breaking**: `Signature.rsa?` raises `ArgumentError` for a signature method that is not registered, as `Signature.digest`, `sign`, and `verify` already do, rather than answering false
 * `SimpleOAuth::Error` is the base of every error the library raises, so `rescue SimpleOAuth::Error` catches `ParseError`, `InvalidOptionsError`, and `OAuth2::Error` alike
 
+### Fixed
+
+* Sign a parameter that carries no value, such as a bare `?flag` in the query string or the `c2` of the RFC 5849 Section 3.4.1.3.1 example, as `name=` rather than dropping it from the signature base string; a request carrying one signed differently than the server computes, so it was rejected
+
 ### Added
 
 * OAuth 2.0 request builders and response parsers in `SimpleOAuth::OAuth2`, which make no HTTP requests:
