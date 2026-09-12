@@ -143,10 +143,10 @@ module SimpleOAuth
       refute Signature.rsa?("PLAINTEXT")
     end
 
-    def test_rsa_returns_false_for_unknown_method
-      result = Signature.rsa?("UNKNOWN")
+    def test_rsa_raises_for_unknown_method
+      error = assert_raises(ArgumentError) { Signature.rsa?("UNKNOWN") }
 
-      assert_instance_of FalseClass, result
+      assert_match "Unknown signature method: UNKNOWN", error.message
     end
   end
 

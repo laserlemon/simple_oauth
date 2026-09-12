@@ -77,11 +77,12 @@ module SimpleOAuth
       # @api public
       # @param name [String] the signature method name
       # @return [Boolean] true if the method uses RSA
+      # @raise [ArgumentError] if the signature method is not registered
       # @example
       #   SimpleOAuth::Signature.rsa?("RSA-SHA1")  # => true
       #   SimpleOAuth::Signature.rsa?("HMAC-SHA1") # => false
       def rsa?(name)
-        @registry.dig(normalize_name(name), :rsa) || false
+        fetch(name).fetch(:rsa)
       end
 
       # Returns the hash algorithm a signature method signs with
