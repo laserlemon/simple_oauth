@@ -1,8 +1,7 @@
-## [0.4.2] - 2026-09-12
+## [0.5.0] - 2026-09-12
 
 ### Added
 
-* Document passing `Header` parameters as an Array of key-value pairs when a key repeats
 * `Header.from_request`, which builds a header for a request object such as a `Net::HTTPRequest`, signing its query parameters, its form-encoded body, or hashing any other body
 * `Header.parse_query`, for OAuth credentials sent in a query string
 * `Signature.digest`, and a `digest:` option on `Signature.register`, which gives the hash algorithm a signature method signs with
@@ -11,13 +10,23 @@
 
 ### Fixed
 
-* Accept an Array of key-value pairs as `Header` parameters in the RBS signatures, which already worked at runtime
 * Check `oauth_body_hash` against the body a header was built with when verifying, so a body changed after signing no longer verifies against the hash its signature covers
 * Verify signatures without merging the given secrets into the header's own options, where anything else reading the header could see them
 * Compare signatures in constant time when verifying
 * Compute `oauth_body_hash` with the hash algorithm of the signature method, such as SHA-256 for HMAC-SHA256; it was always SHA-1
 * Sign a parameter whose value is an Array as one parameter per value, as a repeated parameter; the Array was previously signed as its Ruby representation
 * Verify RSA signatures with the signer's public key, which is all a verifier has; `Header#valid?` previously recomputed the signature and so needed the private key
+* Match the form-encoded media type exactly when signing a body, rather than by prefix, so a media type such as `application/x-www-form-urlencoded-json` is hashed instead of signed as parameters, and `Application/X-WWW-Form-Urlencoded` is recognized
+
+## [0.4.2] - 2026-09-12
+
+### Added
+
+* Document passing `Header` parameters as an Array of key-value pairs when a key repeats
+
+### Fixed
+
+* Accept an Array of key-value pairs as `Header` parameters in the RBS signatures, which already worked at runtime
 
 ## [0.4.1] - 2026-04-20
 
