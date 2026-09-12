@@ -5,6 +5,7 @@
 * Every file declares `frozen_string_literal: true`, and the explicit `freeze` calls on string literals it makes redundant are gone
 * Drop the `base64` runtime dependency: `pack("m0")` and `unpack1("m")` encode and decode Base64 in core Ruby, so the gem now has no runtime dependencies at all
 * Drop the `cgi` runtime dependency: query strings and form bodies are read with `URI.decode_www_form`, which Ruby ships in every supported version
+* **Breaking**: raise `ParseError` when an Authorization header, form body, or query string repeats an OAuth protocol parameter, which RFC 5849 Section 3.2 does not allow; `Header.parse` previously kept the last value and `Header.parse_form_body` the first, so the two disagreed about which one a request carried
 * **Breaking**: rename `Signature.methods` to `Signature.registered_methods`, so that `Signature.methods` is the module's own method list again
 * **Breaking**: define `VERSION` in `SimpleOAuth`, the module the rest of the library uses, rather than in a second `SimpleOauth` module; `SimpleOauth::VERSION` is gone and `SimpleOAuth::VERSION` now resolves
 * **Breaking**: `Signature.rsa?` raises `ArgumentError` for a signature method that is not registered, as `Signature.digest`, `sign`, and `verify` already do, rather than answering false

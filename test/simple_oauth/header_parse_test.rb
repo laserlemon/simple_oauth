@@ -230,5 +230,19 @@ module SimpleOAuth
 
       assert_match(/Authorization header must start with 'OAuth '/, error.message)
     end
+
+    def test_parse_rejects_a_duplicated_protocol_parameter
+      # RFC 5849 Section 3.2 - a request that repeats a protocol parameter is not verifiable
+      header = 'OAuth oauth_consumer_key="first", oauth_consumer_key="second"'
+      error = assert_raises(SimpleOAuth::ParseError) { SimpleOAuth::Header.parse(header) }
+
+      assert_equal "Duplicate protocol parameter: oauth_consumer_key", error.message
+    end
+
+    def test_parse_allows_an_unknown_parameter_to_repeat
+      parsed = SimpleOAuth::Header.parse('OAuth other="a", other="b", oauth_token="t"')
+
+      assert_equal({token: "t"}, parsed)
+    end
   end
 end

@@ -60,11 +60,18 @@ module SimpleOAuth
       assert_equal({token: "signed"}, SimpleOAuth::Header.parse_form_body("token=bare&oauth_token=signed"))
     end
 
-    def test_parse_form_body_uses_first_value_for_duplicate_keys
+    def test_parse_form_body_rejects_a_duplicated_protocol_parameter
+      # RFC 5849 Section 3.2 - a request that repeats a protocol parameter is not verifiable
       body = "oauth_consumer_key=first&oauth_consumer_key=second"
-      parsed = SimpleOAuth::Header.parse_form_body(body)
+      error = assert_raises(SimpleOAuth::ParseError) { SimpleOAuth::Header.parse_form_body(body) }
 
-      assert_equal "first", parsed[:consumer_key]
+      assert_equal "Duplicate protocol parameter: oauth_consumer_key", error.message
+    end
+
+    def test_parse_form_body_allows_a_repeated_parameter_that_is_not_a_protocol_parameter
+      parsed = SimpleOAuth::Header.parse_form_body("status=a&status=b&oauth_token=t")
+
+      assert_equal({token: "t"}, parsed)
     end
 
     def test_parse_form_body_handles_key_without_equals_sign

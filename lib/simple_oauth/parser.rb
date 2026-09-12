@@ -90,9 +90,13 @@ module SimpleOAuth
     # @param value [String] the parameter value
     # @param valid_keys [Array<Symbol>] the valid OAuth parameter keys
     # @return [void]
+    # @raise [SimpleOAuth::ParseError] if the header repeats the parameter
     def store_if_valid(key, value, valid_keys)
       parsed_key = valid_keys.find { |k| "oauth_#{k}".eql?(key) }
-      attributes[parsed_key] = Header.unescape(value) if parsed_key
+      return if parsed_key.nil?
+      raise ParseError, "Duplicate protocol parameter: #{key}" if attributes.key?(parsed_key)
+
+      attributes[parsed_key] = Header.unescape(value)
     end
 
     # Verifies that the entire header was parsed

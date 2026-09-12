@@ -86,6 +86,7 @@ module SimpleOAuth
       # @api public
       # @param body [String, #to_s] the form-encoded request body
       # @return [Hash] parsed OAuth attributes with symbol keys (only valid OAuth keys)
+      # @raise [SimpleOAuth::ParseError] if the body repeats a protocol parameter
       # @example
       #   SimpleOAuth::Header.parse_form_body('oauth_consumer_key=key&oauth_signature=sig&status=hello')
       #   # => {consumer_key: "key", signature: "sig"}
@@ -100,8 +101,10 @@ module SimpleOAuth
           next unless key.start_with?(OAUTH_PREFIX)
 
           parsed_key = key.delete_prefix(OAUTH_PREFIX)
-          # ||= so that the first value wins when a parameter repeats
-          result[parsed_key.to_sym] ||= value if valid_keys.include?(parsed_key)
+          next unless valid_keys.include?(parsed_key)
+          raise ParseError, "Duplicate protocol parameter: #{key}" if result.key?(parsed_key.to_sym)
+
+          result[parsed_key.to_sym] = value
         end
         result
       end
