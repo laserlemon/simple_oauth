@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "oauth2/authorization_response"
 require_relative "oauth2/client"
 require_relative "oauth2/error"
 require_relative "oauth2/pkce"

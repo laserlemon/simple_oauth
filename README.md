@@ -220,9 +220,12 @@ redirect_to client.authorization_url(
   scope: %w[tweet.read users.read offline.access]
 )
 
-# 2. Exchange the code the user returns with for a token
+# 2. Read the response the authorization server returned to the callback
+response = SimpleOAuth::OAuth2::AuthorizationResponse.parse(request.query_string, state: state)
+
+# 3. Exchange the code for a token
 request = client.authorization_code_request(
-  code: params[:code],
+  code: response.code,
   redirect_uri: "https://app.example/callback",
   code_verifier: pkce.verifier
 )
@@ -234,7 +237,23 @@ token.refresh_token # => "..."
 token.expires_at    # => 2026-09-11 14:00:00 +0000
 ```
 
-`Token.from_response` raises `SimpleOAuth::OAuth2::Error` for an error response, with the endpoint's `code`, `description`, `uri`, and HTTP `status`.
+`AuthorizationResponse.parse` makes the checks a client owes its own request, raising `SimpleOAuth::OAuth2::Error` rather than returning a code you cannot trust:
+
+* the error the server reported, if it reported one ([RFC 6749 Section 4.1.2.1](https://www.rfc-editor.org/rfc/rfc6749#section-4.1.2.1))
+* a `state` that is not the one the authorization URL sent, compared in constant time
+* an `iss` that is not the expected issuer, when one is given ([RFC 9207](https://www.rfc-editor.org/rfc/rfc9207), which defends against a mix-up between authorization servers)
+* a parameter the response repeats, which RFC 6749 Section 3.1 forbids
+* a response carrying no code at all
+
+```ruby
+SimpleOAuth::OAuth2::AuthorizationResponse.parse(
+  request.query_string,
+  state: session[:state],              # omit when the request sent none
+  issuer: "https://server.example.com" # omit to make no issuer check
+)
+```
+
+It takes the query string, or the parameters a framework already parsed. `Token.from_response` raises `SimpleOAuth::OAuth2::Error` for an error response, with the endpoint's `code`, `description`, `uri`, and HTTP `status`.
 
 ### Refreshing, Client Credentials, and Revocation
 

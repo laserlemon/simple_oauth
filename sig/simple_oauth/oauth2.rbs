@@ -6,6 +6,28 @@ module SimpleOAuth
       def self.parse: (String? body) -> Hash[String, untyped]
     end
 
+    # The response an authorization server returns to a client's redirect URI
+    class AuthorizationResponse
+      type response_params = Hash[String | Symbol, String]
+
+      STATE_MISMATCH: String
+      ISSUER_MISMATCH: String
+      NO_CODE: String
+      DUPLICATE_PARAMETER: String
+
+      attr_reader code: String
+      attr_reader state: String?
+      attr_reader issuer: String?
+      attr_reader params: Hash[String, String]
+
+      def self.parse: (String | response_params | nil query, ?state: String?, ?issuer: String?) -> AuthorizationResponse
+      def self.parameters: (String | response_params | nil query) -> Hash[String, String]
+      def self.reported_error: (Hash[String, String] params) -> Error
+      def self.mismatch_reason: (Hash[String, String] params, String? state, String? issuer) -> String?
+      def self.matches?: (String? expected, String? actual) -> bool
+      def initialize: (response_params params) -> void
+    end
+
     # Error returned by an OAuth 2.0 endpoint
     class Error < SimpleOAuth::Error
       INVALID_STATUS: String
