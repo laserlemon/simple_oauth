@@ -101,7 +101,9 @@ module SimpleOAuth
     #   header.url
     #   # => "https://api.example.com/path"
     def url
-      @uri.dup.tap { |uri| uri.query = nil }.to_str
+      # String() takes whichever conversion the installed uri defines: it gained to_str in
+      # 0.13, and the uri that ships with Ruby 3.2 offers only to_s
+      String(@uri.dup.tap { |uri| uri.query = nil })
     end
 
     # Returns the OAuth Authorization header string

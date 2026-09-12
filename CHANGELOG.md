@@ -11,6 +11,7 @@
 
 ### Fixed
 
+* Build the signature base string with `URI::Generic#to_s` rather than `#to_str`, which the `uri` that ships with Ruby 3.2 does not define; `Header#url` raised `NoMethodError` on a stock Ruby 3.2, the oldest version the gem claims to support
 * Treat only `&` as a parameter separator when reading a query string or form body; a `;` is part of the value, as every current server reads it, so `?a=1;b=2` no longer signs two parameters where the server sees one
 * Sign a parameter that carries no value, such as a bare `?flag` in the query string or the `c2` of the RFC 5849 Section 3.4.1.3.1 example, as `name=` rather than dropping it from the signature base string; a request carrying one signed differently than the server computes, so it was rejected
 
