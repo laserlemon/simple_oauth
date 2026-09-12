@@ -1,7 +1,0 @@
-# Extensions to the URI module
-module URI
-  class Generic
-    # Returns the URI as a String (implicit conversion)
-    def to_str: () -> String
-  end
-end
