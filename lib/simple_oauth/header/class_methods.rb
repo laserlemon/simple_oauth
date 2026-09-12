@@ -71,7 +71,7 @@ module SimpleOAuth
       def from_request(request, oauth = {})
         uri = request.uri || raise(ArgumentError, "The request has no URI")
         body = request.body
-        return new(request.method, uri, CGI.parse(body.to_s), oauth) if form_encoded?(request)
+        return new(request.method, uri, form_params(body), oauth) if form_encoded?(request)
 
         no_params = {} #: Header::request_params
         new(request.method, uri, no_params, oauth, body)
@@ -116,6 +116,21 @@ module SimpleOAuth
       alias_method :parse_query, :parse_form_body
 
       private
+
+      # Parses a form-encoded body into the parameter pairs to sign
+      #
+      # A parameter with no value, such as the "c2" of the RFC 5849 Section 3.4.1.3.1
+      # example, is signed with an empty value rather than dropped.
+      #
+      # @api private
+      # @param body [String, nil] the form-encoded body
+      # @return [Array<Array(String, String)>] the parameter pairs
+      def form_params(body)
+        CGI.parse(body.to_s).flat_map do |key, values|
+          # A parameter with no value still makes one pair, carrying an empty value
+          (values.empty? ? [""] : values).map { |value| [key, value] }
+        end
+      end
 
       # Checks whether a request carries a form-encoded body
       #

@@ -28,6 +28,9 @@ module SimpleOAuth
 
       private
 
+      # Parses a form-encoded body into the parameter pairs to sign
+      def form_params: (String? body) -> Array[[String, String]]
+
       # Checks whether a request carries a form-encoded body
       def form_encoded?: (Header::_Request request) -> bool
 

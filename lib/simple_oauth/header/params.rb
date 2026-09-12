@@ -33,11 +33,15 @@ module SimpleOAuth
 
       # Extracts query parameters from the request URL
       #
+      # A parameter with no value, such as the "c2" of the RFC 5849 Section 3.4.1.3.1
+      # example, is signed with an empty value rather than dropped.
+      #
       # @api private
       # @return [Array<Array>] URL query parameters as key-value pairs
       def url_params
         CGI.parse(@uri.query || "").flat_map do |key, values|
-          values.sort.map { |value| [key, value] }
+          # A parameter with no value still makes one pair, carrying an empty value
+          (values.empty? ? [""] : values.sort).map { |value| [key, value] }
         end
       end
 

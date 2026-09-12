@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+* Sign a parameter that carries no value, such as a bare `?flag` in the query string or the `c2` of the RFC 5849 Section 3.4.1.3.1 example, as `name=` rather than dropping it from the signature base string; a request carrying one signed differently than the server computes, so it was rejected
+
 ## [0.5.0] - 2026-09-12
 
 ### Added
