@@ -22,6 +22,22 @@ module SimpleOAuth
         assert_includes url, "&scope=tweet.read+users.read&state=xyz"
       end
 
+      def test_extra_params_with_a_string_key_override_rather_than_repeat
+        url = public_client.authorization_url(redirect_uri: REDIRECT_URI, state: "xyz",
+          params: {"state" => "other"})
+
+        assert_includes url, "state=other"
+        refute_includes url, "state=xyz"
+      end
+
+      def test_extra_params_with_a_symbol_key_override
+        url = public_client.authorization_url(redirect_uri: REDIRECT_URI, state: "xyz",
+          params: {response_type: "token"})
+
+        assert_includes url, "response_type=token"
+        refute_includes url, "response_type=code"
+      end
+
       def test_empty_scope_is_omitted
         url = public_client.authorization_url(redirect_uri: REDIRECT_URI, state: "xyz", scope: [])
 

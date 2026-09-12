@@ -120,7 +120,8 @@ module SimpleOAuth
       #   which the authorization server returns with the code
       # @param scope [String, Array<String>, nil] the requested scope
       # @param pkce [PKCE, nil] the PKCE challenge to send
-      # @param params [Hash] additional query parameters
+      # @param params [Hash] additional query parameters, which override the ones the client
+      #   sends itself, whether their keys are Strings or Symbols
       # @return [String] the authorization URL
       # @raise [ArgumentError] if the state is empty, or the client has no authorization endpoint
       # @example
@@ -132,7 +133,9 @@ module SimpleOAuth
         url = endpoint(authorization_endpoint, :authorization_endpoint)
         query = {response_type: "code", client_id:, redirect_uri:, scope: scope_value(scope), state:,
                  code_challenge: pkce&.challenge, code_challenge_method: pkce&.challenge_method}
-        "#{url}#{url.include?("?") ? "&" : "?"}#{URI.encode_www_form(query.merge(params).compact)}"
+        # Symbolize the caller's keys so that a String key overrides rather than repeating a parameter
+        query = query.merge(params.transform_keys(&:to_sym)).compact
+        "#{url}#{url.include?("?") ? "&" : "?"}#{URI.encode_www_form(query)}"
       end
 
       # Build the request that exchanges an authorization code for a token
