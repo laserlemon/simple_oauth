@@ -7,6 +7,9 @@ module OpenSSL
     class PKey
       # Sign with digest name as String (in addition to Digest object)
       def sign: (String | OpenSSL::Digest digest, String data) -> String
+
+      # Verify with digest name as String (in addition to Digest object)
+      def verify: (String | OpenSSL::Digest digest, String signature, String data) -> bool
     end
   end
 end

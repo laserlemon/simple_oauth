@@ -31,6 +31,9 @@ module SimpleOAuth
       # Checks whether a request carries a form-encoded body
       def form_encoded?: (Header::_Request request) -> bool
 
+      # Extracts the media type from a request, without its parameters
+      def media_type: (Header::_Request request) -> String
+
 
       # Generates a random nonce for OAuth requests
       def generate_nonce: () -> String
