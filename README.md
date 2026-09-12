@@ -237,6 +237,19 @@ client.revocation_request(token: token.refresh_token, token_type_hint: "refresh_
 token.expired?(leeway: 30) # => true within 30 seconds of expiring
 ```
 
+Every request builder takes `params` for anything the extension you need adds to the request, such as the resource indicator of [RFC 8707](https://www.rfc-editor.org/rfc/rfc8707):
+
+```ruby
+client.authorization_code_request(
+  code: params[:code],
+  redirect_uri: "https://app.example/callback",
+  code_verifier: pkce.verifier,
+  params: {resource: "https://api.example/"}
+)
+```
+
+These override the parameters the client sends itself, whether their keys are Strings or Symbols.
+
 A revocation endpoint answers 200 when the token is revoked. For any other response, `SimpleOAuth::OAuth2::Error.from_response(status:, body:)` describes the failure.
 
 ## Errors

@@ -145,13 +145,14 @@ module SimpleOAuth
       # @param code [String] the authorization code
       # @param redirect_uri [String] the redirect URI sent in the authorization URL
       # @param code_verifier [String, nil] the PKCE verifier, if the authorization URL sent a challenge
+      # @param params [Hash] additional form parameters, which override the ones the client sends itself
       # @return [Request] the token request
       # @raise [ArgumentError] if the client has no token endpoint
       # @example
       #   client.authorization_code_request(code: "SplxlOBeZQQYbYS6WxSbIA", redirect_uri: "https://app.example/cb",
       #     code_verifier: pkce.verifier)
-      def authorization_code_request(code:, redirect_uri:, code_verifier: nil)
-        token_request(grant_type: "authorization_code", code:, redirect_uri:, code_verifier:)
+      def authorization_code_request(code:, redirect_uri:, code_verifier: nil, params: {})
+        token_request({grant_type: "authorization_code", code:, redirect_uri:, code_verifier:}, params)
       end
 
       # Build the request that exchanges a refresh token for a new token
@@ -159,26 +160,28 @@ module SimpleOAuth
       # @api public
       # @param refresh_token [String] the refresh token
       # @param scope [String, Array<String>, nil] a narrower scope to request
+      # @param params [Hash] additional form parameters, which override the ones the client sends itself
       # @return [Request] the token request
       # @raise [ArgumentError] if the client has no token endpoint
       # @example
       #   client.refresh_token_request(refresh_token: "tGzv3JOkF0XG5Qx2TlKWIA")
-      def refresh_token_request(refresh_token:, scope: nil)
-        token_request(grant_type: "refresh_token", refresh_token:, scope: scope_value(scope))
+      def refresh_token_request(refresh_token:, scope: nil, params: {})
+        token_request({grant_type: "refresh_token", refresh_token:, scope: scope_value(scope)}, params)
       end
 
       # Build the request for a token that acts as the client itself
       #
       # @api public
       # @param scope [String, Array<String>, nil] the requested scope
+      # @param params [Hash] additional form parameters, which override the ones the client sends itself
       # @return [Request] the token request
       # @raise [ArgumentError] if the client is public or has no token endpoint
       # @example
       #   client.client_credentials_request
-      def client_credentials_request(scope: nil)
+      def client_credentials_request(scope: nil, params: {})
         raise ArgumentError, "The client credentials grant requires a client secret" if public?
 
-        token_request(grant_type: "client_credentials", scope: scope_value(scope))
+        token_request({grant_type: "client_credentials", scope: scope_value(scope)}, params)
       end
 
       # Build the request that revokes an access or refresh token (RFC 7009 Section 2.1)
@@ -186,12 +189,13 @@ module SimpleOAuth
       # @api public
       # @param token [String] the token to revoke
       # @param token_type_hint [String, nil] access_token or refresh_token
+      # @param params [Hash] additional form parameters, which override the ones the client sends itself
       # @return [Request] the revocation request
       # @raise [ArgumentError] if the client has no revocation endpoint
       # @example
       #   client.revocation_request(token: "45ghiukldjahdnhzdauz", token_type_hint: "refresh_token")
-      def revocation_request(token:, token_type_hint: nil)
-        form_request(endpoint(revocation_endpoint, :revocation_endpoint), {token:, token_type_hint:})
+      def revocation_request(token:, token_type_hint: nil, params: {})
+        form_request(endpoint(revocation_endpoint, :revocation_endpoint), {token:, token_type_hint:}, params)
       end
 
       private
@@ -200,28 +204,44 @@ module SimpleOAuth
       #
       # @api private
       # @param params [Hash] the form parameters
+      # @param extra [Hash] the caller's own form parameters
       # @return [Request] the request
-      def token_request(params)
-        form_request(endpoint(token_endpoint, :token_endpoint), params)
+      def token_request(params, extra)
+        form_request(endpoint(token_endpoint, :token_endpoint), params, extra)
       end
 
       # Build an authenticated form POST
       #
+      # The caller's own parameters are merged last, so that they can carry an extension such
+      # as the resource of RFC 8707, and can replace anything the client would send itself.
+      #
       # @api private
       # @param url [String] the endpoint URL
       # @param params [Hash] the form parameters
+      # @param extra [Hash] the caller's own form parameters
       # @return [Request] the request
-      def form_request(url, params)
+      def form_request(url, params, extra)
+        headers, params = authenticated(params)
+        # Symbolize the caller's keys so that a String key overrides rather than repeating a parameter
+        body = params.merge(extra.transform_keys(&:to_sym)).compact
+        Request.new(method: "POST", url:, headers:, body: URI.encode_www_form(body))
+      end
+
+      # The headers and form parameters that carry the client's credentials
+      #
+      # A confidential client authenticates with HTTP Basic or in the body, and a public client
+      # identifies itself with its client_id alone (RFC 6749 Section 2.3.1).
+      #
+      # @api private
+      # @param params [Hash] the form parameters
+      # @return [Array(Hash, Hash)] the headers and the form parameters
+      def authenticated(params)
         headers = {"Content-Type" => FORM_CONTENT_TYPE, "Accept" => "application/json"}
         secret = client_secret unless public?
-        if secret.nil?
-          params = params.merge(client_id:)
-        elsif auth_method.eql?(:client_secret_post)
-          params = params.merge(client_id:, client_secret: secret)
-        else
-          headers["Authorization"] = basic_authorization(secret)
-        end
-        Request.new(method: "POST", url:, headers:, body: URI.encode_www_form(params.compact))
+        return [headers, params.merge(client_id:)] if secret.nil?
+        return [headers, params.merge(client_id:, client_secret: secret)] if auth_method.eql?(:client_secret_post)
+
+        [headers.merge("Authorization" => basic_authorization(secret)), params]
       end
 
       # The HTTP Basic credentials, form-encoded first per RFC 6749 Section 2.3.1

@@ -85,6 +85,7 @@ module SimpleOAuth
       type auth_method = :client_secret_basic | :client_secret_post
       type scope = String | Array[String] | nil
       type form_params = Hash[Symbol, String?]
+      type extra_params = Hash[Symbol | String, String?]
 
       AUTH_METHODS: Array[Symbol]
       FORM_CONTENT_TYPE: String
@@ -99,16 +100,17 @@ module SimpleOAuth
       def initialize: (client_id: String, ?client_secret: String?, ?authorization_endpoint: String?, ?token_endpoint: String?,
                        ?revocation_endpoint: String?, ?auth_method: auth_method) -> void
       def public?: () -> bool
-      def authorization_url: (redirect_uri: String, state: String, ?scope: scope, ?pkce: PKCE?, ?params: Hash[Symbol | String, String?]) -> String
-      def authorization_code_request: (code: String, redirect_uri: String, ?code_verifier: String?) -> Request
-      def refresh_token_request: (refresh_token: String, ?scope: scope) -> Request
-      def client_credentials_request: (?scope: scope) -> Request
-      def revocation_request: (token: String, ?token_type_hint: String?) -> Request
+      def authorization_url: (redirect_uri: String, state: String, ?scope: scope, ?pkce: PKCE?, ?params: extra_params) -> String
+      def authorization_code_request: (code: String, redirect_uri: String, ?code_verifier: String?, ?params: extra_params) -> Request
+      def refresh_token_request: (refresh_token: String, ?scope: scope, ?params: extra_params) -> Request
+      def client_credentials_request: (?scope: scope, ?params: extra_params) -> Request
+      def revocation_request: (token: String, ?token_type_hint: String?, ?params: extra_params) -> Request
 
       private
 
-      def token_request: (form_params params) -> Request
-      def form_request: (String url, form_params params) -> Request
+      def token_request: (form_params params, extra_params extra) -> Request
+      def form_request: (String url, form_params params, extra_params extra) -> Request
+      def authenticated: (form_params params) -> [Hash[String, String], form_params]
       def basic_authorization: (String secret) -> String
       def scope_value: (scope scope) -> String?
       def endpoint: (String? url, Symbol name) -> String
