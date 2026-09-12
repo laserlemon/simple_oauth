@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../errors"
 require_relative "response_body"
 
@@ -10,7 +12,7 @@ module SimpleOAuth
     #   raise SimpleOAuth::OAuth2::Error.from_response(status: 400, body: '{"error":"invalid_grant"}')
     class Error < SimpleOAuth::Error
       # The error message for a status that is not an HTTP status
-      INVALID_STATUS = "The status must be an Integer or a String of digits".freeze
+      INVALID_STATUS = "The status must be an Integer or a String of digits"
 
       # The error code, such as invalid_grant, if the response included one
       #

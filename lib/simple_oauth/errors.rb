@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SimpleOAuth
   # The base of every error the library raises, so one rescue catches them all
   class Error < StandardError; end

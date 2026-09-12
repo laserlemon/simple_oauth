@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "net/http"
 
@@ -12,8 +14,8 @@ module SimpleOAuth
     cover "SimpleOAuth::Header*"
 
     # RFC 5849 Section 3.4.1.3.1 - the example request
-    URL = "http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b".freeze
-    BODY = "c2&a3=2+q".freeze
+    URL = "http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b"
+    BODY = "c2&a3=2+q"
     OPTIONS = {
       consumer_key: "9djdj82h48djs9d2",
       token: "kkk9d7dh3k39sjv7",
@@ -28,7 +30,7 @@ module SimpleOAuth
     # position it sorts into; the RFC example omits it and this library always sends it
     NORMALIZED = "a2=r%20b&a3=2%20q&a3=a&b5=%3D%253D&c%40=&c2=&oauth_consumer_key=9djdj82h48djs9d2&" \
                  "oauth_nonce=7d8f3e4a&oauth_signature_method=HMAC-SHA1&oauth_timestamp=137131201&" \
-                 "oauth_token=kkk9d7dh3k39sjv7&oauth_version=1.0".freeze
+                 "oauth_token=kkk9d7dh3k39sjv7&oauth_version=1.0"
 
     def test_normalized_params_match_the_specification
       assert_equal NORMALIZED, header.send(:normalized_params)

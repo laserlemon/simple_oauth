@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "uri"
 require_relative "request"
 
@@ -21,7 +23,7 @@ module SimpleOAuth
       # Client authentication methods for confidential clients (RFC 6749 Section 2.3.1)
       AUTH_METHODS = %i[client_secret_basic client_secret_post].freeze
       # The content type of every request body
-      FORM_CONTENT_TYPE = "application/x-www-form-urlencoded".freeze
+      FORM_CONTENT_TYPE = "application/x-www-form-urlencoded"
 
       # The client identifier
       #

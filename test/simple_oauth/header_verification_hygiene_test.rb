@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 module SimpleOAuth
@@ -9,7 +11,7 @@ module SimpleOAuth
     cover "SimpleOAuth::Signature*"
 
     CUSTOM_METHOD_HEADER = 'OAuth oauth_consumer_key="key", oauth_nonce="n", oauth_signature="sig", ' \
-                           'oauth_signature_method="HMAC-SHA512", oauth_timestamp="1", oauth_version="1.0"'.freeze
+                           'oauth_signature_method="HMAC-SHA512", oauth_timestamp="1", oauth_version="1.0"'
 
     def teardown
       Signature.reset!

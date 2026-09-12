@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "openssl"
 
 module SimpleOAuth
@@ -20,7 +22,7 @@ module SimpleOAuth
   #   SimpleOAuth::Signature.registered?("CUSTOM")    # => false
   module Signature
     # The hash algorithm of the signature methods RFC 5849 defines
-    DEFAULT_DIGEST = "SHA1".freeze
+    DEFAULT_DIGEST = "SHA1"
 
     # Registry of signature method implementations
     @registry = {}

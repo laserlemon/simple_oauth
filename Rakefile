@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "bundler/gem_tasks"
 # Override release task to skip gem push (handled by GitHub Actions with attestations)
 Rake::Task["release"].clear

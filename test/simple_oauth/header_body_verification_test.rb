@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "net/http"
 require "test_helper"
 
@@ -9,8 +11,8 @@ module SimpleOAuth
     cover "SimpleOAuth::Header*"
 
     SECRETS = {consumer_secret: RFC5849::CONSUMER_SECRET}.freeze
-    BODY = '{"status":"Hello Ladies + Gentlemen"}'.freeze
-    TAMPERED_BODY = '{"status":"Goodbye Ladies + Gentlemen"}'.freeze
+    BODY = '{"status":"Hello Ladies + Gentlemen"}'
+    TAMPERED_BODY = '{"status":"Goodbye Ladies + Gentlemen"}'
 
     def test_a_body_matching_the_signed_hash_is_valid
       assert valid?(signed_authorization, BODY)

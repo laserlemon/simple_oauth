@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 module SimpleOAuth
@@ -7,7 +9,7 @@ module SimpleOAuth
       cover "SimpleOAuth::OAuth2::Error*"
 
       ERROR_BODY = '{"error":"invalid_grant","error_description":"The code expired",' \
-                   '"error_uri":"https://server.example.com/e"}'.freeze
+                   '"error_uri":"https://server.example.com/e"}'
 
       def test_from_response_reads_every_field
         error = Error.from_response(status: 400, body: ERROR_BODY)

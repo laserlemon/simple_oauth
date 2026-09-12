@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 module SimpleOAuth
@@ -8,7 +10,7 @@ module SimpleOAuth
     cover "SimpleOAuth::Header*"
     cover "SimpleOAuth::Signature*"
 
-    BODY = '{"status":"testing"}'.freeze
+    BODY = '{"status":"testing"}'
 
     def setup
       Signature.reset!

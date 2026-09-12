@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SimpleOAuth
   module OAuth2
     # An HTTP request to an OAuth 2.0 endpoint, built but not sent

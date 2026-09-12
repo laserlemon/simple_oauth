@@ -48,7 +48,7 @@ Style/Alias:
   EnforcedStyle: prefer_alias_method
 
 Style/FrozenStringLiteralComment:
-  Enabled: false
+  Enabled: true
 
 Style/StringLiterals:
   Enabled: true

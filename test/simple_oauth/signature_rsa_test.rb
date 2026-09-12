@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 module SimpleOAuth
@@ -7,7 +9,7 @@ module SimpleOAuth
 
     cover "SimpleOAuth::Signature*"
 
-    BASE = "GET&https%3A%2F%2Fphotos.example.net%2Fphotos&oauth_version%3D1.0".freeze
+    BASE = "GET&https%3A%2F%2Fphotos.example.net%2Fphotos&oauth_version%3D1.0"
 
     def setup
       Signature.reset!

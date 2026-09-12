@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "error"
 require_relative "response_body"
 
@@ -11,13 +13,13 @@ module SimpleOAuth
     #   token.access_token # => "2YotnFZFEjr1zCsicMWpAA"
     class Token
       # The description of a token response that carries no usable access token
-      NO_ACCESS_TOKEN = "token response has no access_token".freeze
+      NO_ACCESS_TOKEN = "token response has no access_token"
       # The description of a token response whose lifetime is not a number of seconds
-      INVALID_EXPIRES_IN = "token response has an invalid expires_in".freeze
+      INVALID_EXPIRES_IN = "token response has an invalid expires_in"
       # The error message for an access token that cannot be used
-      INVALID_ACCESS_TOKEN = "The access_token must be a non-empty String".freeze
+      INVALID_ACCESS_TOKEN = "The access_token must be a non-empty String"
       # The error message for a token lifetime that is not a number of seconds
-      INVALID_LIFETIME = "The expires_in must be a number of seconds".freeze
+      INVALID_LIFETIME = "The expires_in must be a number of seconds"
 
       # The access token
       #

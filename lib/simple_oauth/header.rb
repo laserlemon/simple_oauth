@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "uri"
 require_relative "encoding"
 require_relative "errors"
@@ -12,18 +14,18 @@ module SimpleOAuth
   # @api public
   class Header
     # OAuth header scheme prefix
-    OAUTH_SCHEME = "OAuth".freeze
+    OAUTH_SCHEME = "OAuth"
 
     # Prefix for OAuth parameters
-    OAUTH_PREFIX = "oauth_".freeze
+    OAUTH_PREFIX = "oauth_"
 
     # The content type whose body parameters are signed, per RFC 5849 Section 3.4.1.3.1
-    FORM_CONTENT_TYPE = "application/x-www-form-urlencoded".freeze
+    FORM_CONTENT_TYPE = "application/x-www-form-urlencoded"
     # Default signature method per RFC 5849
-    DEFAULT_SIGNATURE_METHOD = "HMAC-SHA1".freeze
+    DEFAULT_SIGNATURE_METHOD = "HMAC-SHA1"
 
     # OAuth version
-    OAUTH_VERSION = "1.0".freeze
+    OAUTH_VERSION = "1.0"
 
     # Valid OAuth attribute keys that can be included in the header
     ATTRIBUTE_KEYS = %i[body_hash callback consumer_key nonce signature_method timestamp token verifier version].freeze

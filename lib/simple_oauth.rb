@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "simple_oauth/header"
 require_relative "simple_oauth/oauth2"
 require_relative "simple_oauth/version"

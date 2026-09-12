@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 module SimpleOAuth
@@ -9,7 +11,7 @@ module SimpleOAuth
       cover "SimpleOAuth::OAuth2::Client*"
 
       FORM_HEADERS = {"Content-Type" => "application/x-www-form-urlencoded", "Accept" => "application/json"}.freeze
-      ENCODED_REDIRECT_URI = "https%3A%2F%2Fclient.example.com%2Fcb".freeze
+      ENCODED_REDIRECT_URI = "https%3A%2F%2Fclient.example.com%2Fcb"
 
       def test_authorization_code_request_matches_rfc_6749_example
         request = confidential_client.authorization_code_request(code: CODE, redirect_uri: REDIRECT_URI)

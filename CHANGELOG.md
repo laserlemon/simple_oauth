@@ -2,6 +2,7 @@
 
 ### Changed
 
+* Every file declares `frozen_string_literal: true`, and the explicit `freeze` calls on string literals it makes redundant are gone
 * Drop the `base64` runtime dependency: `pack("m0")` and `unpack1("m")` encode and decode Base64 in core Ruby, so the gem now has no runtime dependencies at all
 * Drop the `cgi` runtime dependency: query strings and form bodies are read with `URI.decode_www_form`, which Ruby ships in every supported version
 * **Breaking**: rename `Signature.methods` to `Signature.registered_methods`, so that `Signature.methods` is the module's own method list again
@@ -11,7 +12,7 @@
 
 ### Fixed
 
-* Build the signature base string with `URI::Generic#to_s` rather than `#to_str`, which the `uri` that ships with Ruby 3.2 does not define; `Header#url` raised `NoMethodError` on a stock Ruby 3.2, the oldest version the gem claims to support
+* Build the signature base string with a String conversion that every supported Ruby offers; `Header#url` called `URI::Generic#to_str`, which arrived in `uri` 0.13, so it raised `NoMethodError` on a stock Ruby 3.2, the oldest version the gem claims to support
 * Treat only `&` as a parameter separator when reading a query string or form body; a `;` is part of the value, as every current server reads it, so `?a=1;b=2` no longer signs two parameters where the server sees one
 * Sign a parameter that carries no value, such as a bare `?flag` in the query string or the `c2` of the RFC 5849 Section 3.4.1.3.1 example, as `name=` rather than dropping it from the signature base string; a request carrying one signed differently than the server computes, so it was rejected
 

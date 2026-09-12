@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "openssl"
 require "securerandom"
 
@@ -11,13 +13,13 @@ module SimpleOAuth
     #   client.authorization_url(redirect_uri: "https://app.example/cb", state: "xyz", pkce: pkce)
     class PKCE
       # Challenge method that hashes the verifier with SHA-256
-      S256 = "S256".freeze
+      S256 = "S256"
       # Challenge method that sends the verifier itself
-      PLAIN = "plain".freeze
+      PLAIN = "plain"
       # A valid verifier: 43 to 128 unreserved characters (RFC 7636 Section 4.1)
       VERIFIER_PATTERN = /\A[A-Za-z0-9\-._~]{43,128}\z/
       # The error message for an invalid verifier
-      INVALID_VERIFIER = "PKCE verifier must be 43 to 128 unreserved characters".freeze
+      INVALID_VERIFIER = "PKCE verifier must be 43 to 128 unreserved characters"
       # Random bytes in a generated verifier, which encode to 64 characters
       VERIFIER_BYTES = 48
 
