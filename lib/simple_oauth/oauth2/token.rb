@@ -10,6 +10,15 @@ module SimpleOAuth
     #   token = SimpleOAuth::OAuth2::Token.from_response(status: 200, body: response_body)
     #   token.access_token # => "2YotnFZFEjr1zCsicMWpAA"
     class Token
+      # The description of a token response that carries no usable access token
+      NO_ACCESS_TOKEN = "token response has no access_token".freeze
+      # The description of a token response whose lifetime is not a number of seconds
+      INVALID_EXPIRES_IN = "token response has an invalid expires_in".freeze
+      # The error message for an access token that cannot be used
+      INVALID_ACCESS_TOKEN = "The access_token must be a non-empty String".freeze
+      # The error message for a token lifetime that is not a number of seconds
+      INVALID_LIFETIME = "The expires_in must be a number of seconds".freeze
+
       # The access token
       #
       # @api public
@@ -77,6 +86,30 @@ module SimpleOAuth
         value.is_a?(String) && !value.empty?
       end
 
+      # Check whether a value is usable as a token lifetime (RFC 6749 Section 5.1)
+      #
+      # @api private
+      # @param value [Object] the value from the token response
+      # @return [Boolean] true if the value is absent, or a number of seconds
+      # @example
+      #   SimpleOAuth::OAuth2::Token.expires_in?(3600) # => true
+      def self.expires_in?(value)
+        value.nil? || !Integer(value, exception: false).nil?
+      end
+
+      # The reason the parameters of a token response cannot be used, if there is one
+      #
+      # @api private
+      # @param params [Hash] the token response parameters
+      # @return [String, nil] the reason, or nil if the response is usable
+      # @example
+      #   SimpleOAuth::OAuth2::Token.rejection_reason({"access_token" => "abc"}) # => nil
+      def self.rejection_reason(params)
+        return NO_ACCESS_TOKEN unless access_token?(params["access_token"])
+
+        INVALID_EXPIRES_IN unless expires_in?(params["expires_in"])
+      end
+
       # Parse a token response, raising the endpoint's error if it failed
       #
       # @api public
@@ -84,16 +117,18 @@ module SimpleOAuth
       # @param body [String, nil] the response body
       # @param issued_at [Time] when the token was issued, used to compute its expiration
       # @return [Token] the token
-      # @raise [Error] if the response is not successful or has no access token
+      # @raise [Error] if the response is not successful, or carries no usable token
       # @example
       #   SimpleOAuth::OAuth2::Token.from_response(status: 200, body: '{"access_token":"abc","token_type":"bearer"}')
       def self.from_response(status:, body:, issued_at: Time.now)
-        raise Error.from_response(status:, body:) unless (200..299).cover?(Integer(status))
+        code = Integer(status)
+        raise Error.from_response(status:, body:) unless (200..299).cover?(code)
 
         params = ResponseBody.parse(body)
-        return new(params, issued_at:) if access_token?(params["access_token"])
+        reason = rejection_reason(params)
+        raise Error.new(code: nil, description: reason, status: code) if reason
 
-        raise Error.new(code: nil, description: "token response has no access_token", status: Integer(status))
+        new(params, issued_at:)
       end
 
       # Initialize a token from the parameters of a token response
@@ -102,14 +137,14 @@ module SimpleOAuth
       # @param params [Hash] the token response parameters
       # @param issued_at [Time] when the token was issued, used to compute its expiration
       # @raise [KeyError] if the parameters have no access_token
-      # @raise [ArgumentError] if the access token is not a non-empty String
+      # @raise [ArgumentError] if the access token cannot be used, or the lifetime is not a number of seconds
       # @example
       #   SimpleOAuth::OAuth2::Token.new({"access_token" => "abc", "expires_in" => 3600})
       def initialize(params, issued_at: Time.now)
         @params = params.transform_keys(&:to_s).freeze
         @access_token = validated_access_token
         @token_type = @params["token_type"]
-        @expires_in = @params["expires_in"]&.then { |seconds| Integer(seconds) }
+        @expires_in = validated_expires_in
         @refresh_token = @params["refresh_token"]
         @scope = @params["scope"]
         @expires_at = @expires_in&.then { |seconds| issued_at + seconds }
@@ -150,9 +185,21 @@ module SimpleOAuth
       # @raise [ArgumentError] if the access token is not a non-empty String
       def validated_access_token
         token = params.fetch("access_token")
-        raise ArgumentError, "The access_token must be a non-empty String" unless self.class.access_token?(token)
+        raise ArgumentError, INVALID_ACCESS_TOKEN unless self.class.access_token?(token)
 
         token
+      end
+
+      # The lifetime from the parameters, which must be a number of seconds
+      #
+      # @api private
+      # @return [Integer, nil] the lifetime in seconds, or nil if the response carries none
+      # @raise [ArgumentError] if the lifetime is not a number of seconds
+      def validated_expires_in
+        seconds = params["expires_in"]
+        raise ArgumentError, INVALID_LIFETIME unless self.class.expires_in?(seconds)
+
+        seconds && Integer(seconds)
       end
     end
   end

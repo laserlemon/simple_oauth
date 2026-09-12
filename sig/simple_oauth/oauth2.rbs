@@ -49,6 +49,11 @@ module SimpleOAuth
 
     # An access token from a successful token response
     class Token
+      NO_ACCESS_TOKEN: String
+      INVALID_EXPIRES_IN: String
+      INVALID_ACCESS_TOKEN: String
+      INVALID_LIFETIME: String
+
       attr_reader access_token: String
       attr_reader token_type: String?
       attr_reader expires_in: Integer?
@@ -58,6 +63,8 @@ module SimpleOAuth
       attr_reader params: Hash[String, untyped]
 
       def self.access_token?: (untyped value) -> bool
+      def self.expires_in?: (untyped value) -> bool
+      def self.rejection_reason: (Hash[String, untyped] params) -> String?
       def self.from_response: (status: Integer | String, body: String?, ?issued_at: Time) -> Token
       def initialize: (Hash[String | Symbol, untyped] params, ?issued_at: Time) -> void
       def scopes: () -> Array[String]
@@ -66,6 +73,7 @@ module SimpleOAuth
       private
 
       def validated_access_token: () -> String
+      def validated_expires_in: () -> Integer?
     end
 
     # An OAuth 2.0 client that builds authorization URLs and endpoint requests

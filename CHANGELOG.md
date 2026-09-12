@@ -8,7 +8,7 @@
   * `Client#revocation_request` for the revocation endpoint (RFC 7009)
   * `client_secret_basic` and `client_secret_post` authentication for confidential clients, and public clients without a secret
   * `PKCE` verifiers with `S256` and `plain` challenges (RFC 7636)
-  * `Token.from_response` and `Error.from_response` for token and error responses, rejecting a response whose access token is missing, null, or empty
+  * `Token.from_response` and `Error.from_response` for token and error responses, rejecting a response whose access token is missing, null, or empty, or whose lifetime is not a number of seconds
 
 ## [0.5.0] - 2026-09-12
 
