@@ -102,7 +102,8 @@ end
 
 # Check registered methods
 SimpleOAuth::Signature.registered?("HMAC-SHA512") # => true
-SimpleOAuth::Signature.methods # => ["hmac_sha1", "hmac_sha256", "rsa_sha1", "rsa_sha256", "plaintext", "hmac_sha512"]
+SimpleOAuth::Signature.registered_methods
+# => ["hmac_sha1", "hmac_sha256", "rsa_sha1", "rsa_sha256", "plaintext", "hmac_sha512"]
 ```
 
 ### OAuth Request Body Hash

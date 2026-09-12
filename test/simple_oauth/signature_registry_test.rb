@@ -109,23 +109,27 @@ module SimpleOAuth
       assert Signature.registered?("HMAC-SHA1")
     end
 
-    def test_methods_returns_array_of_strings
-      methods = Signature.methods
+    def test_registered_methods_returns_array_of_strings
+      methods = Signature.registered_methods
 
       assert_kind_of Array, methods
       methods.each { |m| assert_kind_of String, m }
     end
 
-    def test_methods_includes_all_builtin_methods
+    def test_registered_methods_includes_all_builtin_methods
       %w[hmac_sha1 hmac_sha256 rsa_sha1 rsa_sha256 plaintext].each do |method|
-        assert_includes Signature.methods, method
+        assert_includes Signature.registered_methods, method
       end
     end
 
-    def test_methods_includes_custom_registered_methods
+    def test_registered_methods_includes_custom_registered_methods
       Signature.register("CUSTOM") { |_s, _b| "sig" }
 
-      assert_includes Signature.methods, "custom"
+      assert_includes Signature.registered_methods, "custom"
+    end
+
+    def test_methods_is_the_module_own_method_list
+      assert_includes Signature.methods, :registered_methods
     end
 
     def test_rsa_returns_true_for_rsa_methods

@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Changed
+
+* **Breaking**: rename `Signature.methods` to `Signature.registered_methods`, so that `Signature.methods` is the module's own method list again
+
 ### Added
 
 * OAuth 2.0 request builders and response parsers in `SimpleOAuth::OAuth2`, which make no HTTP requests:

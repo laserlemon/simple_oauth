@@ -66,8 +66,9 @@ module SimpleOAuth
       # @api public
       # @return [Array<String>] registered method names
       # @example
-      #   SimpleOAuth::Signature.methods # => ["hmac_sha1", "hmac_sha256", "rsa_sha1", "plaintext"]
-      def methods
+      #   SimpleOAuth::Signature.registered_methods
+      #   # => ["hmac_sha1", "hmac_sha256", "rsa_sha1", "plaintext"]
+      def registered_methods
         @registry.keys
       end
 

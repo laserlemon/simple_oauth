@@ -26,7 +26,7 @@ module SimpleOAuth
     def self.registered?: (String | Symbol name) -> bool
 
     # Returns list of registered signature method names
-    def self.methods: () -> Array[String]
+    def self.registered_methods: () -> Array[String]
 
     # Checks if a signature method uses RSA
     def self.rsa?: (String | Symbol name) -> bool
