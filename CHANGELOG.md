@@ -2,6 +2,8 @@
 
 ### Changed
 
+* `SimpleOAuth::Error` is the base of every error the library raises, so `rescue SimpleOAuth::Error` catches `ParseError`, `InvalidOptionsError`, and `OAuth2::Error` alike
+
 * **Breaking**: rename `Signature.methods` to `Signature.registered_methods`, so that `Signature.methods` is the module's own method list again
 * **Breaking**: define `VERSION` in `SimpleOAuth`, the module the rest of the library uses, rather than in a second `SimpleOauth` module; `SimpleOauth::VERSION` is gone and `SimpleOAuth::VERSION` now resolves
 
@@ -67,6 +69,8 @@
 * Refactored `Header.parse` for improved robustness using StringScanner
 
 ### Changed
+
+* `SimpleOAuth::Error` is the base of every error the library raises, so `rescue SimpleOAuth::Error` catches `ParseError`, `InvalidOptionsError`, and `OAuth2::Error` alike
 
 * Supports Ruby 3.2, 3.3, 3.4, and 4.0
 * Added `base64` and `cgi` as explicit runtime dependencies

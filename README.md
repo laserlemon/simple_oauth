@@ -239,6 +239,18 @@ token.expired?(leeway: 30) # => true within 30 seconds of expiring
 
 A revocation endpoint answers 200 when the token is revoked. For any other response, `SimpleOAuth::OAuth2::Error.from_response(status:, body:)` describes the failure.
 
+## Errors
+
+Every error the library raises descends from `SimpleOAuth::Error`, so one rescue covers all of them:
+
+```ruby
+begin
+  token = SimpleOAuth::OAuth2::Token.from_response(status: response.code, body: response.body)
+rescue SimpleOAuth::Error => error
+  # SimpleOAuth::OAuth2::Error, SimpleOAuth::ParseError, or SimpleOAuth::InvalidOptionsError
+end
+```
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/laserlemon/simple_oauth.

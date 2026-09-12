@@ -1,11 +1,15 @@
 # OAuth 1.0 header generation library
 module SimpleOAuth
+  # The base of every error the library raises
+  class Error < StandardError
+  end
+
   # Error raised when parsing a malformed OAuth Authorization header
-  class ParseError < StandardError
+  class ParseError < Error
   end
 
   # Error raised when invalid options are passed to Header
-  class InvalidOptionsError < StandardError
+  class InvalidOptionsError < Error
   end
 
   # OAuth percent-encoding utilities

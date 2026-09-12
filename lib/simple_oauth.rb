@@ -24,9 +24,4 @@ require_relative "simple_oauth/version"
 #
 # @see https://tools.ietf.org/html/rfc5849 RFC 5849 - The OAuth 1.0 Protocol
 module SimpleOAuth
-  # Error raised when parsing a malformed OAuth Authorization header
-  class ParseError < StandardError; end
-
-  # Error raised when invalid options are passed to Header
-  # (defined in header.rb, exported here for convenience)
 end

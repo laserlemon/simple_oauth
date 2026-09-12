@@ -7,7 +7,7 @@ module SimpleOAuth
     end
 
     # Error returned by an OAuth 2.0 endpoint
-    class Error < StandardError
+    class Error < SimpleOAuth::Error
       INVALID_STATUS: String
 
       attr_reader code: String?
