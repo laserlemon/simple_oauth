@@ -38,6 +38,7 @@ module SimpleOAuth
       private
 
       def compute_challenge: () -> String
+      def base64_url: (String data) -> String
     end
 
     # An HTTP request to an OAuth 2.0 endpoint, built but not sent

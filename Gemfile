@@ -3,6 +3,8 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in simple_oauth.gemspec
 gemspec
 
+# The tests compare against base64 as a reference for the pack("m0") the library uses
+gem "base64", ">= 0.3"
 gem "minitest", ">= 6.0"
 gem "mutant-minitest", ">= 0.13"
 gem "rake", ">= 13.3.1"

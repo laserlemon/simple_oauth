@@ -1,4 +1,3 @@
-require "base64"
 require "openssl"
 require "securerandom"
 
@@ -83,10 +82,20 @@ module SimpleOAuth
       # @raise [ArgumentError] if the challenge method is unknown
       def compute_challenge
         case challenge_method
-        when S256 then Base64.urlsafe_encode64(OpenSSL::Digest.digest("SHA256", verifier), padding: false)
+        when S256 then base64_url(OpenSSL::Digest.digest("SHA256", verifier))
         when PLAIN then verifier
         else raise ArgumentError, "Unknown PKCE challenge method: #{challenge_method}"
         end
+      end
+
+      # Encodes data as base64url without padding (RFC 7636 Section 4.2)
+      #
+      # @api private
+      # @param data [String] the data to encode
+      # @return [String] the encoded data
+      def base64_url(data)
+        # "m0" is Base64 with no line breaks, which base64url then re-spells
+        [data].pack("m0").tr("+/", "-_").delete("=")
       end
     end
   end

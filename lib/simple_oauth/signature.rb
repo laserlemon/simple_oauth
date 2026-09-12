@@ -1,4 +1,3 @@
-require "base64"
 require "openssl"
 
 module SimpleOAuth
@@ -161,7 +160,8 @@ module SimpleOAuth
       #   SimpleOAuth::Signature.decode_base64("AQID")
       #   # => "\x01\x02\x03"
       def decode_base64(data)
-        Base64.decode64(data)
+        # "m" is Base64, and is lenient about characters outside the alphabet
+        data.unpack1("m") #: String
       end
 
       # Encodes binary data as Base64 without newlines
@@ -173,7 +173,8 @@ module SimpleOAuth
       #   SimpleOAuth::Signature.encode_base64("\x01\x02\x03")
       #   # => "AQID"
       def encode_base64(data)
-        Base64.strict_encode64(data)
+        # "m0" is Base64 with no line breaks
+        [data].pack("m0")
       end
 
       private

@@ -8,6 +8,7 @@ SimpleCov.start do
   minimum_coverage line: 100, branch: 100
 end
 
+require "base64"
 require "minitest/autorun"
 require "simple_oauth"
 

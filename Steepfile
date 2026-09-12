@@ -5,7 +5,6 @@ target :lib do
 
   check "lib"
 
-  library "base64"
   library "openssl"
   library "uri"
   library "securerandom"

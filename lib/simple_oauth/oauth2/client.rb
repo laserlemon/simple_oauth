@@ -1,4 +1,3 @@
-require "base64"
 require "uri"
 require_relative "request"
 
@@ -230,7 +229,8 @@ module SimpleOAuth
       # @return [String] the Authorization header value
       def basic_authorization(secret)
         credentials = [client_id, secret].map { |value| URI.encode_www_form_component(value) }.join(":")
-        "Basic #{Base64.strict_encode64(credentials)}"
+        # "m0" is Base64 with no line breaks
+        "Basic #{[credentials].pack("m0")}"
       end
 
       # Join a list of scopes with spaces

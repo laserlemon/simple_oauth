@@ -2,6 +2,7 @@
 
 ### Changed
 
+* Drop the `base64` runtime dependency: `pack("m0")` and `unpack1("m")` encode and decode Base64 in core Ruby, so the gem now has no runtime dependencies at all
 * Drop the `cgi` runtime dependency: query strings and form bodies are read with `URI.decode_www_form`, which Ruby ships in every supported version
 * **Breaking**: rename `Signature.methods` to `Signature.registered_methods`, so that `Signature.methods` is the module's own method list again
 * **Breaking**: define `VERSION` in `SimpleOAuth`, the module the rest of the library uses, rather than in a second `SimpleOauth` module; `SimpleOauth::VERSION` is gone and `SimpleOAuth::VERSION` now resolves
