@@ -1,4 +1,4 @@
-## [Unreleased]
+## [1.0.0] - 2026-09-12
 
 ### Changed
 
@@ -13,22 +13,26 @@
 
 ### Fixed
 
-* Build the signature base string with a String conversion that every supported Ruby offers; `Header#url` called `URI::Generic#to_str`, which arrived in `uri` 0.13, so it raised `NoMethodError` on a stock Ruby 3.2, the oldest version the gem claims to support
 * Treat only `&` as a parameter separator when reading a query string or form body; a `;` is part of the value, as every current server reads it, so `?a=1;b=2` no longer signs two parameters where the server sees one
-* Sign a parameter that carries no value, such as a bare `?flag` in the query string or the `c2` of the RFC 5849 Section 3.4.1.3.1 example, as `name=` rather than dropping it from the signature base string; a request carrying one signed differently than the server computes, so it was rejected
 
 ### Added
 
 * OAuth 2.0 request builders and response parsers in `SimpleOAuth::OAuth2`, which make no HTTP requests:
-  * `Client#authorization_url` for the authorization code flow, with optional PKCE
+  * `Client#authorization_url` for the authorization code flow, which names `pkce` so that a client either sends a challenge or says `pkce: nil`, as OAuth 2.1 asks every client for one; a `state` is optional alongside a challenge, and required without one
   * `Client#authorization_code_request`, `#refresh_token_request`, and `#client_credentials_request` for the token endpoint
   * `Client#revocation_request` for the revocation endpoint (RFC 7009)
   * `client_secret_basic` and `client_secret_post` authentication for confidential clients, and public clients without a secret
   * `PKCE` verifiers with `S256` and `plain` challenges (RFC 7636)
   * `AuthorizationResponse.parse`, which reads the response an authorization server returns to the redirect URI: it raises the error the server reported, a `state` that is not the one the request sent, an `iss` that is not the expected issuer (RFC 9207), a repeated parameter, or a response with no code
-  * `Client#authorization_url` names `pkce` rather than defaulting it, so that a client without a PKCE challenge says so with `pkce: nil`, as OAuth 2.1 asks every client for one; `state` is in turn optional when a challenge is sent, and required without one
   * A `params` option on every request builder, for what an extension adds to a request, such as the resource indicator of RFC 8707
   * `Token.from_response` and `Error.from_response` for token and error responses, rejecting a response whose access token is missing, null, or empty, or whose lifetime is not a number of seconds
+
+## [0.5.1] - 2026-09-12
+
+### Fixed
+
+* Build the signature base string with a String conversion that every supported Ruby offers; `Header#url` called `URI::Generic#to_str`, which arrived in `uri` 0.13, so it raised `NoMethodError` on a stock Ruby 3.2, the oldest version the gem claims to support
+* Sign a parameter that carries no value, such as a bare `?flag` in the query string or the `c2` of the RFC 5849 Section 3.4.1.3.1 example, as `name=` rather than dropping it from the signature base string; a request carrying one signed differently than the server computes, so it was rejected
 
 ## [0.5.0] - 2026-09-12
 
