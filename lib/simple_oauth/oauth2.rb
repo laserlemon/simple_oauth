@@ -14,6 +14,7 @@ module SimpleOAuth
   # @api public
   # @example Exchange an authorization code for a token
   #   client = SimpleOAuth::OAuth2::Client.new(client_id: "id", token_endpoint: "https://example.com/token")
+  #   pkce = SimpleOAuth::OAuth2::PKCE.generate
   #   request = client.authorization_code_request(code: "code", redirect_uri: "https://app.example/cb",
   #     code_verifier: pkce.verifier)
   #   response = Net::HTTP.post(URI(request.url), request.body, request.headers)

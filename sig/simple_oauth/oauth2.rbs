@@ -57,10 +57,15 @@ module SimpleOAuth
       attr_reader expires_at: Time?
       attr_reader params: Hash[String, untyped]
 
+      def self.access_token?: (untyped value) -> bool
       def self.from_response: (status: Integer | String, body: String?, ?issued_at: Time) -> Token
       def initialize: (Hash[String | Symbol, untyped] params, ?issued_at: Time) -> void
       def scopes: () -> Array[String]
       def expired?: (?leeway: Numeric, ?now: Time) -> bool
+
+      private
+
+      def validated_access_token: () -> String
     end
 
     # An OAuth 2.0 client that builds authorization URLs and endpoint requests

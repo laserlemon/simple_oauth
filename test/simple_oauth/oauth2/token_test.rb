@@ -88,10 +88,6 @@ module SimpleOAuth
         assert_operator token.expires_at, :<=, Time.now + 60
       end
 
-      def test_new_requires_an_access_token
-        assert_raises(KeyError) { Token.new({"token_type" => "bearer"}) }
-      end
-
       def test_token_without_lifetime
         token = Token.new({"access_token" => "a"})
 

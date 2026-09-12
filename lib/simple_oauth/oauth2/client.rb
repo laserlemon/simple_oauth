@@ -112,16 +112,19 @@ module SimpleOAuth
       #
       # @api public
       # @param redirect_uri [String] where the authorization server returns the user
-      # @param state [String] an unguessable value that protects against cross-site request forgery
+      # @param state [String] an unguessable value that protects against cross-site request forgery,
+      #   which the authorization server returns with the code
       # @param scope [String, Array<String>, nil] the requested scope
       # @param pkce [PKCE, nil] the PKCE challenge to send
       # @param params [Hash] additional query parameters
       # @return [String] the authorization URL
-      # @raise [ArgumentError] if the client has no authorization endpoint
+      # @raise [ArgumentError] if the state is empty, or the client has no authorization endpoint
       # @example
       #   client.authorization_url(redirect_uri: "https://app.example/cb", state: "xyz",
       #     scope: %w[tweet.read users.read], pkce: SimpleOAuth::OAuth2::PKCE.generate)
       def authorization_url(redirect_uri:, state:, scope: nil, pkce: nil, params: {})
+        raise ArgumentError, "The state must not be empty" if state.to_s.empty?
+
         url = endpoint(authorization_endpoint, :authorization_endpoint)
         query = {response_type: "code", client_id:, redirect_uri:, scope: scope_value(scope), state:,
                  code_challenge: pkce&.challenge, code_challenge_method: pkce&.challenge_method}
