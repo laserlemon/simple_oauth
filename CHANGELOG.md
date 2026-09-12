@@ -25,6 +25,7 @@
   * `Client#revocation_request` for the revocation endpoint (RFC 7009)
   * `client_secret_basic` and `client_secret_post` authentication for confidential clients, and public clients without a secret
   * `PKCE` verifiers with `S256` and `plain` challenges (RFC 7636)
+  * `Client#authorization_url` names `pkce` rather than defaulting it, so that a client without a PKCE challenge says so with `pkce: nil`, as OAuth 2.1 asks every client for one; `state` is in turn optional when a challenge is sent, and required without one
   * A `params` option on every request builder, for what an extension adds to a request, such as the resource indicator of RFC 8707
   * `Token.from_response` and `Error.from_response` for token and error responses, rejecting a response whose access token is missing, null, or empty, or whose lifetime is not a number of seconds
 

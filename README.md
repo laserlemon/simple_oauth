@@ -187,6 +187,15 @@ end
 
 A client with a secret is confidential and authenticates with HTTP Basic, or in the request body with `auth_method: :client_secret_post`. A client without a secret is public and sends only its `client_id`.
 
+`authorization_url` names `pkce` rather than defaulting it, because only the caller can keep the verifier to send with the code. [OAuth 2.1](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1) asks every client for a PKCE challenge, public and confidential alike, so leaving it out is a decision you make in writing:
+
+```ruby
+# An OAuth 2.0 authorization server that rejects the challenge parameters
+client.authorization_url(redirect_uri: "https://app.example/callback", pkce: nil, state: state)
+```
+
+A PKCE challenge ties the authorization response to the request, which is what `state` does under OAuth 2.0. With a challenge the `state` is yours to use for application state, or to leave out; without one it is required.
+
 ### Authorization Code Flow with PKCE
 
 ```ruby
@@ -206,9 +215,9 @@ pkce = SimpleOAuth::OAuth2::PKCE.generate
 state = SecureRandom.hex
 redirect_to client.authorization_url(
   redirect_uri: "https://app.example/callback",
+  pkce: pkce,
   state: state,
-  scope: %w[tweet.read users.read offline.access],
-  pkce: pkce
+  scope: %w[tweet.read users.read offline.access]
 )
 
 # 2. Exchange the code the user returns with for a token

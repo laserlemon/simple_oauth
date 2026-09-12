@@ -89,6 +89,8 @@ module SimpleOAuth
 
       AUTH_METHODS: Array[Symbol]
       FORM_CONTENT_TYPE: String
+      EMPTY_STATE: String
+      UNPROTECTED: String
 
       attr_reader client_id: String
       attr_reader client_secret: String?
@@ -100,7 +102,7 @@ module SimpleOAuth
       def initialize: (client_id: String, ?client_secret: String?, ?authorization_endpoint: String?, ?token_endpoint: String?,
                        ?revocation_endpoint: String?, ?auth_method: auth_method) -> void
       def public?: () -> bool
-      def authorization_url: (redirect_uri: String, state: String, ?scope: scope, ?pkce: PKCE?, ?params: extra_params) -> String
+      def authorization_url: (redirect_uri: String, pkce: PKCE?, ?state: String?, ?scope: scope, ?params: extra_params) -> String
       def authorization_code_request: (code: String, redirect_uri: String, ?code_verifier: String?, ?params: extra_params) -> Request
       def refresh_token_request: (refresh_token: String, ?scope: scope, ?params: extra_params) -> Request
       def client_credentials_request: (?scope: scope, ?params: extra_params) -> Request
@@ -108,6 +110,7 @@ module SimpleOAuth
 
       private
 
+      def validate_protection!: (PKCE? pkce, String? state) -> void
       def token_request: (form_params params, extra_params extra) -> Request
       def form_request: (String url, form_params params, extra_params extra) -> Request
       def authenticated: (form_params params) -> [Hash[String, String], form_params]

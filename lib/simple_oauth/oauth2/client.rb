@@ -24,6 +24,10 @@ module SimpleOAuth
       AUTH_METHODS = %i[client_secret_basic client_secret_post].freeze
       # The content type of every request body
       FORM_CONTENT_TYPE = "application/x-www-form-urlencoded"
+      # The error message for a state that is given but empty
+      EMPTY_STATE = "The state must not be empty"
+      # The error message for an authorization request that nothing ties to its response
+      UNPROTECTED = "Pass a pkce, or a state, so that the authorization response can be tied to this request"
 
       # The client identifier
       #
@@ -115,22 +119,29 @@ module SimpleOAuth
 
       # Build the URL where the user authorizes the client (RFC 6749 Section 4.1.1)
       #
+      # The pkce is named rather than defaulted because only the caller can keep the verifier
+      # to send with the code. OAuth 2.1 asks every client for one, so pass `pkce: nil` to
+      # leave it out, for an authorization server that rejects the challenge parameters.
+      #
+      # A state is what OAuth 2.0 ties the response to the request with. A PKCE challenge does
+      # that too, so with one the state is free to carry application state, or to be left out.
+      #
       # @api public
       # @param redirect_uri [String] where the authorization server returns the user
-      # @param state [String] an unguessable value that protects against cross-site request forgery,
-      #   which the authorization server returns with the code
+      # @param pkce [PKCE, nil] the PKCE challenge to send, or nil to send none
+      # @param state [String, nil] an unguessable value the authorization server returns with
+      #   the code, which {AuthorizationResponse.parse} checks
       # @param scope [String, Array<String>, nil] the requested scope
-      # @param pkce [PKCE, nil] the PKCE challenge to send
       # @param params [Hash] additional query parameters, which override the ones the client
       #   sends itself, whether their keys are Strings or Symbols
       # @return [String] the authorization URL
-      # @raise [ArgumentError] if the state is empty, or the client has no authorization endpoint
+      # @raise [ArgumentError] if the state is given but empty, if neither a pkce nor a state
+      #   is given, or if the client has no authorization endpoint
       # @example
       #   client.authorization_url(redirect_uri: "https://app.example/cb", state: "xyz",
       #     scope: %w[tweet.read users.read], pkce: SimpleOAuth::OAuth2::PKCE.generate)
-      def authorization_url(redirect_uri:, state:, scope: nil, pkce: nil, params: {})
-        raise ArgumentError, "The state must not be empty" if state.to_s.empty?
-
+      def authorization_url(redirect_uri:, pkce:, state: nil, scope: nil, params: {})
+        validate_protection!(pkce, state)
         url = endpoint(authorization_endpoint, :authorization_endpoint)
         query = {response_type: "code", client_id:, redirect_uri:, scope: scope_value(scope), state:,
                  code_challenge: pkce&.challenge, code_challenge_method: pkce&.challenge_method}
@@ -199,6 +210,18 @@ module SimpleOAuth
       end
 
       private
+
+      # Checks that something ties the authorization response to the request
+      #
+      # @api private
+      # @param pkce [PKCE, nil] the PKCE challenge to send, or nil to send none
+      # @param state [String, nil] the state to send, or nil to send none
+      # @return [void]
+      # @raise [ArgumentError] if the state is given but empty, or neither is given
+      def validate_protection!(pkce, state)
+        raise ArgumentError, EMPTY_STATE if !state.nil? && state.empty?
+        raise ArgumentError, UNPROTECTED if pkce.nil? && state.nil?
+      end
 
       # Build a request to the token endpoint
       #
