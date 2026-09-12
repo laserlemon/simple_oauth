@@ -49,6 +49,16 @@ module SimpleOAuth
         assert url.start_with?("#{AUTHORIZATION_ENDPOINT}?tenant=a&response_type=code&")
       end
 
+      def test_requires_a_state
+        error = assert_raises(ArgumentError) { public_client.authorization_url(redirect_uri: REDIRECT_URI, state: nil) }
+
+        assert_equal "The state must not be empty", error.message
+      end
+
+      def test_requires_a_state_that_is_not_empty
+        assert_raises(ArgumentError) { public_client.authorization_url(redirect_uri: REDIRECT_URI, state: "") }
+      end
+
       def test_requires_an_authorization_endpoint
         error = assert_raises(ArgumentError) do
           Client.new(client_id: CLIENT_ID).authorization_url(redirect_uri: REDIRECT_URI, state: "xyz")

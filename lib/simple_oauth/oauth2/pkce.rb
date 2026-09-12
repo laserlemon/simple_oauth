@@ -43,7 +43,7 @@ module SimpleOAuth
       # @api public
       # @return [String] the code challenge
       # @example
-      #   pkce.challenge # => "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuIJQj6wQFg"
+      #   pkce.challenge # => "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
       attr_reader :challenge
 
       # Generate a random verifier and its challenge

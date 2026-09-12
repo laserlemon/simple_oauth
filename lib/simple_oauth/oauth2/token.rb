@@ -66,6 +66,17 @@ module SimpleOAuth
       #   token.params["example_parameter"] # => "example_value"
       attr_reader :params
 
+      # Check whether a value is usable as an access token (RFC 6749 Section A.12)
+      #
+      # @api private
+      # @param value [Object] the value from the token response
+      # @return [Boolean] true if the value is a non-empty String
+      # @example
+      #   SimpleOAuth::OAuth2::Token.access_token?("2YotnFZFEjr1zCsicMWpAA") # => true
+      def self.access_token?(value)
+        value.is_a?(String) && !value.empty?
+      end
+
       # Parse a token response, raising the endpoint's error if it failed
       #
       # @api public
@@ -80,7 +91,7 @@ module SimpleOAuth
         raise Error.from_response(status:, body:) unless (200..299).cover?(Integer(status))
 
         params = ResponseBody.parse(body)
-        return new(params, issued_at:) if params.key?("access_token")
+        return new(params, issued_at:) if access_token?(params["access_token"])
 
         raise Error.new(code: nil, description: "token response has no access_token", status: Integer(status))
       end
@@ -91,11 +102,12 @@ module SimpleOAuth
       # @param params [Hash] the token response parameters
       # @param issued_at [Time] when the token was issued, used to compute its expiration
       # @raise [KeyError] if the parameters have no access_token
+      # @raise [ArgumentError] if the access token is not a non-empty String
       # @example
       #   SimpleOAuth::OAuth2::Token.new({"access_token" => "abc", "expires_in" => 3600})
       def initialize(params, issued_at: Time.now)
         @params = params.transform_keys(&:to_s).freeze
-        @access_token = @params.fetch("access_token")
+        @access_token = validated_access_token
         @token_type = @params["token_type"]
         @expires_in = @params["expires_in"]&.then { |seconds| Integer(seconds) }
         @refresh_token = @params["refresh_token"]
@@ -126,6 +138,21 @@ module SimpleOAuth
         return false if expires_at.nil?
 
         now >= expires_at - leeway
+      end
+
+      private
+
+      # The access token from the parameters, which must be usable
+      #
+      # @api private
+      # @return [String] the access token
+      # @raise [KeyError] if the parameters have no access_token
+      # @raise [ArgumentError] if the access token is not a non-empty String
+      def validated_access_token
+        token = params.fetch("access_token")
+        raise ArgumentError, "The access_token must be a non-empty String" unless self.class.access_token?(token)
+
+        token
       end
     end
   end
