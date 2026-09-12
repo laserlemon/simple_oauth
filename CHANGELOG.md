@@ -3,15 +3,6 @@
 ### Added
 
 * Document passing `Header` parameters as an Array of key-value pairs when a key repeats
-
-### Fixed
-
-* Accept an Array of key-value pairs as `Header` parameters in the RBS signatures, which already worked at runtime
-
-## [Unreleased]
-
-### Added
-
 * `Header.from_request`, which builds a header for a request object such as a `Net::HTTPRequest`, signing its query parameters, its form-encoded body, or hashing any other body
 * `Header.parse_query`, for OAuth credentials sent in a query string
 * `Signature.digest`, and a `digest:` option on `Signature.register`, which gives the hash algorithm a signature method signs with
@@ -20,6 +11,7 @@
 
 ### Fixed
 
+* Accept an Array of key-value pairs as `Header` parameters in the RBS signatures, which already worked at runtime
 * Check `oauth_body_hash` against the body a header was built with when verifying, so a body changed after signing no longer verifies against the hash its signature covers
 * Verify signatures without merging the given secrets into the header's own options, where anything else reading the header could see them
 * Compare signatures in constant time when verifying
