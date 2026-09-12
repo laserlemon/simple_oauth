@@ -38,8 +38,6 @@ module SimpleOAuth
       # Generates a random nonce for OAuth requests
       def generate_nonce: () -> String
 
-      # Encodes binary data as Base64 without newlines
-      def encode_base64: (String data) -> String
     end
   end
 end

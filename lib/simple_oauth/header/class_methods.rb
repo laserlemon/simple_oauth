@@ -1,4 +1,3 @@
-require "base64"
 require "cgi"
 require "openssl"
 require "securerandom"
@@ -37,7 +36,7 @@ module SimpleOAuth
       #   SimpleOAuth::Header.body_hash('{"text": "Hello"}')
       #   # => "aOjMoMwMP1RZ0hKa1HryYDlCKck="
       def body_hash(body, algorithm = "SHA1")
-        encode_base64(OpenSSL::Digest.digest(algorithm, body || ""))
+        Signature.encode_base64(OpenSSL::Digest.digest(algorithm, body || ""))
       end
 
       # Parses an OAuth Authorization header string into a hash
@@ -144,15 +143,6 @@ module SimpleOAuth
       # @return [String] hex-encoded random bytes
       def generate_nonce
         SecureRandom.hex
-      end
-
-      # Encodes binary data as Base64 without newlines
-      #
-      # @api private
-      # @param data [String] binary data to encode
-      # @return [String] Base64-encoded string
-      def encode_base64(data)
-        Base64.strict_encode64(data)
       end
     end
   end
