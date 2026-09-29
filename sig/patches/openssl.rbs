@@ -1,0 +1,12 @@
+# OpenSSL signs and verifies with the name of a digest, as well as with a Digest, which the signatures of the openssl
+# library leave out. The type check loads this patch, and the gem does not ship it, so that it adds nothing to the
+# signatures of openssl for code that depends on the gem.
+module OpenSSL
+  module PKey
+    class PKey
+      def sign: (String digest, String data) -> String | ...
+
+      def verify: (String digest, String signature, String data) -> bool | ...
+    end
+  end
+end

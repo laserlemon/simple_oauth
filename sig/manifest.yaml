@@ -1,0 +1,7 @@
+# The standard libraries the signatures of simple_oauth refer to, which rbs collection loads for code that depends on it
+dependencies:
+  - name: json
+  - name: openssl
+  - name: securerandom
+  - name: strscan
+  - name: uri

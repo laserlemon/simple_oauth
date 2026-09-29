@@ -11,6 +11,7 @@ target :lib do
   library "uri"
   library "securerandom"
   library "json"
+  library "strscan"
 
   configure_code_diagnostics(D::Ruby.strict) do |hash|
     # Allow FallbackAny warnings for variables in ensure blocks
