@@ -1,3 +1,10 @@
+## [1.0.1] - 2026-09-30
+
+### Fixed
+
+* Ship RBS signatures that leave core and the standard library alone: the gem no longer redeclares `MatchData#[]`, `OpenSSL.secure_compare`, `OpenSSL::PKey::PKey#sign` and `#verify`, or `StringScanner`, so code that loads its signatures through `rbs collection` no longer fails `rbs validate` with a duplicated `MatchData#[]` definition
+* Add `sig/manifest.yaml`, naming the standard libraries the signatures refer to (`json`, `openssl`, `securerandom`, `strscan`, and `uri`), so `rbs collection` loads them for code that depends on the gem
+
 ## [1.0.0] - 2026-09-12
 
 ### Changed
