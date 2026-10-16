@@ -12,8 +12,3 @@ updates:
       interval: daily
     cooldown:
       default-days: 7
-    groups:
-      minor-and-patch:
-        update-types:
-          - minor
-          - patch
