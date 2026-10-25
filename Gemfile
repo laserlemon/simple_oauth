@@ -11,6 +11,9 @@ gem "base64", ">= 0.3"
 gem "duel" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4")
 gem "minitest", ">= 6.0"
 gem "mutant-minitest", ">= 0.13"
+# The openssl gem before 4.0 segfaults on an RSA key with no arguments when
+# linked against OpenSSL 4.0, which kills mutant's workers on that mutation
+gem "openssl", ">= 4"
 gem "rake", ">= 13.3.1"
 gem "rbs", ">= 4"
 gem "rubocop", ">= 1.82.1"
