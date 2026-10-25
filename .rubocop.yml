@@ -7,8 +7,14 @@ plugins:
   - rubocop-performance
   - rubocop-rake
 
+inherit_mode:
+  merge:
+    - Include
+
 AllCops:
   NewCops: enable
+  Include:
+    - .duel.rb
   TargetRubyVersion: 3.2
 
 Layout/ArgumentAlignment:
