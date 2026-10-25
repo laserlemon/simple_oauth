@@ -22,8 +22,8 @@ module DuelHelper
   # The endpoint the OAuth 1.0 benchmarks sign requests for
   URL = "https://api.example.com/1.1/statuses/update.json"
 
-  # A 2048-bit RSA key, made for these benchmarks only
-  RSA_KEY_PATH = File.expand_path("fixtures/rsa-private-key", __dir__)
+  # The tests' RSA key
+  RSA_KEY_PATH = File.expand_path("../test/fixtures/rsa-private-key", __dir__)
 
   # A status update, the typical form-encoded request a client signs
   STATUS_PARAMS = {
@@ -48,7 +48,7 @@ module DuelHelper
   # OAuth 1.0 options with the fixed credentials, merged with any others
   def oauth(**options) = CREDENTIALS.merge(options)
 
-  # The PEM of the benchmarks' RSA private key
+  # The PEM of the RSA private key
   def rsa_private_key = File.read(RSA_KEY_PATH)
 
   # Many form parameters with long values, with some keys repeating,
