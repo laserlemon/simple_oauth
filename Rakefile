@@ -41,3 +41,10 @@ task :steep do
 end
 
 task default: %i[test rubocop standard mutant yardstick steep]
+
+begin
+  require "duel/rake_task"
+  Duel::RakeTask.new
+rescue LoadError
+  # Duel requires Ruby 3.4 or later
+end

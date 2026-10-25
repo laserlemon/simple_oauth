@@ -6,6 +6,7 @@
 [![Lint](https://github.com/laserlemon/simple_oauth/actions/workflows/lint.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/lint.yml)
 [![Typecheck](https://github.com/laserlemon/simple_oauth/actions/workflows/typecheck.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/typecheck.yml)
 [![Yardstick](https://github.com/laserlemon/simple_oauth/actions/workflows/yardstick.yml/badge.svg)](https://github.com/laserlemon/simple_oauth/actions/workflows/yardstick.yml)
+[![Duel](https://raw.githubusercontent.com/sferik/duel-ruby/main/assets/badge.svg)](https://github.com/sferik/duel-ruby)
 
 Simply builds and verifies OAuth 1.0 headers per [RFC 5849](https://tools.ietf.org/html/rfc5849), and builds OAuth 2.0 requests per [RFC 6749](https://www.rfc-editor.org/rfc/rfc6749), [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636), and [RFC 7009](https://www.rfc-editor.org/rfc/rfc7009).
 
