@@ -8,7 +8,7 @@ gemspec
 # The tests compare against base64 as a reference for the pack("m0") the library uses
 gem "base64", ">= 0.3"
 # Duel requires Ruby 3.4 or later
-gem "duel" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4")
+gem "duel", ">= 0.1.1" if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4")
 gem "minitest", ">= 6.0"
 gem "mutant-minitest", ">= 0.13"
 # The openssl gem before 4.0 segfaults on an RSA key with no arguments when
