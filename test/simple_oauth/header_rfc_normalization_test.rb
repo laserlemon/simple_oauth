@@ -68,7 +68,8 @@ module SimpleOAuth
     def test_the_signature_verifies_against_the_same_request
       parsed = SimpleOAuth::Header.from_request(request, header.to_s)
 
-      assert parsed.valid?(consumer_secret: OPTIONS[:consumer_secret], token_secret: OPTIONS[:token_secret])
+      assert parsed.valid?(consumer_secret: OPTIONS[:consumer_secret], token_secret: OPTIONS[:token_secret],
+        signature_method: "HMAC-SHA1")
     end
 
     private

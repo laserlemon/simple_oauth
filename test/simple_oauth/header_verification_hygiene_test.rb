@@ -24,7 +24,7 @@ module SimpleOAuth
         observed << header.options[:consumer_secret]
         "signature"
       end
-      header.valid?(consumer_secret: "s3cret")
+      header.valid?(consumer_secret: "s3cret", signature_method: "HMAC-SHA512")
 
       assert_equal [nil], observed
     end
@@ -32,7 +32,7 @@ module SimpleOAuth
     def test_options_are_unchanged_after_verifying
       header = parsed_header
       before = header.options.dup
-      header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET)
+      header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, signature_method: "HMAC-SHA1")
 
       assert_equal before, header.options
     end
@@ -40,15 +40,17 @@ module SimpleOAuth
     def test_verifying_uses_the_given_secrets
       header = parsed_header
 
-      assert header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET)
-      refute header.valid?(consumer_secret: "other")
+      assert header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, signature_method: "HMAC-SHA1")
+      refute header.valid?(consumer_secret: "other", signature_method: "HMAC-SHA1")
     end
 
     def test_verifying_concurrently_gives_each_caller_its_own_answer
       header = parsed_header
       without_abort_on_exception do
-        right = Thread.new { Array.new(50) { header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET) } }
-        wrong = Thread.new { Array.new(50) { header.valid?(consumer_secret: "other") } }
+        right = Thread.new do
+          Array.new(50) { header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, signature_method: "HMAC-SHA1") }
+        end
+        wrong = Thread.new { Array.new(50) { header.valid?(consumer_secret: "other", signature_method: "HMAC-SHA1") } }
 
         assert_equal [true], right.value.uniq
         assert_equal [false], wrong.value.uniq

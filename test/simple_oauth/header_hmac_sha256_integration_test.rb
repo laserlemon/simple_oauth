@@ -17,7 +17,8 @@ module SimpleOAuth
       parsed = SimpleOAuth::Header.new(:get, "https://photos.example.net/photos",
         {file: "vacation.jpg", size: "original"}, header.to_s)
 
-      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET)
+      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET,
+        signature_method: "HMAC-SHA256")
     end
 
     def test_hmac_sha256_signature_produces_valid_signature_for_post
@@ -26,7 +27,8 @@ module SimpleOAuth
         hmac_sha256_post_options)
       parsed = SimpleOAuth::Header.new(:post, "https://photos.example.net/token", {}, header.to_s)
 
-      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TEMP_TOKEN_SECRET)
+      assert parsed.valid?(consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TEMP_TOKEN_SECRET,
+        signature_method: "HMAC-SHA256")
     end
 
     private

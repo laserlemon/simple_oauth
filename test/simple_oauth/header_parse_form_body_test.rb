@@ -226,7 +226,7 @@ module SimpleOAuth
       parsed_oauth = SimpleOAuth::Header.parse_form_body(form_body)
       reconstructed_header = SimpleOAuth::Header.new(:post, "https://api.example.com/resource", {}, parsed_oauth)
 
-      assert reconstructed_header.valid?(secrets)
+      assert reconstructed_header.valid?(secrets.merge(signature_method: "HMAC-SHA1"))
     end
 
     def test_parsed_form_body_validation_with_request_params
@@ -239,7 +239,7 @@ module SimpleOAuth
       url = "https://api.example.com/update"
       reconstructed_header = SimpleOAuth::Header.new(:post, url, request_params, parsed_oauth)
 
-      assert reconstructed_header.valid?(secrets)
+      assert reconstructed_header.valid?(secrets.merge(signature_method: "HMAC-SHA1"))
     end
 
     private

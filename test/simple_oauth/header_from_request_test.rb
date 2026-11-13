@@ -101,7 +101,9 @@ module SimpleOAuth
       signed = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, OPTIONS)
       request = Net::HTTP::Get.new(URI(RFC5849::PHOTOS_URL))
 
-      assert SimpleOAuth::Header.from_request(request, signed.to_s).valid?(consumer_secret: RFC5849::CONSUMER_SECRET)
+      assert SimpleOAuth::Header.from_request(request, signed.to_s).valid?(
+        consumer_secret: RFC5849::CONSUMER_SECRET, signature_method: "HMAC-SHA1"
+      )
     end
 
     def test_a_form_encoded_request_without_a_body

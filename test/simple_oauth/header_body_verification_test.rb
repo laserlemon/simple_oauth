@@ -10,7 +10,7 @@ module SimpleOAuth
 
     cover "SimpleOAuth::Header*"
 
-    SECRETS = {consumer_secret: RFC5849::CONSUMER_SECRET}.freeze
+    SECRETS = {consumer_secret: RFC5849::CONSUMER_SECRET, signature_method: "HMAC-SHA1"}.freeze
     BODY = '{"status":"Hello Ladies + Gentlemen"}'
     TAMPERED_BODY = '{"status":"Goodbye Ladies + Gentlemen"}'
 
@@ -23,11 +23,11 @@ module SimpleOAuth
     end
 
     def test_a_body_matching_a_sha256_hash_is_valid
-      assert valid?(signed_authorization("HMAC-SHA256"), BODY)
+      assert valid?(signed_authorization("HMAC-SHA256"), BODY, "HMAC-SHA256")
     end
 
     def test_a_tampered_body_is_not_valid_under_sha256
-      refute valid?(signed_authorization("HMAC-SHA256"), TAMPERED_BODY)
+      refute valid?(signed_authorization("HMAC-SHA256"), TAMPERED_BODY, "HMAC-SHA256")
     end
 
     def test_a_body_the_signature_leaves_uncovered_is_valid
@@ -48,10 +48,10 @@ module SimpleOAuth
       SimpleOAuth::Header.new(:post, RFC5849::PHOTOS_URL, {}, options, BODY).to_s
     end
 
-    def valid?(authorization, body)
+    def valid?(authorization, body, signature_method = SimpleOAuth::Header::DEFAULT_SIGNATURE_METHOD)
       request = Net::HTTP::Post.new(URI(RFC5849::PHOTOS_URL), "Content-Type" => "application/json")
       request.body = body
-      SimpleOAuth::Header.from_request(request, authorization).valid?(SECRETS)
+      SimpleOAuth::Header.from_request(request, authorization).valid?(SECRETS.merge(signature_method: signature_method))
     end
   end
 end

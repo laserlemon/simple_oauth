@@ -163,7 +163,7 @@ header.valid?(consumer_secret: "secret", token_secret: "token_secret", signature
 # => true
 ```
 
-Name the signature method you expect, and a header claiming any other method is not valid. The method a request claims is chosen by whoever sent it, so verifying with it unchecked would let anyone holding an RSA public key pass it off as an HMAC or PLAINTEXT secret. Leaving `signature_method` out is deprecated: the header must then claim an RSA method for an RSA key and an HMAC method for any other secret. PLAINTEXT signatures are accepted only when you name `PLAINTEXT`, and they send the secrets themselves, so accept them only over TLS.
+Name the signature method you expect every time. A header claiming any other method is not valid, because the method a request claims is chosen by whoever sent it. Verifying with the method the header names would let anyone holding an RSA public key pass it off as an HMAC or PLAINTEXT secret. PLAINTEXT signatures are accepted only when you name `PLAINTEXT`, and they send the secrets themselves, so accept them only over TLS.
 
 Verifying compares signatures in constant time and leaves the header's own options untouched, so the secrets stay with the caller.
 

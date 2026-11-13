@@ -15,11 +15,12 @@ module SimpleOAuth
       header = build_header(token_secret: RFC5849::TOKEN_SECRET)
       parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
 
-      refute_predicate parsed_header, :valid?
+      refute parsed_header.valid?(signature_method: "HMAC-SHA1")
     end
 
     def test_valid_hmac_sha1_is_valid_with_secrets
-      secrets = {consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET}
+      secrets = {consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET,
+                 signature_method: "HMAC-SHA1"}
       header = build_header(token_secret: RFC5849::TOKEN_SECRET)
       parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
 
@@ -28,14 +29,7 @@ module SimpleOAuth
 
     # #valid? tests - RSA-SHA1
 
-    def test_valid_rsa_sha1_is_not_valid_without_a_key
-      header = build_header(consumer_secret: rsa_private_key, signature_method: "RSA-SHA1")
-      parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
-
-      refute_predicate parsed_header, :valid?
-    end
-
-    def test_valid_rsa_sha1_named_raises_type_error_without_a_key
+    def test_valid_rsa_sha1_raises_type_error_without_private_key
       header = build_header(consumer_secret: rsa_private_key, signature_method: "RSA-SHA1")
       parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
 
@@ -43,7 +37,7 @@ module SimpleOAuth
     end
 
     def test_valid_rsa_sha1_is_valid_with_private_key
-      secrets = {consumer_secret: rsa_private_key}
+      secrets = {consumer_secret: rsa_private_key, signature_method: "RSA-SHA1"}
       header = build_header(consumer_secret: rsa_private_key, signature_method: "RSA-SHA1")
       parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
 
@@ -75,7 +69,8 @@ module SimpleOAuth
     end
 
     def test_valid_restores_original_options_after_validation
-      secrets = {consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET}
+      secrets = {consumer_secret: RFC5849::CONSUMER_SECRET, token_secret: RFC5849::TOKEN_SECRET,
+                 signature_method: "HMAC-SHA1"}
       header = build_header(token_secret: RFC5849::TOKEN_SECRET)
       parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
       original_options = parsed_header.options.dup
@@ -89,7 +84,8 @@ module SimpleOAuth
       header = build_header(token_secret: RFC5849::TOKEN_SECRET)
       parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
 
-      refute parsed_header.valid?(consumer_secret: "WRONG_SECRET", token_secret: "WRONG_TOKEN")
+      refute parsed_header.valid?(consumer_secret: "WRONG_SECRET", token_secret: "WRONG_TOKEN",
+        signature_method: "HMAC-SHA1")
     end
   end
 end
