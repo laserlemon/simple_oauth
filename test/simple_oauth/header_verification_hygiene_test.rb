@@ -44,14 +44,28 @@ module SimpleOAuth
 
     def test_verifying_concurrently_gives_each_caller_its_own_answer
       header = parsed_header
-      right = Thread.new { Array.new(50) { header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET) } }
-      wrong = Thread.new { Array.new(50) { header.valid?(consumer_secret: "other") } }
+      without_abort_on_exception do
+        right = Thread.new { Array.new(50) { header.valid?(consumer_secret: RFC5849::CONSUMER_SECRET) } }
+        wrong = Thread.new { Array.new(50) { header.valid?(consumer_secret: "other") } }
 
-      assert_equal [true], right.value.uniq
-      assert_equal [false], wrong.value.uniq
+        assert_equal [true], right.value.uniq
+        assert_equal [false], wrong.value.uniq
+      end
     end
 
     private
+
+    # Lets a thread's error reach the test through Thread#value
+    #
+    # Mutant sets Thread.abort_on_exception, which raises a thread's error in the main thread at
+    # whatever point it has reached, even after this test, so the flag is off until the threads finish
+    def without_abort_on_exception
+      abort_on_exception = Thread.abort_on_exception
+      Thread.abort_on_exception = false
+      yield
+    ensure
+      Thread.abort_on_exception = abort_on_exception
+    end
 
     def parsed_header(signature_method = "HMAC-SHA1")
       signed = build_header_with_fixed_credentials(:get, RFC5849::PHOTOS_URL, {}, signature_method: signature_method)
