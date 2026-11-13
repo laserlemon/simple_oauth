@@ -62,6 +62,9 @@ module SimpleOAuth
     # Valid keys when parsing OAuth parameters (ATTRIBUTE_KEYS + signature)
     PARSE_KEYS: Array[Symbol]
 
+    # The signature method that sends the secrets themselves, which verifying accepts only when named
+    PLAINTEXT_SIGNATURE_METHOD: String
+
     # What from_request needs from a request object, such as a Net::HTTPRequest
     interface _Request
       def method: () -> String
@@ -147,6 +150,15 @@ module SimpleOAuth
 
     # The key for signing and verifying
     def signing_key: (oauth_options options) -> String?
+
+    # Checks that the header claims a signature method the verifier accepts
+    def signature_method_acceptable?: (oauth_options verifying, String? expected) -> bool
+
+    # Checks that the header claims the signature method the verifier names
+    def expected_signature_method?: (String claimed, String expected) -> bool
+
+    # Checks whether a verifying key is an RSA key
+    def rsa_key?: (String? key) -> bool
 
     # Checks the body against the oauth_body_hash the header carries
     def body_hash_valid?: () -> bool

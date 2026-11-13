@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- `Header#valid?` no longer verifies with whatever signature method the received header claims. A server verifying RSA signatures with a client's public key, as the README showed, accepted forged requests signed with that public key as an HMAC-SHA1 or PLAINTEXT secret. Reported by Rathnadeepan (HotWater, [@HotWater-015](https://github.com/HotWater-015))
+  - Given a `signature_method`, the header must claim that method
+  - Without one, the header must claim an RSA method for an RSA key and an HMAC method for any other secret
+  - PLAINTEXT signatures verify only when the caller names `PLAINTEXT`
+
+### Deprecated
+
+- Calling `Header#valid?` without a `signature_method`, which a later major version will require
+
 ## [1.0.1] - 2026-09-30
 
 ### Fixed
