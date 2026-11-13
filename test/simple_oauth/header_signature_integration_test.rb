@@ -69,7 +69,8 @@ module SimpleOAuth
       parsed = SimpleOAuth::Header.new(:post, "http://server.example.com/request_temp_credentials", {},
         header.to_s)
 
-      assert parsed.valid?(consumer_secret: RFC5849::PlaintextExample::CONSUMER_SECRET)
+      assert parsed.valid?(consumer_secret: RFC5849::PlaintextExample::CONSUMER_SECRET,
+        signature_method: "PLAINTEXT")
     end
 
     def test_plaintext_signature_is_escaped_secret

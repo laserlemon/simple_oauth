@@ -26,11 +26,18 @@ module SimpleOAuth
 
     # #valid? tests - RSA-SHA1
 
-    def test_valid_rsa_sha1_raises_type_error_without_private_key
+    def test_valid_rsa_sha1_is_not_valid_without_a_key
       header = build_header(consumer_secret: rsa_private_key, signature_method: "RSA-SHA1")
       parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
 
-      assert_raises(TypeError) { parsed_header.valid? }
+      refute_predicate parsed_header, :valid?
+    end
+
+    def test_valid_rsa_sha1_named_raises_type_error_without_a_key
+      header = build_header(consumer_secret: rsa_private_key, signature_method: "RSA-SHA1")
+      parsed_header = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
+
+      assert_raises(TypeError) { parsed_header.valid?(signature_method: "RSA-SHA1") }
     end
 
     def test_valid_rsa_sha1_is_valid_with_private_key
@@ -51,7 +58,7 @@ module SimpleOAuth
         secrets.merge(signature_method: "PLAINTEXT"))
       parsed_header = SimpleOAuth::Header.new(:get, "http://server.example.com/resource", {}, header)
 
-      refute_predicate parsed_header, :valid?
+      refute parsed_header.valid?(signature_method: "PLAINTEXT")
     end
 
     def test_valid_plaintext_is_valid_with_secrets
@@ -62,7 +69,7 @@ module SimpleOAuth
         secrets.merge(signature_method: "PLAINTEXT"))
       parsed_header = SimpleOAuth::Header.new(:get, "http://server.example.com/resource", {}, header)
 
-      assert parsed_header.valid?(secrets)
+      assert parsed_header.valid?(secrets.merge(signature_method: "PLAINTEXT"))
     end
 
     def test_valid_restores_original_options_after_validation

@@ -155,16 +155,18 @@ parsed = SimpleOAuth::Header.parse_query("oauth_consumer_key=key&status=hello")
 header = SimpleOAuth::Header.new(:get, request_url, params, authorization_header)
 
 # Verify the signature
-header.valid?(consumer_secret: "secret", token_secret: "token_secret")
+header.valid?(consumer_secret: "secret", token_secret: "token_secret", signature_method: "HMAC-SHA1")
 # => true
 ```
+
+Name the signature method you expect, and a header claiming any other method is not valid. The method a request claims is chosen by whoever sent it, so verifying with it unchecked would let anyone holding an RSA public key pass it off as an HMAC or PLAINTEXT secret. Leaving `signature_method` out is deprecated: the header must then claim an RSA method for an RSA key and an HMAC method for any other secret. PLAINTEXT signatures are accepted only when you name `PLAINTEXT`, and they send the secrets themselves, so accept them only over TLS.
 
 Verifying compares signatures in constant time and leaves the header's own options untouched, so the secrets stay with the caller.
 
 RSA signatures verify with the client's public key, which is all a server has:
 
 ```ruby
-header.valid?(consumer_secret: File.read("client_public_key.pem"))
+header.valid?(consumer_secret: File.read("client_public_key.pem"), signature_method: "RSA-SHA1")
 ```
 
 Custom signature methods that cannot be verified by recomputing the signature register a `verify` block:
