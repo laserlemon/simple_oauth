@@ -26,6 +26,10 @@ module SimpleOAuth
     # Registry of signature method implementations
     @registry = {}
 
+    # The registry key of each name a signature method was registered under, so a lookup by that
+    # name, as nearly every lookup is, needs no normalizing and allocates nothing
+    @names = {}
+
     class << self
       # Registers a custom signature method
       #
@@ -47,7 +51,9 @@ module SimpleOAuth
       #     )
       #   end
       def register(name, rsa: false, verify: nil, digest: DEFAULT_DIGEST, &block)
-        @registry[normalize_name(name)] = {implementation: block, rsa: rsa, verifier: verify, digest: digest}
+        key = normalize_name(name)
+        @names[name] = key
+        @registry[key] = {implementation: block, rsa: rsa, verifier: verify, digest: digest}
       end
 
       # Checks if a signature method is registered
@@ -58,7 +64,7 @@ module SimpleOAuth
       # @example
       #   SimpleOAuth::Signature.registered?("HMAC-SHA1") # => true
       def registered?(name)
-        @registry.key?(normalize_name(name))
+        @registry.key?(registry_key(name))
       end
 
       # Returns list of registered signature method names
@@ -80,7 +86,7 @@ module SimpleOAuth
       #   SimpleOAuth::Signature.rsa?("RSA-SHA1")  # => true
       #   SimpleOAuth::Signature.rsa?("HMAC-SHA1") # => false
       def rsa?(name)
-        @registry.dig(normalize_name(name), :rsa) || false
+        @registry.dig(registry_key(name), :rsa) || false
       end
 
       # Returns the hash algorithm a signature method signs with
@@ -136,7 +142,9 @@ module SimpleOAuth
       # @example
       #   SimpleOAuth::Signature.unregister("HMAC-SHA512")
       def unregister(name)
-        @registry.delete(normalize_name(name))
+        key = registry_key(name)
+        @names.delete_if { |_, registered| registered.eql?(key) }
+        @registry.delete(key)
       end
 
       # Resets the registry to only built-in methods (useful for testing)
@@ -147,6 +155,7 @@ module SimpleOAuth
       #   SimpleOAuth::Signature.reset!
       def reset!
         @registry.clear
+        @names.clear
         register_builtin_methods
       end
 
@@ -183,10 +192,23 @@ module SimpleOAuth
       # @return [Hash] the registry entry
       # @raise [ArgumentError] if the signature method is not registered
       def fetch(name)
-        @registry.fetch(normalize_name(name)) do
+        @registry.fetch(registry_key(name)) do
           raise ArgumentError, "Unknown signature method: #{name}. " \
                                "Registered methods: #{@registry.keys.join(", ")}"
         end
+      end
+
+      # Finds the registry key for a signature method name
+      #
+      # A name a method was registered under is found in the index of those names. Any other
+      # spelling is normalized, without being added to the index, so names from received headers
+      # cannot grow it.
+      #
+      # @api private
+      # @param name [String] the signature method name
+      # @return [String] the registry key (lowercase, dashes to underscores)
+      def registry_key(name)
+        @names[name] || normalize_name(name)
       end
 
       # Normalizes signature method name for registry lookup

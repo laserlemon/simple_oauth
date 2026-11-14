@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Changed
+
+* Look up a signature method by the name it was registered under without allocating, so signing a request allocates at least 4 fewer objects and verifying one at least 6 fewer. Verifying without a `signature_method` now allocates fewer objects than in 0.5.1
+
 ## [0.5.3] - 2026-11-14
 
 ### Fixed
