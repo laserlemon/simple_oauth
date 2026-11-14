@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Fixed
+
+* Verify as fast as 0.5.1 when `Header#valid?` is not given a `signature_method`. 0.5.2 parsed the `consumer_secret` as an RSA key on every verification, which takes far longer to fail for a shared secret than verifying does, and parsed an RSA key twice. That made such a verification about 60 to 70 percent slower. Only a secret in PEM, or one that could be in DER, is now parsed, and an RSA key only once
+
 ## [0.5.2] - 2026-11-14
 
 ### Security
