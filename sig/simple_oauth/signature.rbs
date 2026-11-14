@@ -19,6 +19,9 @@ module SimpleOAuth
     # Registry of signature method implementations (class-level instance variable)
     self.@registry: Hash[String, registry_entry]
 
+    # The registry key of each name a signature method was registered under
+    self.@names: Hash[String | Symbol, String]
+
     # Registers a custom signature method
     def self.register: (String | Symbol name, ?rsa: bool, ?verify: verifier_block?, ?digest: String) { (untyped, String) -> String } -> void
 
@@ -56,6 +59,9 @@ module SimpleOAuth
 
     # Looks up a registered signature method
     def self.fetch: (String | Symbol name) -> registry_entry
+
+    # Finds the registry key for a signature method name
+    def self.registry_key: (String | Symbol name) -> String
 
     # Normalizes signature method name for registry lookup
     def self.normalize_name: (String | Symbol name) -> String
