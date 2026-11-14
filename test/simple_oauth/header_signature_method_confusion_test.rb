@@ -46,7 +46,9 @@ module SimpleOAuth
     def test_a_weaker_hash_is_not_valid_when_a_stronger_one_is_expected
       signed = build_header(signature_method: "HMAC-SHA1")
 
-      refute received(signed).valid?(consumer_secret: RFC5849::CONSUMER_SECRET, signature_method: "HMAC-SHA256")
+      valid = received(signed).valid?(consumer_secret: RFC5849::CONSUMER_SECRET, signature_method: "HMAC-SHA256")
+
+      assert_same false, valid
     end
 
     def test_the_expected_method_is_compared_without_regard_to_case
@@ -75,6 +77,16 @@ module SimpleOAuth
       error = assert_raises(ArgumentError) { received(build_header).valid?(consumer_secret: RFC5849::CONSUMER_SECRET) }
 
       assert_equal 'Name the signature method to verify with, such as signature_method: "HMAC-SHA1"', error.message
+    end
+
+    def test_an_unregistered_method_the_header_also_claims_raises
+      header = 'OAuth oauth_consumer_key="key", oauth_nonce="n", oauth_signature="sig", ' \
+               'oauth_signature_method="HMAC-MD5", oauth_timestamp="1"'
+      received = SimpleOAuth::Header.new(:get, RFC5849::PHOTOS_URL, {}, header)
+
+      error = assert_raises(ArgumentError) { received.valid?(consumer_secret: "s", signature_method: "HMAC-MD5") }
+
+      assert_match(/\AUnknown signature method: HMAC-MD5/, error.message)
     end
 
     def test_an_unregistered_expected_method_raises

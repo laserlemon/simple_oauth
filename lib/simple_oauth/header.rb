@@ -147,8 +147,6 @@ module SimpleOAuth
       expected = secrets.fetch(:signature_method) do
         raise ArgumentError, "Name the signature method to verify with, such as signature_method: \"HMAC-SHA1\""
       end
-      raise ArgumentError, "Unknown signature method: #{expected}" unless Signature.registered?(expected)
-
       signature_method_expected?(expected) && body_hash_valid? &&
         Signature.verify(expected, signing_key(secrets), signature_base, options.fetch(:signature))
     end
@@ -234,13 +232,19 @@ module SimpleOAuth
 
     # Checks that the header claims the signature method the verifier expects
     #
-    # Signature method names are compared without regard to case, as the registry looks them up.
+    # Signature method names are compared without regard to ASCII case, as the registry looks
+    # them up, and without allocating. A header that claims the expected method needs no other
+    # check here, since Signature.verify raises for a method that is not registered.
     #
     # @api private
     # @param expected [String] the signature method the verifier expects
     # @return [Boolean] true if the header claims the expected method
+    # @raise [ArgumentError] if the expected signature method is not registered
     def signature_method_expected?(expected)
-      options[:signature_method].to_s.casecmp?(expected)
+      return true if options[:signature_method].to_s.casecmp(expected).eql?(0)
+      raise ArgumentError, "Unknown signature method: #{expected}" unless Signature.registered?(expected)
+
+      false
     end
 
     # Checks the body against the oauth_body_hash the header carries
