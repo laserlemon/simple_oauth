@@ -11,7 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Breaking:** `Header#valid?` requires the `signature_method` the header must use, raising `ArgumentError` without one, rather than accepting a method that fits the key
 - **Breaking:** `Header#valid?` verifies with only the secrets it is given, not secrets the header was built with
-- Look up a signature method by the name it was registered under without allocating, so signing and verifying a request allocate 4 to 8 fewer objects
+
+## [1.0.4] - 2026-11-14
+
+### Changed
+
+- Look up a signature method by the name it was registered under without allocating, so signing a request allocates at least 4 fewer objects and verifying one at least 6 fewer. Verifying without a `signature_method` now allocates fewer objects than in 1.0.1
+
+## [0.5.4] - 2026-11-14
+
+### Changed
+
+- Look up a signature method by the name it was registered under without allocating, so signing a request allocates at least 4 fewer objects and verifying one at least 6 fewer. Verifying without a `signature_method` now allocates fewer objects than in 0.5.1
 
 ## [1.0.3] - 2026-11-14
 
@@ -151,7 +162,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Avoid symbolizing untrusted input in parse methods for security
 - Refactored `Header.parse` for improved robustness using StringScanner
 
-[Unreleased]: https://github.com/laserlemon/simple_oauth/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/laserlemon/simple_oauth/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/laserlemon/simple_oauth/compare/v1.0.3...v1.0.4
+[0.5.4]: https://github.com/laserlemon/simple_oauth/compare/v0.5.3...v0.5.4
 [1.0.3]: https://github.com/laserlemon/simple_oauth/compare/v1.0.2...v1.0.3
 [0.5.3]: https://github.com/laserlemon/simple_oauth/compare/v0.5.2...v0.5.3
 [1.0.2]: https://github.com/laserlemon/simple_oauth/compare/v1.0.1...v1.0.2
