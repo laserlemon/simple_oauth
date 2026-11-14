@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** `Header#valid?` requires the `signature_method` the header must use, raising `ArgumentError` without one, rather than accepting a method that fits the key
 - **Breaking:** `Header#valid?` verifies with only the secrets it is given, not secrets the header was built with
 
+## [1.0.3] - 2026-11-14
+
+### Fixed
+
+- Verify as fast as 1.0.1 when `Header#valid?` is not given a `signature_method`. 1.0.2 parsed the `consumer_secret` as an RSA key on every verification, which takes far longer to fail for a shared secret than verifying does, and parsed an RSA key twice. That made such a verification about 60 to 70 percent slower. Only a secret in PEM, or one that could be in DER, is now parsed, and an RSA key only once
+
+## [0.5.3] - 2026-11-14
+
+### Fixed
+
+- Verify as fast as 0.5.1 when `Header#valid?` is not given a `signature_method`. 0.5.2 parsed the `consumer_secret` as an RSA key on every verification, which takes far longer to fail for a shared secret than verifying does, and parsed an RSA key twice. That made such a verification about 60 to 70 percent slower. Only a secret in PEM, or one that could be in DER, is now parsed, and an RSA key only once
+
 ## [1.0.2] - 2026-11-14
 
 ### Security
@@ -138,7 +150,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Avoid symbolizing untrusted input in parse methods for security
 - Refactored `Header.parse` for improved robustness using StringScanner
 
-[Unreleased]: https://github.com/laserlemon/simple_oauth/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/laserlemon/simple_oauth/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/laserlemon/simple_oauth/compare/v1.0.2...v1.0.3
+[0.5.3]: https://github.com/laserlemon/simple_oauth/compare/v0.5.2...v0.5.3
 [1.0.2]: https://github.com/laserlemon/simple_oauth/compare/v1.0.1...v1.0.2
 [0.5.2]: https://github.com/laserlemon/simple_oauth/compare/v0.5.1...v0.5.2
 [1.0.1]: https://github.com/laserlemon/simple_oauth/compare/v1.0.0...v1.0.1
