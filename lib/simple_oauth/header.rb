@@ -7,6 +7,7 @@ require_relative "parser"
 require_relative "signature"
 require_relative "header/class_methods"
 require_relative "header/params"
+require_relative "header/verification"
 
 module SimpleOAuth
   # Generates OAuth 1.0 Authorization headers for HTTP requests
@@ -68,6 +69,7 @@ module SimpleOAuth
     attr_reader :options
 
     include Params
+    include Verification
 
     extend ClassMethods
     extend Encoding
@@ -147,9 +149,8 @@ module SimpleOAuth
     #   # => true
     def valid?(secrets = {})
       verifying = options.merge(secrets)
-      signature_method_acceptable?(verifying, secrets[:signature_method]) && body_hash_valid? &&
-        Signature.verify(options.fetch(:signature_method), signing_key(verifying), signature_base,
-          options.fetch(:signature))
+      expected = secrets[:signature_method]
+      signature_method_acceptable?(verifying, expected) && body_hash_valid? && signature_valid?(verifying, expected)
     end
 
     # Returns the OAuth attributes including the signature
@@ -231,47 +232,25 @@ module SimpleOAuth
       Signature.rsa?(options.fetch(:signature_method)) ? options[:consumer_secret] : secret(options)
     end
 
-    # Checks that the header claims a signature method the verifier accepts
+    # Verifies the signature with the method the header claims
+    #
+    # A header that claims an RSA method, with no signature_method named, is verified without first
+    # parsing the key to check that it is an RSA key, so the key is parsed once rather than twice. The verifier
+    # raises PKeyError only for a key that is not an RSA key, which makes the header not valid, as
+    # the key does not fit the method. A verifier that names a method keeps the error, since naming
+    # an RSA method with another key is a mistake to report.
     #
     # @api private
     # @param verifying [Hash] the header's options merged with the verifier's secrets
     # @param expected [String, nil] the signature method the verifier expects, if it names one
-    # @return [Boolean] true if the claimed method is the expected one, or fits the key
-    # @raise [ArgumentError] if the expected signature method is not registered
-    def signature_method_acceptable?(verifying, expected)
-      claimed = options[:signature_method].to_s
-      return expected_signature_method?(claimed, expected) if expected
-
-      warn("SimpleOAuth::Header#valid? without a signature_method is deprecated. " \
-           "Name the method to verify with, such as signature_method: \"HMAC-SHA1\"", category: :deprecated)
-      Signature.registered?(claimed) && !PLAINTEXT_SIGNATURE_METHOD.casecmp?(claimed) &&
-        Signature.rsa?(claimed).eql?(rsa_key?(verifying[:consumer_secret]))
-    end
-
-    # Checks that the header claims the signature method the verifier names
-    #
-    # Signature method names are compared without regard to case, as the registry looks them up.
-    #
-    # @api private
-    # @param claimed [String] the signature method the header claims
-    # @param expected [String] the signature method the verifier expects
-    # @return [Boolean] true if the header claims the expected method
-    # @raise [ArgumentError] if the expected signature method is not registered
-    def expected_signature_method?(claimed, expected)
-      raise ArgumentError, "Unknown signature method: #{expected}" unless Signature.registered?(expected)
-
-      claimed.casecmp?(expected)
-    end
-
-    # Checks whether a verifying key is an RSA key
-    #
-    # @api private
-    # @param key [String, nil] the consumer_secret the verifier gave
-    # @return [Boolean] true if the key parses as an RSA key
-    def rsa_key?(key)
-      OpenSSL::PKey::RSA.new(key.to_s)
-      true
+    # @return [Boolean] true if the signature is valid
+    # @raise [OpenSSL::PKey::PKeyError] if the verifier names an RSA method with a key that is not an RSA key
+    def signature_valid?(verifying, expected)
+      Signature.verify(options.fetch(:signature_method), signing_key(verifying), signature_base,
+        options.fetch(:signature))
     rescue OpenSSL::PKey::PKeyError
+      raise if expected
+
       false
     end
 

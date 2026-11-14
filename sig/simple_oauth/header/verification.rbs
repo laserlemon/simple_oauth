@@ -1,0 +1,28 @@
+module SimpleOAuth
+  class Header
+    # What the Verification module needs from the header that includes it
+    interface _Verifiable
+      def options: () -> Header::oauth_options
+    end
+
+    # Checks of the signature method a received header claims, before it is verified with it
+    module Verification : _Verifiable
+      # The first byte of a key in DER, which encodes every key as an ASN.1 SEQUENCE
+      ASN1_SEQUENCE: Integer
+
+      # The start of the line that opens every key in PEM
+      PEM_BOUNDARY: String
+
+      private
+
+      # Checks that the header claims a signature method the verifier accepts
+      def signature_method_acceptable?: (Header::oauth_options verifying, String? expected) -> bool
+      # Checks that the header claims the signature method the verifier names
+      def expected_signature_method?: (String claimed, String expected) -> bool
+      # Checks whether a verifying key is encoded as a key could be
+      def key_encoded?: (String key) -> bool
+      # Checks whether a verifying key is an RSA key
+      def rsa_key?: (String key) -> bool
+    end
+  end
+end
