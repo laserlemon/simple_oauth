@@ -16,8 +16,9 @@ module DuelHelper
     timestamp: "137131200"
   }.freeze
 
-  # The secrets a server verifies those credentials' signatures with
-  SECRETS = CREDENTIALS.slice(:consumer_secret, :token_secret).freeze
+  # The secrets a server verifies those credentials' signatures with, and the
+  # signature method it expects them to be signed with
+  SECRETS = CREDENTIALS.slice(:consumer_secret, :token_secret).merge(signature_method: "HMAC-SHA1").freeze
 
   # The endpoint the OAuth 1.0 benchmarks sign requests for
   URL = "https://api.example.com/1.1/statuses/update.json"

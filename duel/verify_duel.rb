@@ -19,7 +19,7 @@ duel "verify: RSA-SHA1 with a public key" do
     @public_key = OpenSSL::PKey::RSA.new(key).public_key.to_pem
   end
   header = SimpleOAuth::Header.new(:post, DuelHelper::URL, DuelHelper::STATUS_PARAMS, @header)
-  header.valid?(consumer_secret: @public_key) || raise("the signature didn't verify")
+  header.valid?(consumer_secret: @public_key, signature_method: "RSA-SHA1") || raise("the signature didn't verify")
 end
 
 duel "verify: HMAC-SHA1 with a 1 KB JSON body" do
